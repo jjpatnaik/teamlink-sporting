@@ -14,6 +14,7 @@ export const formSchema = z.object({
   clubs: z.string().optional(),
   achievements: z.string().optional(),
   profilePicture: z.instanceof(FileList).optional(),
+  backgroundPicture: z.instanceof(FileList).optional(),
   facebookId: z.string().optional(),
   whatsappId: z.string().optional(),
   instagramId: z.string().optional(),

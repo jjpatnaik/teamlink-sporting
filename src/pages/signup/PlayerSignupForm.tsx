@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +21,9 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Card } from "@/components/ui/card";
+import { UserCircle, Image as ImageIcon } from "lucide-react";
 import { formSchema, FormValues } from "./schema";
 import { sports, sportPositions, clubs } from "./constants";
 import { handleSignup } from "./utils";
@@ -32,6 +35,8 @@ interface PlayerSignupFormProps {
 
 const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoading }) => {
   const [selectedSport, setSelectedSport] = React.useState<string>("");
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
+  const [backgroundPreview, setBackgroundPreview] = useState<string | null>(null);
   const navigate = useNavigate();
   
   const form = useForm<FormValues>({
@@ -59,9 +64,110 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
     setIsLoading(false);
   };
 
+  const handleFileChange = (files: FileList | null, type: 'profile' | 'background') => {
+    if (files && files.length > 0) {
+      const file = files[0];
+      const fileReader = new FileReader();
+      
+      fileReader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (type === 'profile') {
+          setProfilePreview(result);
+        } else {
+          setBackgroundPreview(result);
+        }
+      };
+      
+      fileReader.readAsDataURL(file);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Image Upload Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Profile Images</h3>
+          
+          {/* Background Image Upload */}
+          <FormField
+            control={form.control}
+            name="backgroundPicture"
+            render={({ field: { value, onChange, ...fieldProps } }) => (
+              <FormItem>
+                <FormLabel>Background Image</FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    <Card className="overflow-hidden">
+                      <AspectRatio ratio={3/1} className="bg-muted">
+                        {backgroundPreview ? (
+                          <img
+                            src={backgroundPreview}
+                            alt="Background preview"
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full bg-muted">
+                            <ImageIcon className="w-10 h-10 text-muted-foreground" />
+                          </div>
+                        )}
+                      </AspectRatio>
+                    </Card>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        onChange(e.target.files);
+                        handleFileChange(e.target.files, 'background');
+                      }}
+                      {...fieldProps}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Profile Picture Upload */}
+          <FormField
+            control={form.control}
+            name="profilePicture"
+            render={({ field: { value, onChange, ...fieldProps } }) => (
+              <FormItem>
+                <FormLabel>Profile Picture</FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    <div className="w-32 h-32 rounded-full overflow-hidden bg-muted mx-auto border-4 border-background relative -mt-16 shadow-lg">
+                      {profilePreview ? (
+                        <img
+                          src={profilePreview}
+                          alt="Profile preview"
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-full">
+                          <UserCircle className="w-full h-full text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        onChange(e.target.files);
+                        handleFileChange(e.target.files, 'profile');
+                      }}
+                      {...fieldProps}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         {/* Full Name */}
         <FormField
           control={form.control}
@@ -207,26 +313,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                   placeholder="List your key achievements (e.g., MVP, All-Star selections)"
                   {...field}
                   className="min-h-[100px]"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Profile Picture */}
-        <FormField
-          control={form.control}
-          name="profilePicture"
-          render={({ field: { value, onChange, ...fieldProps } }) => (
-            <FormItem>
-              <FormLabel>Upload Profile Picture</FormLabel>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => onChange(e.target.files)}
-                  {...fieldProps}
                 />
               </FormControl>
               <FormMessage />
