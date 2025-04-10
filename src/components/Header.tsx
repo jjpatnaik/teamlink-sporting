@@ -1,28 +1,11 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Link } from "react-router-dom";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  const sports = [
-    "Football", 
-    "Basketball", 
-    "Cricket", 
-    "Tennis", 
-    "Badminton", 
-    "Volleyball", 
-    "Hockey", 
-    "Rugby"
-  ];
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -38,23 +21,7 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="nav-link flex items-center">
-                  Sports
-                  <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {sports.map((sport) => (
-                  <DropdownMenuItem key={sport} className="cursor-pointer">
-                    {sport}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
+          <div className="hidden md:flex items-center space-x-8">            
             <Link to="/how-it-works" className="nav-link">
               How It Works
             </Link>
@@ -85,22 +52,6 @@ const Header = () => {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden pt-4 pb-3 space-y-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="nav-link flex items-center w-full justify-start">
-                  Sports
-                  <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                {sports.map((sport) => (
-                  <DropdownMenuItem key={sport} className="cursor-pointer">
-                    {sport}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
             <div className="px-2">
               <Link to="/how-it-works" className="nav-link block py-2">
                 How It Works
