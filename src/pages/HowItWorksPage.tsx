@@ -28,10 +28,10 @@ const HowItWorksPage = () => {
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                How <span className="text-sport-purple">TeamLink</span> Works
+                How <span className="text-sport-purple">Sportshive</span> Works
               </h1>
               <p className="text-lg md:text-xl text-sport-gray mb-8">
-                TeamLink connects players, teams, tournaments, and sponsors in one professional sports network.
+                Sportshive connects players, teams, tournaments, and sponsors in one professional sports network.
                 Discover how our platform can help you advance your sports career or organization.
               </p>
             </div>
@@ -45,9 +45,9 @@ const HowItWorksPage = () => {
         <section className="py-16 md:py-24 bg-sport-soft-blue/30">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="section-title">Your TeamLink Journey</h2>
+              <h2 className="section-title">Your Sportshive Journey</h2>
               <p className="text-lg text-sport-gray max-w-3xl mx-auto">
-                Getting started with TeamLink is easy. Follow these simple steps to create your profile
+                Getting started with Sportshive is easy. Follow these simple steps to create your profile
                 and start connecting with the sports community.
               </p>
             </div>
@@ -163,7 +163,7 @@ const HowItWorksPage = () => {
             <div className="text-center mb-16">
               <h2 className="section-title">Key Platform Features</h2>
               <p className="text-lg text-sport-gray max-w-3xl mx-auto">
-                TeamLink offers a comprehensive set of features designed to connect the sports community
+                Sportshive offers a comprehensive set of features designed to connect the sports community
                 and provide value to all users.
               </p>
             </div>
@@ -250,22 +250,22 @@ const HowItWorksPage = () => {
             <div className="text-center mb-16">
               <h2 className="section-title">Frequently Asked Questions</h2>
               <p className="text-lg text-sport-gray max-w-3xl mx-auto">
-                Have questions about TeamLink? Find answers to our most commonly asked questions below.
+                Have questions about Sportshive? Find answers to our most commonly asked questions below.
               </p>
             </div>
             
             <div className="max-w-3xl mx-auto space-y-6">
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-bold mb-3">Is TeamLink free to use?</h3>
+                <h3 className="text-xl font-bold mb-3">Is Sportshive free to use?</h3>
                 <p className="text-sport-gray">
-                  TeamLink offers both free and premium membership options. The free membership provides basic profile creation and networking features, while premium memberships unlock advanced features like priority placement in search results, detailed analytics, and enhanced media storage.
+                  Sportshive offers both free and premium membership options. The free membership provides basic profile creation and networking features, while premium memberships unlock advanced features like priority placement in search results, detailed analytics, and enhanced media storage.
                 </p>
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-bold mb-3">Which sports are supported on TeamLink?</h3>
+                <h3 className="text-xl font-bold mb-3">Which sports are supported on Sportshive?</h3>
                 <p className="text-sport-gray">
-                  TeamLink supports a wide range of sports including basketball, football, soccer, baseball, volleyball, tennis, cricket, rugby, hockey, and many more. We're constantly expanding our sport categories based on user demand.
+                  Sportshive supports a wide range of sports including basketball, football, soccer, baseball, volleyball, tennis, cricket, rugby, hockey, and many more. We're constantly expanding our sport categories based on user demand.
                 </p>
               </div>
               
@@ -277,16 +277,16 @@ const HowItWorksPage = () => {
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-bold mb-3">How can teams use TeamLink for recruitment?</h3>
+                <h3 className="text-xl font-bold mb-3">How can teams use Sportshive for recruitment?</h3>
                 <p className="text-sport-gray">
                   Teams can create recruitment listings specifying the positions they're looking to fill and the qualifications they're seeking. They can also search for players using our advanced filters, review player profiles, and directly message potential recruits.
                 </p>
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-bold mb-3">Can I use TeamLink for youth sports?</h3>
+                <h3 className="text-xl font-bold mb-3">Can I use Sportshive for youth sports?</h3>
                 <p className="text-sport-gray">
-                  Yes, TeamLink is designed for athletes of all ages. For users under 18, we offer special youth profiles with enhanced privacy protections and parental consent requirements. Youth teams and tournaments can also create profiles to connect with their community.
+                  Yes, Sportshive is designed for athletes of all ages. For users under 18, we offer special youth profiles with enhanced privacy protections and parental consent requirements. Youth teams and tournaments can also create profiles to connect with their community.
                 </p>
               </div>
             </div>
@@ -298,7 +298,7 @@ const HowItWorksPage = () => {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                Ready to Join the TeamLink Community?
+                Ready to Join the Sportshive Community?
               </h2>
               <p className="text-lg md:text-xl text-white/90 mb-8">
                 Create your profile today and start connecting with players, teams, tournaments, and sponsors.

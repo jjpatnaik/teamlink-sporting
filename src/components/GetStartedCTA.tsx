@@ -11,7 +11,7 @@ const GetStartedCTA = () => {
             Ready to Take Your Sports Career to the Next Level?
           </h2>
           <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of players, teams, tournaments, and sponsors on TeamLink.
+            Join thousands of players, teams, tournaments, and sponsors on Sportshive.
             Create your profile today and start connecting with the sports community.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

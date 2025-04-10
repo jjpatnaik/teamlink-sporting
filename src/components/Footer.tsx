@@ -16,7 +16,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           <div>
             <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-sport-purple to-sport-blue bg-clip-text text-transparent">
-              TeamLink
+              Sportshive
             </h3>
             <p className="text-gray-300 mb-4">
               Connect with the global sports community. Build your profile, grow your network, and advance your sports career.
@@ -121,7 +121,7 @@ const Footer = () => {
         
         <div className="border-t border-gray-700 pt-8">
           <p className="text-center text-gray-400">
-            &copy; {new Date().getFullYear()} TeamLink. All rights reserved.
+            &copy; {new Date().getFullYear()} Sportshive. All rights reserved.
           </p>
         </div>
       </div>
