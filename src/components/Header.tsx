@@ -21,11 +21,7 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">            
-            <Link to="/how-it-works" className="nav-link">
-              How It Works
-            </Link>
-            
+          <div className="hidden md:flex items-center space-x-8">
             <div className="flex items-center space-x-3">
               <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
                 Log In
@@ -52,12 +48,6 @@ const Header = () => {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden pt-4 pb-3 space-y-3">
-            <div className="px-2">
-              <Link to="/how-it-works" className="nav-link block py-2">
-                How It Works
-              </Link>
-            </div>
-            
             <div className="flex flex-col space-y-2 px-2 pt-2">
               <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple w-full">
                 Log In
