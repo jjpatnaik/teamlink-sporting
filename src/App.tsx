@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import HowItWorksPage from "./pages/HowItWorksPage";
+import PlayerProfile from "./pages/PlayerProfile";
+import TeamProfile from "./pages/TeamProfile";
+import TournamentProfile from "./pages/TournamentProfile";
+import SponsorProfile from "./pages/SponsorProfile";
 
 const queryClient = new QueryClient();
 
@@ -16,7 +22,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/players" element={<PlayerProfile />} />
+          <Route path="/teams" element={<TeamProfile />} />
+          <Route path="/tournaments" element={<TournamentProfile />} />
+          <Route path="/sponsors" element={<SponsorProfile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
