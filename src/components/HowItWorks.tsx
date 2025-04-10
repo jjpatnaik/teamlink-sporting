@@ -43,7 +43,7 @@ const HowItWorks = () => {
     <section className="py-16 md:py-24 bg-white" id="how-it-works">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="section-title">How TeamLink Works</h2>
+          <h2 className="section-title">How Sportshive Works</h2>
           <p className="text-lg text-sport-gray max-w-3xl mx-auto">
             Our platform connects all parts of the sports ecosystem in one professional network.
             Build your profile, grow your network, and advance your sports career.
@@ -77,7 +77,7 @@ const HowItWorks = () => {
         </div>
 
         <div className="mt-16 md:mt-24 text-center">
-          <h3 className="text-2xl md:text-3xl font-bold mb-8">Why Join TeamLink?</h3>
+          <h3 className="text-2xl md:text-3xl font-bold mb-8">Why Join Sportshive?</h3>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
             <div className="flex flex-col items-center">
