@@ -30,8 +30,8 @@ const Header = () => {
               <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
                 Log In
               </Button>
-              <Button className="btn-primary">
-                Sign Up
+              <Button className="btn-primary" asChild>
+                <Link to="/signup">Sign Up</Link>
               </Button>
             </div>
           </div>
@@ -62,8 +62,8 @@ const Header = () => {
               <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple w-full">
                 Log In
               </Button>
-              <Button className="btn-primary w-full">
-                Sign Up
+              <Button className="btn-primary w-full" asChild>
+                <Link to="/signup">Sign Up</Link>
               </Button>
             </div>
           </div>

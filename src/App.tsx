@@ -11,6 +11,7 @@ import PlayerProfile from "./pages/PlayerProfile";
 import TeamProfile from "./pages/TeamProfile";
 import TournamentProfile from "./pages/TournamentProfile";
 import SponsorProfile from "./pages/SponsorProfile";
+import SignupPage from "./pages/SignupPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/teams" element={<TeamProfile />} />
           <Route path="/tournaments" element={<TournamentProfile />} />
           <Route path="/sponsors" element={<SponsorProfile />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
