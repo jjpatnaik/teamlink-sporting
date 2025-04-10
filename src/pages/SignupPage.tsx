@@ -128,22 +128,25 @@ const SignupPage = () => {
       }
       
       // 2. Create the player profile with the remaining data
+      const playerProfile = {
+        id: authData.user.id,
+        full_name: data.fullName,
+        sport: data.sport,
+        position: data.position,
+        clubs: data.clubs || null,
+        achievements: data.achievements || null,
+        facebook_id: data.facebookId || null,
+        whatsapp_id: data.whatsappId || null,
+        instagram_id: data.instagramId || null,
+      };
+      
       const { error: profileError } = await supabase
         .from('player_details')
-        .insert({
-          id: authData.user.id,
-          full_name: data.fullName,
-          sport: data.sport,
-          position: data.position,
-          clubs: data.clubs || null,
-          achievements: data.achievements || null,
-          facebook_id: data.facebookId || null,
-          whatsapp_id: data.whatsappId || null,
-          instagram_id: data.instagramId || null,
-        });
+        .insert(playerProfile);
       
       if (profileError) {
-        throw profileError;
+        console.error("Profile insertion error:", profileError);
+        throw new Error("Failed to create player profile: " + profileError.message);
       }
       
       toast.success("Signup successful! Check your email to verify your account.");

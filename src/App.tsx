@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import HowItWorksPage from "./pages/HowItWorksPage";
@@ -13,27 +14,30 @@ import TournamentProfile from "./pages/TournamentProfile";
 import SponsorProfile from "./pages/SponsorProfile";
 import SignupPage from "./pages/SignupPage";
 
-const queryClient = new QueryClient();
+const App = () => {
+  // Create a client inside the component - not outside
+  const [queryClient] = useState(() => new QueryClient());
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/how-it-works" element={<HowItWorksPage />} />
-          <Route path="/players" element={<PlayerProfile />} />
-          <Route path="/teams" element={<TeamProfile />} />
-          <Route path="/tournaments" element={<TournamentProfile />} />
-          <Route path="/sponsors" element={<SponsorProfile />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/players" element={<PlayerProfile />} />
+            <Route path="/teams" element={<TeamProfile />} />
+            <Route path="/tournaments" element={<TournamentProfile />} />
+            <Route path="/sponsors" element={<SponsorProfile />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
