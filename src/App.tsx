@@ -12,7 +12,7 @@ import PlayerProfile from "./pages/PlayerProfile";
 import TeamProfile from "./pages/TeamProfile";
 import TournamentProfile from "./pages/TournamentProfile";
 import SponsorProfile from "./pages/SponsorProfile";
-import SignupPage from "./pages/SignupPage";
+import SignupPage from "./pages/signup";
 
 const App = () => {
   // Create a client inside the component - not outside
