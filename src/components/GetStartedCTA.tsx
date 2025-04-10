@@ -18,7 +18,7 @@ const GetStartedCTA = () => {
             <Button className="bg-white text-sport-purple hover:bg-gray-100 text-lg" size="lg">
               Create Your Profile
             </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white/10 text-lg" size="lg">
+            <Button className="bg-white text-sport-purple hover:bg-gray-100 text-lg" size="lg">
               Explore Profiles
             </Button>
           </div>
