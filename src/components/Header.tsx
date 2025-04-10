@@ -32,7 +32,7 @@ const Header = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <span className="text-2xl font-bold bg-gradient-to-r from-sport-purple to-sport-blue bg-clip-text text-transparent">
-                TeamLink
+                Sportshive
               </span>
             </Link>
           </div>

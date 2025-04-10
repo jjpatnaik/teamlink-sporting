@@ -39,7 +39,7 @@ const HeroSection = () => {
                   <div className="relative rounded-xl overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-tr from-sport-purple/30 to-sport-blue/30 z-10"></div>
                     <img
-                      src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80"
+                      src="https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&q=80"
                       alt="Cricket match"
                       className="w-full h-[400px] object-cover"
                     />
@@ -59,7 +59,7 @@ const HeroSection = () => {
                   <div className="relative rounded-xl overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-tr from-sport-purple/30 to-sport-blue/30 z-10"></div>
                     <img
-                      src="https://images.unsplash.com/photo-1626224583764-f88b815bad2a?auto=format&fit=crop&q=80"
+                      src="https://images.unsplash.com/photo-1564226803562-10923809ccac?auto=format&fit=crop&q=80"
                       alt="Badminton match"
                       className="w-full h-[400px] object-cover"
                     />
