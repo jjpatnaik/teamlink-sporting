@@ -1,237 +1,310 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  Briefcase,
-  MapPin,
-  Users,
-  Building,
-  Award,
-  Instagram,
-  Twitter,
-  Youtube,
-  Link as LinkIcon,
-  Mail,
-  Phone,
-  Globe
-} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { BriefcaseIcon, MapPinIcon, CalendarIcon, CheckCircleIcon, TrophyIcon, UsersIcon } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const SponsorProfile = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          {/* Cover Photo */}
-          <div className="h-48 bg-gradient-to-r from-sport-bright-blue to-sport-blue relative">
-            <Button variant="ghost" className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white">
-              Edit Profile
-            </Button>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-grow">
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div className="h-48 bg-gradient-to-r from-sport-purple to-sport-blue relative">
+              <Button variant="outline" className="absolute top-4 right-4 bg-white/90 hover:bg-white">
+                Edit Profile
+              </Button>
+            </div>
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 -mt-16">
+              <div className="flex flex-col sm:flex-row sm:items-end">
+                <Avatar className="h-32 w-32 rounded-full border-4 border-white shadow-md">
+                  <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Nike Sports" />
+                </Avatar>
+                <div className="mt-4 sm:mt-0 sm:ml-4">
+                  <h1 className="text-3xl font-bold">Nike Sports</h1>
+                  <p className="text-lg text-sport-gray">Global Sports Apparel & Equipment</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Badge className="bg-sport-purple">Equipment</Badge>
+                    <Badge className="bg-sport-blue">Apparel</Badge>
+                    <Badge className="bg-sport-purple">Footwear</Badge>
+                    <Badge className="bg-sport-blue">Event Sponsorship</Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          {/* Profile Info */}
-          <div className="relative px-6 pt-16 pb-6">
-            <div className="absolute -top-16 left-6">
-              <div className="w-32 h-32 rounded-full border-4 border-white bg-sport-soft-blue flex items-center justify-center overflow-hidden">
-                <Briefcase className="w-20 h-20 text-sport-blue" />
-              </div>
-            </div>
+          <Tabs defaultValue="about" className="mb-8">
+            <TabsList className="grid grid-cols-4 w-full max-w-2xl mb-6">
+              <TabsTrigger value="about">About</TabsTrigger>
+              <TabsTrigger value="sponsored">Sponsored</TabsTrigger>
+              <TabsTrigger value="events">Events</TabsTrigger>
+              <TabsTrigger value="connections">Connections</TabsTrigger>
+            </TabsList>
             
-            <div className="flex flex-col md:flex-row justify-between">
-              <div>
-                <h1 className="text-3xl font-bold">SportsTech Inc.</h1>
-                <p className="text-xl text-sport-blue">Sports Equipment & Technology</p>
-                <div className="flex items-center mt-2 text-sport-gray">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  <span>Chicago, IL, USA</span>
+            <TabsContent value="about">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>About Nike Sports</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sport-gray mb-4">
+                        Nike, Inc. is an American multinational corporation that is engaged in the design, development, manufacturing, and worldwide marketing and sales of footwear, apparel, equipment, accessories, and services.
+                      </p>
+                      <p className="text-sport-gray mb-4">
+                        We're committed to supporting athletes at all levels, from grassroots to professional. Our sponsorship programs aim to provide athletes with the best equipment and apparel to help them perform at their best.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                        <div className="flex items-center gap-2">
+                          <BriefcaseIcon className="text-sport-purple" />
+                          <span>Sports Equipment & Apparel</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPinIcon className="text-sport-purple" />
+                          <span>Beaverton, Oregon, USA</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CalendarIcon className="text-sport-purple" />
+                          <span>Founded in 1964</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <UsersIcon className="text-sport-purple" />
+                          <span>75,000+ employees worldwide</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle>Sponsorship Focus</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="flex flex-col">
+                          <h3 className="font-semibold text-lg mb-2">Sports Categories</h3>
+                          <ul className="space-y-2">
+                            <li className="flex items-center gap-2">
+                              <CheckCircleIcon className="h-5 w-5 text-sport-purple" />
+                              <span>Football/Soccer</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircleIcon className="h-5 w-5 text-sport-purple" />
+                              <span>Basketball</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircleIcon className="h-5 w-5 text-sport-purple" />
+                              <span>Running</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircleIcon className="h-5 w-5 text-sport-purple" />
+                              <span>Tennis</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircleIcon className="h-5 w-5 text-sport-purple" />
+                              <span>Cricket</span>
+                            </li>
+                          </ul>
+                        </div>
+                        <div className="flex flex-col">
+                          <h3 className="font-semibold text-lg mb-2">Sponsorship Types</h3>
+                          <ul className="space-y-2">
+                            <li className="flex items-center gap-2">
+                              <TrophyIcon className="h-5 w-5 text-sport-blue" />
+                              <span>Professional Athletes</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <TrophyIcon className="h-5 w-5 text-sport-blue" />
+                              <span>National Teams</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <TrophyIcon className="h-5 w-5 text-sport-blue" />
+                              <span>League Competitions</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <TrophyIcon className="h-5 w-5 text-sport-blue" />
+                              <span>Youth Development</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <TrophyIcon className="h-5 w-5 text-sport-blue" />
+                              <span>Event Sponsorships</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contact Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="font-semibold">Main Office</h3>
+                          <p className="text-sport-gray">
+                            One Bowerman Drive<br />
+                            Beaverton, OR 97005<br />
+                            United States
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Sponsorship Inquiries</h3>
+                          <p className="text-sport-gray">
+                            Email: sponsorships@nike.com<br />
+                            Phone: +1 (503) 671-6453
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Web Presence</h3>
+                          <p className="text-sport-gray">
+                            Website: www.nike.com<br />
+                            Social: @nikesports
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button className="w-full bg-sport-purple">Contact for Sponsorship</Button>
+                    </CardFooter>
+                  </Card>
+                  
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle>Budget Range</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span>Individual Athletes</span>
+                          <span className="font-semibold">$50K - $10M+</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Teams</span>
+                          <span className="font-semibold">$500K - $50M+</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tournaments</span>
+                          <span className="font-semibold">$250K - $5M</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Youth Programs</span>
+                          <span className="font-semibold">$25K - $500K</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
-              
-              <div className="mt-4 md:mt-0 flex space-x-2">
-                <Button className="btn-secondary">Connect</Button>
-                <Button variant="outline" className="border-sport-blue text-sport-blue hover:bg-sport-soft-blue">
-                  Partnership Inquiry
-                </Button>
-              </div>
-            </div>
+            </TabsContent>
             
-            {/* Company Description */}
-            <div className="mt-6">
-              <h2 className="text-xl font-semibold mb-2">About SportsTech</h2>
-              <p className="text-sport-gray">
-                SportsTech Inc. is a leading provider of sports equipment and performance monitoring technology. 
-                Founded in 2010, we've been at the forefront of innovation in sports technology, 
-                helping athletes at all levels improve their performance through data-driven insights and premium equipment. 
-                We sponsor teams and tournaments across the Midwest region and are actively looking to expand our sponsorship portfolio.
-              </p>
-            </div>
+            <TabsContent value="sponsored">
+              <h2 className="text-2xl font-bold mb-6">Current Sponsorships</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Sponsored content would go here */}
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <CardTitle>Manchester United</CardTitle>
+                      <Badge>Team</Badge>
+                    </div>
+                    <CardDescription>Premier League Football Club</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4 mb-4">
+                      <Avatar>
+                        <img src="https://images.unsplash.com/photo-1564914138563-0c50eaca135b?auto=format&fit=crop&q=80" alt="Manchester United" />
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold">Kit Sponsor</p>
+                        <p className="text-sm text-sport-gray">Since 2002</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-sport-gray">Full kit and training wear supplier for one of the world's most popular football clubs.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" className="w-full">View Details</Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <CardTitle>Serena Williams</CardTitle>
+                      <Badge>Athlete</Badge>
+                    </div>
+                    <CardDescription>Professional Tennis Player</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4 mb-4">
+                      <Avatar>
+                        <img src="https://images.unsplash.com/photo-1612452826316-41725f420e44?auto=format&fit=crop&q=80" alt="Serena Williams" />
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold">Lifetime Deal</p>
+                        <p className="text-sm text-sport-gray">Since 2003</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-sport-gray">Exclusive apparel and footwear sponsorship with signature product lines.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" className="w-full">View Details</Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <CardTitle>World Athletics Championships</CardTitle>
+                      <Badge>Tournament</Badge>
+                    </div>
+                    <CardDescription>Global Athletics Competition</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4 mb-4">
+                      <Avatar>
+                        <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80" alt="World Athletics" />
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold">Official Supplier</p>
+                        <p className="text-sm text-sport-gray">Since 2009</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-sport-gray">Official apparel and equipment supplier for athletes and officials.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" className="w-full">View Details</Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </TabsContent>
             
-            {/* Company Details */}
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-sport-gray">Founded</p>
-                <p className="text-lg font-semibold">2010</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-sport-gray">Employees</p>
-                <p className="text-lg font-semibold">250+</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-sport-gray">Industry</p>
-                <p className="text-lg font-semibold">Sports Technology</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-sport-gray">Website</p>
-                <p className="text-lg font-semibold truncate">sportstech.com</p>
-              </div>
-            </div>
+            <TabsContent value="events">
+              <h2 className="text-2xl font-bold mb-6">Sponsored Events</h2>
+              {/* Events content would go here */}
+              <p className="text-sport-gray">Events tab content...</p>
+            </TabsContent>
             
-            {/* Sponsorship Information */}
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">Sponsorship Opportunities</h2>
-              
-              <div className="space-y-4">
-                <div className="bg-sport-soft-blue/30 p-5 rounded-lg">
-                  <h3 className="text-lg font-semibold text-sport-bright-blue mb-2">What We Offer</h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-start">
-                      <Award className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                      <span>Financial sponsorship for teams and tournaments</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Award className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                      <span>Equipment and technology provision</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Award className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                      <span>Performance analytics and coaching support</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Award className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                      <span>Marketing and promotional collaboration</span>
-                    </li>
-                  </ul>
-                </div>
-                
-                <div className="bg-sport-soft-blue/30 p-5 rounded-lg">
-                  <h3 className="text-lg font-semibold text-sport-bright-blue mb-2">What We Look For</h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-start">
-                      <Award className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                      <span>Teams and athletes that align with our brand values</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Award className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                      <span>Tournaments with regional or national visibility</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Award className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                      <span>Opportunities for product testing and feedback</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Award className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                      <span>Long-term partnership potential</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            {/* Current Partnerships */}
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">Current Partnerships</h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 bg-sport-light-purple rounded-full flex items-center justify-center mr-3">
-                    <span className="font-bold">CT</span>
-                  </div>
-                  <span className="font-medium">Chicago Thunder</span>
-                </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                    <Trophy className="w-5 h-5 text-red-500" />
-                  </div>
-                  <span className="font-medium">Midwest Championship</span>
-                </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <Users className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <span className="font-medium">Youth Sports League</span>
-                </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="font-bold">JS</span>
-                  </div>
-                  <span className="font-medium">John Smith (Player)</span>
-                </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="font-bold">MP</span>
-                  </div>
-                  <span className="font-medium">Minneapolis Power</span>
-                </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <Trophy className="w-5 h-5 text-purple-500" />
-                  </div>
-                  <span className="font-medium">College Basketball Series</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Contact & Social Media */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <Mail className="w-5 h-5 text-sport-gray mr-2" />
-                    <span>sponsorships@sportstech.com</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Phone className="w-5 h-5 text-sport-gray mr-2" />
-                    <span>+1 (312) 555-8765</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Globe className="w-5 h-5 text-sport-gray mr-2" />
-                    <a href="#" className="text-sport-blue hover:underline">www.sportstech.com</a>
-                  </div>
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 text-sport-gray mr-2" />
-                    <span>456 Tech Blvd, Chicago, IL</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h2 className="text-xl font-semibold mb-4">Connect</h2>
-                
-                <div className="flex space-x-4">
-                  <a href="#" className="text-sport-gray hover:text-[#1DA1F2] transition-colors">
-                    <Twitter className="w-6 h-6" />
-                  </a>
-                  <a href="#" className="text-sport-gray hover:text-[#E4405F] transition-colors">
-                    <Instagram className="w-6 h-6" />
-                  </a>
-                  <a href="#" className="text-sport-gray hover:text-[#FF0000] transition-colors">
-                    <Youtube className="w-6 h-6" />
-                  </a>
-                  <a href="#" className="text-sport-gray hover:text-sport-blue transition-colors">
-                    <LinkIcon className="w-6 h-6" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+            <TabsContent value="connections">
+              <h2 className="text-2xl font-bold mb-6">Network Connections</h2>
+              {/* Connections content would go here */}
+              <p className="text-sport-gray">Connections tab content...</p>
+            </TabsContent>
+          </Tabs>
         </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 };

@@ -1,6 +1,13 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselPrevious, 
+  CarouselNext 
+} from "@/components/ui/carousel";
 
 const HeroSection = () => {
   return (
@@ -26,14 +33,42 @@ const HeroSection = () => {
           </div>
           
           <div className="relative">
-            <div className="relative rounded-xl overflow-hidden shadow-2xl transform transition duration-500 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-tr from-sport-purple/30 to-sport-blue/30 z-10"></div>
-              <img
-                src="https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&q=80"
-                alt="Athletes networking"
-                className="w-full h-auto"
-              />
-            </div>
+            <Carousel className="w-full rounded-xl overflow-hidden shadow-2xl">
+              <CarouselContent>
+                <CarouselItem>
+                  <div className="relative rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-sport-purple/30 to-sport-blue/30 z-10"></div>
+                    <img
+                      src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80"
+                      alt="Cricket match"
+                      className="w-full h-[400px] object-cover"
+                    />
+                  </div>
+                </CarouselItem>
+                <CarouselItem>
+                  <div className="relative rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-sport-purple/30 to-sport-blue/30 z-10"></div>
+                    <img
+                      src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&q=80"
+                      alt="Soccer match"
+                      className="w-full h-[400px] object-cover"
+                    />
+                  </div>
+                </CarouselItem>
+                <CarouselItem>
+                  <div className="relative rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-sport-purple/30 to-sport-blue/30 z-10"></div>
+                    <img
+                      src="https://images.unsplash.com/photo-1626224583764-f88b815bad2a?auto=format&fit=crop&q=80"
+                      alt="Badminton match"
+                      className="w-full h-[400px] object-cover"
+                    />
+                  </div>
+                </CarouselItem>
+              </CarouselContent>
+              <CarouselPrevious className="left-4" />
+              <CarouselNext className="right-4" />
+            </Carousel>
             
             <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-lg overflow-hidden shadow-xl transform -rotate-6 hidden md:block">
               <img
