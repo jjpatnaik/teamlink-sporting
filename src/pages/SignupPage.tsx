@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const userTypes = [
   { value: "player", label: "Player" },
@@ -69,6 +70,11 @@ const clubs = [
 const formSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
   sport: z.string().min(1, "Please select a sport"),
   position: z.string().min(1, "Please select a position"),
   clubs: z.string().optional(),
@@ -84,6 +90,7 @@ type FormValues = z.infer<typeof formSchema>;
 const SignupPage = () => {
   const [userType, setUserType] = useState<string>("player");
   const [selectedSport, setSelectedSport] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   
   const form = useForm<FormValues>({
@@ -91,6 +98,7 @@ const SignupPage = () => {
     defaultValues: {
       fullName: "",
       email: "",
+      password: "",
       sport: "",
       position: "",
       clubs: "",
@@ -101,11 +109,51 @@ const SignupPage = () => {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    // Here you would typically call an API to register the user
-    console.log("Form submitted:", data);
-    toast.success("Signup successful! Check your email to verify your account.");
-    setTimeout(() => navigate("/"), 2000);
+  const onSubmit = async (data: FormValues) => {
+    try {
+      setIsLoading(true);
+      
+      // 1. Create the user account with email and password
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+      });
+      
+      if (authError) {
+        throw authError;
+      }
+      
+      if (!authData.user) {
+        throw new Error("User registration failed");
+      }
+      
+      // 2. Create the player profile with the remaining data
+      const { error: profileError } = await supabase
+        .from('player_details')
+        .insert({
+          id: authData.user.id,
+          full_name: data.fullName,
+          sport: data.sport,
+          position: data.position,
+          clubs: data.clubs || null,
+          achievements: data.achievements || null,
+          facebook_id: data.facebookId || null,
+          whatsapp_id: data.whatsappId || null,
+          instagram_id: data.instagramId || null,
+        });
+      
+      if (profileError) {
+        throw profileError;
+      }
+      
+      toast.success("Signup successful! Check your email to verify your account.");
+      setTimeout(() => navigate("/"), 2000);
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      toast.error(error.message || "Signup failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -169,6 +217,21 @@ const SignupPage = () => {
                         <FormLabel>Email Address</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter your email" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Password */}
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Create a password" type="password" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -351,8 +414,8 @@ const SignupPage = () => {
                   </div>
 
                   {/* Submit Button */}
-                  <Button type="submit" className="w-full">
-                    Create Account
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
                 </form>
               </Form>
