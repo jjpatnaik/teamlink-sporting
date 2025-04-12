@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, Users, Trophy, Award } from 'lucide-react';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,6 +22,25 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+            <div className="flex items-center space-x-6 mr-6">
+              <Link to="/players" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <User className="w-5 h-5" />
+                <span className="text-xs mt-1">Players</span>
+              </Link>
+              <Link to="/teams" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <Users className="w-5 h-5" />
+                <span className="text-xs mt-1">Teams</span>
+              </Link>
+              <Link to="/tournaments" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <Trophy className="w-5 h-5" />
+                <span className="text-xs mt-1">Tournaments</span>
+              </Link>
+              <Link to="/sponsors" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <Award className="w-5 h-5" />
+                <span className="text-xs mt-1">Sponsors</span>
+              </Link>
+            </div>
+            
             <Link to="/how-it-works" className="nav-link">
               How It Works
             </Link>
@@ -52,6 +71,25 @@ const Header = () => {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden pt-4 pb-3 space-y-3">
+            <div className="grid grid-cols-4 gap-4 px-2 py-3 border-b border-gray-100">
+              <Link to="/players" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <User className="w-5 h-5" />
+                <span className="text-xs mt-1">Players</span>
+              </Link>
+              <Link to="/teams" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <Users className="w-5 h-5" />
+                <span className="text-xs mt-1">Teams</span>
+              </Link>
+              <Link to="/tournaments" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <Trophy className="w-5 h-5" />
+                <span className="text-xs mt-1">Tournaments</span>
+              </Link>
+              <Link to="/sponsors" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <Award className="w-5 h-5" />
+                <span className="text-xs mt-1">Sponsors</span>
+              </Link>
+            </div>
+            
             <div className="px-2">
               <Link to="/how-it-works" className="nav-link block py-2">
                 How It Works
