@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Facebook, Instagram, ExternalLink } from 'lucide-react';
+import { PlayerData } from '@/hooks/usePlayerData';
 
 type SocialConnectProps = {
-  playerData: any;
+  playerData: PlayerData | null;
 };
 
 const SocialConnect = ({ playerData }: SocialConnectProps) => {

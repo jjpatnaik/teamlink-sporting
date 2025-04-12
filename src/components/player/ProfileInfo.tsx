@@ -2,9 +2,10 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { MapPin } from 'lucide-react';
+import { PlayerData } from '@/hooks/usePlayerData';
 
 type ProfileInfoProps = {
-  playerData: any;
+  playerData: PlayerData | null;
 };
 
 const ProfileInfo = ({ playerData }: ProfileInfoProps) => {

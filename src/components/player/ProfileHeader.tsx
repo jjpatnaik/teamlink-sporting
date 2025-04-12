@@ -3,9 +3,10 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserCircle } from 'lucide-react';
+import { PlayerData } from '@/hooks/usePlayerData';
 
 type ProfileHeaderProps = {
-  playerData: any;
+  playerData: PlayerData | null;
 };
 
 const ProfileHeader = ({ playerData }: ProfileHeaderProps) => {

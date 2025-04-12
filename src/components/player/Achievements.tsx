@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Award } from 'lucide-react';
+import { PlayerData } from '@/hooks/usePlayerData';
 
 type AchievementsProps = {
-  playerData: any;
+  playerData: PlayerData | null;
 };
 
 const Achievements = ({ playerData }: AchievementsProps) => {

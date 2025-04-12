@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Calendar } from 'lucide-react';
+import { PlayerData } from '@/hooks/usePlayerData';
 
 type CareerHistoryProps = {
-  playerData: any;
+  playerData: PlayerData | null;
 };
 
 const CareerHistory = ({ playerData }: CareerHistoryProps) => {

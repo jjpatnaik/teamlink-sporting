@@ -1,8 +1,9 @@
 
 import React from 'react';
+import { PlayerData } from '@/hooks/usePlayerData';
 
 type ProfileStatsProps = {
-  playerData: any;
+  playerData: PlayerData | null;
 };
 
 const ProfileStats = ({ playerData }: ProfileStatsProps) => {

@@ -1,8 +1,9 @@
 
 import React from 'react';
+import { PlayerData } from '@/hooks/usePlayerData';
 
 type ProfileBioProps = {
-  playerData: any;
+  playerData: PlayerData | null;
 };
 
 const ProfileBio = ({ playerData }: ProfileBioProps) => {
