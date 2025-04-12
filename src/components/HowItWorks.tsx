@@ -10,6 +10,7 @@ import {
   Globe, 
   PenTool
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const HowItWorks = () => {
   const profileTypes = [
@@ -17,25 +18,29 @@ const HowItWorks = () => {
       title: "Players",
       icon: UserCircle,
       description: "Create your professional profile to showcase your skills, achievements, and career history.",
-      features: ["Highlight your stats", "Share game footage", "Connect with teams", "Get discovered by scouts"]
+      features: ["Highlight your stats", "Share game footage", "Connect with teams", "Get discovered by scouts"],
+      path: "/players"
     },
     {
       title: "Teams",
       icon: Users,
       description: "Build your team profile to attract talent, engage with fans, and connect with sponsors.",
-      features: ["Recruit new players", "Announce team news", "Promote team events", "Connect with sponsors"]
+      features: ["Recruit new players", "Announce team news", "Promote team events", "Connect with sponsors"],
+      path: "/teams"
     },
     {
       title: "Tournaments",
       icon: Trophy,
       description: "Organize and promote your tournaments, recruit teams, and attract sponsors.",
-      features: ["Create tournament pages", "Manage registrations", "Live updates", "Sponsor integration"]
+      features: ["Create tournament pages", "Manage registrations", "Live updates", "Sponsor integration"],
+      path: "/tournaments"
     },
     {
       title: "Sponsors",
       icon: Briefcase,
       description: "Find athletes and teams that align with your brand values for successful partnerships.",
-      features: ["Discover talent", "Track engagement", "Measure ROI", "Build relationships"]
+      features: ["Discover talent", "Track engagement", "Measure ROI", "Build relationships"],
+      path: "/sponsors"
     }
   ];
 
@@ -52,7 +57,7 @@ const HowItWorks = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {profileTypes.map((profile, index) => (
-            <div key={index} className="card-container flex flex-col h-full">
+            <Link key={index} to={profile.path} className="card-container flex flex-col h-full hover:shadow-md transition-shadow duration-300 hover:border-sport-purple">
               <div className="mb-4 flex justify-center">
                 <div className="w-16 h-16 flex items-center justify-center rounded-full bg-sport-light-purple">
                   <profile.icon className="w-8 h-8 text-sport-purple" />
@@ -72,7 +77,7 @@ const HowItWorks = () => {
                   ))}
                 </ul>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
