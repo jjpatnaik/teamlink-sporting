@@ -12,7 +12,8 @@ import PlayerProfile from "./pages/PlayerProfile";
 import TeamProfile from "./pages/TeamProfile";
 import TournamentProfile from "./pages/TournamentProfile";
 import SponsorProfile from "./pages/SponsorProfile";
-import SignupPage from "./pages/signup";
+import SignupPage from "./pages/auth/SignupPage";
+import CreateProfilePage from "./pages/createprofile";
 
 const App = () => {
   // Create a client inside the component - not outside
@@ -32,6 +33,7 @@ const App = () => {
             <Route path="/tournaments" element={<TournamentProfile />} />
             <Route path="/sponsors" element={<SponsorProfile />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/createprofile" element={<CreateProfilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
