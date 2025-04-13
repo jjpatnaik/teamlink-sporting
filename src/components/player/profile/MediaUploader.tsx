@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { FormControl, FormItem } from "@/components/ui/form";
@@ -103,4 +102,3 @@ const MediaUploader = ({
 };
 
 export default MediaUploader;
-
