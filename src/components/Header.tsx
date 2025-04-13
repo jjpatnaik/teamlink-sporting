@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Menu, X, User, Users, Trophy, Award } from 'lucide-react';
+import { Menu, X, User, Users, Trophy, Award, Search } from 'lucide-react';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -39,6 +39,10 @@ const Header = () => {
                 <Award className="w-5 h-5" />
                 <span className="text-xs mt-1">Sponsors</span>
               </Link>
+              <Link to="/search" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <Search className="w-5 h-5" />
+                <span className="text-xs mt-1">Search</span>
+              </Link>
             </div>
             
             <Link to="/how-it-works" className="nav-link">
@@ -71,7 +75,7 @@ const Header = () => {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden pt-4 pb-3 space-y-3">
-            <div className="grid grid-cols-4 gap-4 px-2 py-3 border-b border-gray-100">
+            <div className="grid grid-cols-5 gap-4 px-2 py-3 border-b border-gray-100">
               <Link to="/players" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
                 <User className="w-5 h-5" />
                 <span className="text-xs mt-1">Players</span>
@@ -87,6 +91,10 @@ const Header = () => {
               <Link to="/sponsors" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
                 <Award className="w-5 h-5" />
                 <span className="text-xs mt-1">Sponsors</span>
+              </Link>
+              <Link to="/search" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+                <Search className="w-5 h-5" />
+                <span className="text-xs mt-1">Search</span>
               </Link>
             </div>
             
