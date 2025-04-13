@@ -1,8 +1,8 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { 
   Form, 
   FormControl, 
@@ -35,7 +35,6 @@ interface PlayerSignupFormProps {
   isLoading: boolean;
 }
 
-// Career history entry schema
 const careerEntrySchema = z.object({
   club: z.string().min(1, "Club name is required"),
   position: z.string().optional(),
@@ -43,7 +42,6 @@ const careerEntrySchema = z.object({
   endDate: z.string(),
 });
 
-// Create a simplified form schema without email and password
 const playerFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   sport: z.string().min(1, "Please select a sport"),
@@ -85,11 +83,8 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
   const onSubmit = async (data: PlayerFormValues) => {
     setIsLoading(true);
     
-    // Add career entries to the form data
     data.careerHistory = careerEntries;
     
-    // We'd need to adapt the signup handler to work without email/password
-    // For now, we'll simulate success after a short delay
     setTimeout(() => {
       navigate("/");
       setIsLoading(false);
@@ -137,14 +132,19 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* Image Upload Section - Modern Card Design */}
         <Card className="overflow-hidden bg-white border-none shadow-md">
-          {/* Background Image Upload */}
           <FormField
             control={form.control}
             name="backgroundPicture"
             render={({ field: { value, onChange, ...fieldProps } }) => (
-              <FormItem className="space-y-0">
+              <FormItem className="space-y-0 relative">
+                <Badge 
+                  variant="outline" 
+                  className="absolute top-4 right-4 z-10 bg-sport-purple/10 text-sport-purple"
+                >
+                  Player Profile
+                </Badge>
+                
                 <div className="relative">
                   <AspectRatio ratio={3/1} className="bg-gradient-to-r from-sport-blue/20 to-sport-purple/20">
                     {backgroundPreview ? (
@@ -177,7 +177,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                   </AspectRatio>
                 </div>
 
-                {/* Profile Picture Upload */}
                 <FormField
                   control={form.control}
                   name="profilePicture"
@@ -218,7 +217,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
           />
 
           <div className="p-6 pt-4">
-            {/* Full Name */}
             <FormField
               control={form.control}
               name="fullName"
@@ -234,7 +232,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Sport */}
               <FormField
                 control={form.control}
                 name="sport"
@@ -245,7 +242,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                       onValueChange={(value) => {
                         field.onChange(value);
                         setSelectedSport(value);
-                        form.setValue("position", ""); // Reset position when sport changes
+                        form.setValue("position", "");
                       }}
                       value={field.value}
                     >
@@ -267,7 +264,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                 )}
               />
 
-              {/* Position/Role - Dynamic based on Sport */}
               <FormField
                 control={form.control}
                 name="position"
@@ -298,17 +294,14 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
               />
             </div>
 
-            {/* Section Separator */}
             <Separator className="my-6 bg-sport-light-purple/30" />
 
-            {/* Career Information Section */}
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-4 text-sport-dark-gray flex items-center">
                 <Trophy className="w-5 h-5 mr-2 text-sport-purple" />
                 Career Information
               </h3>
               
-              {/* Career history entries */}
               <div className="space-y-4 mb-4">
                 {careerEntries.map((entry, index) => (
                   <CareerHistoryEntry
@@ -322,7 +315,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                 ))}
               </div>
               
-              {/* Add Career Entry Button */}
               <Button
                 type="button"
                 variant="outline"
@@ -333,7 +325,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                 <Plus className="w-4 h-4 mr-2" /> Add Career Entry
               </Button>
 
-              {/* Achievements */}
               <FormField
                 control={form.control}
                 name="achievements"
@@ -353,10 +344,8 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
               />
             </div>
 
-            {/* Section Separator */}
             <Separator className="my-6 bg-sport-light-purple/30" />
 
-            {/* Social Media Fields */}
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-4 text-sport-dark-gray flex items-center">
                 <Medal className="w-5 h-5 mr-2 text-sport-purple" />
@@ -364,7 +353,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
               </h3>
               
               <div className="grid gap-5 md:grid-cols-3">
-                {/* Facebook ID */}
                 <FormField
                   control={form.control}
                   name="facebookId"
@@ -383,7 +371,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                   )}
                 />
 
-                {/* WhatsApp ID */}
                 <FormField
                   control={form.control}
                   name="whatsappId"
@@ -402,7 +389,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                   )}
                 />
 
-                {/* Instagram ID */}
                 <FormField
                   control={form.control}
                   name="instagramId"
@@ -423,7 +409,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
               </div>
             </div>
 
-            {/* Submit Button */}
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-sport-blue to-sport-purple hover:from-sport-purple hover:to-sport-blue text-white font-medium py-2.5 mt-4" 
