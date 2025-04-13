@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -73,15 +74,15 @@ const HowItWorksPage = () => {
                       </div>
                     </div>
                     
-                    <div className="md:w-1/2 md:pl-12 md:text-left flex md:block justify-center">
-                      <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center rounded-full bg-sport-light-purple">
-                        <UserCircle className="w-8 h-8 md:w-16 md:h-16 text-sport-purple" />
+                    <div className="md:w-1/2 md:pl-12 md:text-left flex justify-center">
+                      <div className="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center rounded-full bg-sport-light-purple">
+                        <UserCircle className="w-8 h-8 md:w-12 md:h-12 text-sport-purple" />
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Step 2 - Updated alignment */}
+                {/* Step 2 */}
                 <div className="relative mb-12 md:mb-24">
                   <div className="flex flex-col md:flex-row-reverse items-center">
                     <div className="md:w-1/2 md:pl-12 mb-6 md:mb-0 md:text-left">
@@ -97,9 +98,9 @@ const HowItWorksPage = () => {
                       </div>
                     </div>
                     
-                    <div className="md:w-1/2 md:pr-12 md:text-right flex md:block justify-center">
-                      <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center rounded-full bg-sport-light-purple">
-                        <Users className="w-8 h-8 md:w-16 md:h-16 text-sport-purple" />
+                    <div className="md:w-1/2 md:pr-12 md:text-right flex justify-center">
+                      <div className="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center rounded-full bg-sport-light-purple">
+                        <Users className="w-8 h-8 md:w-12 md:h-12 text-sport-purple" />
                       </div>
                     </div>
                   </div>
@@ -121,15 +122,15 @@ const HowItWorksPage = () => {
                       </div>
                     </div>
                     
-                    <div className="md:w-1/2 md:pl-12 md:text-left flex md:block justify-center">
-                      <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center rounded-full bg-sport-light-purple">
-                        <Search className="w-8 h-8 md:w-16 md:h-16 text-sport-purple" />
+                    <div className="md:w-1/2 md:pl-12 md:text-left flex justify-center">
+                      <div className="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center rounded-full bg-sport-light-purple">
+                        <Search className="w-8 h-8 md:w-12 md:h-12 text-sport-purple" />
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Step 4 - Updated alignment */}
+                {/* Step 4 */}
                 <div className="relative">
                   <div className="flex flex-col md:flex-row-reverse items-center">
                     <div className="md:w-1/2 md:pl-12 mb-6 md:mb-0 md:text-left">
@@ -145,9 +146,9 @@ const HowItWorksPage = () => {
                       </div>
                     </div>
                     
-                    <div className="md:w-1/2 md:pr-12 md:text-right flex md:block justify-center">
-                      <div className="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center rounded-full bg-sport-light-purple">
-                        <Trophy className="w-8 h-8 md:w-16 md:h-16 text-sport-purple" />
+                    <div className="md:w-1/2 md:pr-12 md:text-right flex justify-center">
+                      <div className="w-16 h-16 md:w-24 md:h-24 flex items-center justify-center rounded-full bg-sport-light-purple">
+                        <Trophy className="w-8 h-8 md:w-12 md:h-12 text-sport-purple" />
                       </div>
                     </div>
                   </div>
