@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -20,7 +21,7 @@ const HeroSection = () => {
               <span className="text-sport-purple"> Social</span>
             </h1>
             <p className="text-lg md:text-xl text-sport-gray mb-8 max-w-lg mx-auto lg:mx-0">
-              Connect with players, teams, tournaments, and sponsors. Build your professional sports network and take your career to the next level.
+              Connect with players, teams, tournaments, and sponsors from all levels – from village clubs to professional leagues. Build a vibrant sports network and elevate your journey, whether you're just starting out or aiming for the top
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button className="btn-primary text-lg" size="lg" asChild>
