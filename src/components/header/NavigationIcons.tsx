@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { User, Users, Trophy, Award, Search, MapPin } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -15,6 +15,12 @@ interface NavigationIconsProps {
 }
 
 const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
+  const navigate = useNavigate();
+
+  const navigateToSearch = (type: string) => {
+    navigate(`/search?type=${type}&area=local`);
+  };
+
   return (
     <div className="flex items-center space-x-6 mr-6">
       <Link 
@@ -24,18 +30,27 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
         <User className="w-5 h-5" />
         <span className="text-xs mt-1">Players</span>
       </Link>
-      <Link to="/teams" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+      <button 
+        onClick={() => navigateToSearch('Team')} 
+        className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+      >
         <Users className="w-5 h-5" />
         <span className="text-xs mt-1">Teams</span>
-      </Link>
-      <Link to="/tournaments" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+      </button>
+      <button 
+        onClick={() => navigateToSearch('Tournament')} 
+        className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+      >
         <Trophy className="w-5 h-5" />
         <span className="text-xs mt-1">Tournaments</span>
-      </Link>
-      <Link to="/sponsors" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+      </button>
+      <button 
+        onClick={() => navigateToSearch('Sponsorship')} 
+        className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+      >
         <Award className="w-5 h-5" />
         <span className="text-xs mt-1">Sponsors</span>
-      </Link>
+      </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">

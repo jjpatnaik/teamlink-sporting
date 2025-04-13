@@ -18,6 +18,10 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
     navigate('/');
   };
 
+  const navigateToSearch = (type: string) => {
+    navigate(`/search?type=${type}&area=local`);
+  };
+
   if (!isOpen) {
     return null;
   }
@@ -32,18 +36,27 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
           <User className="w-5 h-5" />
           <span className="text-xs mt-1">Players</span>
         </Link>
-        <Link to="/teams" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+        <button 
+          onClick={() => navigateToSearch('Team')} 
+          className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+        >
           <Users className="w-5 h-5" />
           <span className="text-xs mt-1">Teams</span>
-        </Link>
-        <Link to="/tournaments" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+        </button>
+        <button 
+          onClick={() => navigateToSearch('Tournament')} 
+          className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+        >
           <Trophy className="w-5 h-5" />
           <span className="text-xs mt-1">Tournaments</span>
-        </Link>
-        <Link to="/sponsors" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+        </button>
+        <button 
+          onClick={() => navigateToSearch('Sponsorship')} 
+          className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+        >
           <Award className="w-5 h-5" />
           <span className="text-xs mt-1">Sponsors</span>
-        </Link>
+        </button>
         <Link to="/search" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
           <Search className="w-5 h-5" />
           <span className="text-xs mt-1">Search</span>
