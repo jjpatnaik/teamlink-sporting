@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -16,6 +15,7 @@ import {
   Share2,
   Search
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const HowItWorksPage = () => {
   return (
@@ -81,7 +81,7 @@ const HowItWorksPage = () => {
                   </div>
                 </div>
                 
-                {/* Step 2 */}
+                {/* Step 2 - Updated alignment */}
                 <div className="relative mb-12 md:mb-24">
                   <div className="flex flex-col md:flex-row-reverse items-center">
                     <div className="md:w-1/2 md:pl-12 mb-6 md:mb-0 md:text-left">
@@ -129,7 +129,7 @@ const HowItWorksPage = () => {
                   </div>
                 </div>
                 
-                {/* Step 4 */}
+                {/* Step 4 - Updated alignment */}
                 <div className="relative">
                   <div className="flex flex-col md:flex-row-reverse items-center">
                     <div className="md:w-1/2 md:pl-12 mb-6 md:mb-0 md:text-left">
