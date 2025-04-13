@@ -60,7 +60,8 @@ const MediaUploader = ({
         </AspectRatio>
       </div>
 
-      <div className="w-32 h-32 rounded-full overflow-hidden bg-white mx-auto border-4 border-white relative -mt-16 shadow-lg">
+      {/* Profile Picture - Right Aligned */}
+      <div className="absolute top-[calc(100%-4rem)] right-6 w-32 h-32 rounded-full overflow-hidden bg-white border-4 border-white shadow-lg">
         <Badge 
           variant="outline" 
           className="absolute top-2 right-2 z-10 bg-sport-purple/10 text-sport-purple"
