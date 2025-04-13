@@ -48,7 +48,7 @@ const SignupPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-10 max-w-3xl">
+      <main className="flex-grow container mx-auto px-4 py-10 max-w-md">
         <div className="space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-2">Create Your Account</h1>

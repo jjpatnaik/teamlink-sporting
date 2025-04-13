@@ -12,21 +12,6 @@ interface PersonalInfoSectionProps {
 const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ form }) => {
   return (
     <>
-      {/* Full Name */}
-      <FormField
-        control={form.control}
-        name="fullName"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Full Name*</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter your full name" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
       {/* Email Address */}
       <FormField
         control={form.control}

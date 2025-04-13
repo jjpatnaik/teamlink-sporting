@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Image as ImageIcon } from "lucide-react";
-import { FormControl, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { UserCircle } from "lucide-react";
@@ -10,17 +9,15 @@ interface MediaUploaderProps {
   backgroundPreview: string | null;
   profilePreview: string | null;
   onFileChange: (files: FileList | null, type: 'profile' | 'background') => void;
-  fieldProps?: any;
 }
 
 const MediaUploader = ({ 
   backgroundPreview, 
   profilePreview, 
-  onFileChange,
-  fieldProps 
+  onFileChange
 }: MediaUploaderProps) => {
   return (
-    <FormItem className="space-y-0 relative">
+    <div className="space-y-0 relative">
       <div className="relative">
         <AspectRatio ratio={3/1} className="bg-gradient-to-r from-sport-blue/20 to-sport-purple/20 relative">
           {backgroundPreview ? (
@@ -78,7 +75,7 @@ const MediaUploader = ({
           />
         </div>
       </div>
-    </FormItem>
+    </div>
   );
 };
 

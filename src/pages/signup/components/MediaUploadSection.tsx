@@ -25,16 +25,10 @@ const MediaUploadSection = ({
         Upload a profile picture and cover photo to personalize your profile.
       </p>
 
-      <FormField
-        control={form.control}
-        name="profilePicture"
-        render={({ field: { value, onChange, ...fieldProps } }) => (
-          <MediaUploader 
-            profilePreview={profilePreview} 
-            backgroundPreview={backgroundPreview}
-            onFileChange={handleFileChange}
-          />
-        )}
+      <MediaUploader 
+        profilePreview={profilePreview} 
+        backgroundPreview={backgroundPreview}
+        onFileChange={handleFileChange}
       />
     </div>
   );
