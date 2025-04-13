@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           achievements: string | null
           background_picture_url: string | null
+          city: string | null
           clubs: string | null
           created_at: string
           facebook_id: string | null
@@ -20,6 +21,7 @@ export type Database = {
           id: string
           instagram_id: string | null
           position: string
+          postcode: string | null
           profile_picture_url: string | null
           sport: string
           updated_at: string
@@ -28,6 +30,7 @@ export type Database = {
         Insert: {
           achievements?: string | null
           background_picture_url?: string | null
+          city?: string | null
           clubs?: string | null
           created_at?: string
           facebook_id?: string | null
@@ -35,6 +38,7 @@ export type Database = {
           id: string
           instagram_id?: string | null
           position: string
+          postcode?: string | null
           profile_picture_url?: string | null
           sport: string
           updated_at?: string
@@ -43,6 +47,7 @@ export type Database = {
         Update: {
           achievements?: string | null
           background_picture_url?: string | null
+          city?: string | null
           clubs?: string | null
           created_at?: string
           facebook_id?: string | null
@@ -50,6 +55,7 @@ export type Database = {
           id?: string
           instagram_id?: string | null
           position?: string
+          postcode?: string | null
           profile_picture_url?: string | null
           sport?: string
           updated_at?: string

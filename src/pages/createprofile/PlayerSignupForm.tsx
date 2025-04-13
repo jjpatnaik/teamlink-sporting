@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,17 +47,14 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
     },
   });
 
-  // Helper function to upload an image to Supabase storage
   const uploadImage = async (file: File, userId: string, type: 'profile' | 'background'): Promise<string | null> => {
     if (!file) return null;
     
     try {
-      // Create a unique file path with user ID and timestamp
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}-${type}-${Date.now()}.${fileExt}`;
       const filePath = `${userId}/${fileName}`;
       
-      // Upload the file to the 'images' bucket
       const { error: uploadError } = await supabase.storage
         .from('images')
         .upload(filePath, file);
@@ -67,7 +63,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
         throw uploadError;
       }
       
-      // Get the public URL for the uploaded file
       const { data } = supabase.storage
         .from('images')
         .getPublicUrl(filePath);
@@ -83,7 +78,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
     try {
       setIsLoading(true);
       
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -94,28 +88,24 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       
       console.log("Creating profile for user:", user.id);
       
-      // 1. Upload profile picture if provided
       let profilePictureUrl = null;
       if (profileFile) {
         profilePictureUrl = await uploadImage(profileFile, user.id, 'profile');
         console.log("Profile picture uploaded:", profilePictureUrl);
       }
       
-      // 2. Upload background picture if provided
       let backgroundPictureUrl = null;
       if (backgroundFile) {
         backgroundPictureUrl = await uploadImage(backgroundFile, user.id, 'background');
         console.log("Background picture uploaded:", backgroundPictureUrl);
       }
       
-      // Prepare career history as a string
       const clubsString = careerEntries
         .map(entry => `${entry.club} (${entry.position}, ${entry.startDate} - ${entry.endDate})`)
         .join('; ');
       
       console.log("Career history prepared:", clubsString);
       
-      // 3. Create or update the player profile with the submitted data
       const playerProfile = {
         id: user.id,
         full_name: data.fullName,
@@ -132,7 +122,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
         background_picture_url: backgroundPictureUrl,
       };
       
-      // Check if profile already exists
       const { data: existingProfile, error: fetchError } = await supabase
         .from('player_details')
         .select('id')
@@ -149,7 +138,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       let profileError;
       
       if (existingProfile) {
-        // Update existing profile
         console.log("Updating existing profile");
         const { error } = await supabase
           .from('player_details')
@@ -157,7 +145,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
           .eq('id', user.id);
         profileError = error;
       } else {
-        // Create new profile
         console.log("Creating new profile");
         const { error } = await supabase
           .from('player_details')
@@ -172,10 +159,8 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       
       console.log("Profile created/updated successfully");
       
-      // Set flag for success message
       localStorage.setItem('profileCreated', 'true');
       
-      // Navigate to player profile page after a short delay
       setTimeout(() => navigate("/players"), 1500);
       
       toast.success("Profile created successfully!");
@@ -211,22 +196,13 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Card className="overflow-hidden bg-white border-none shadow-md">
-          {/* Media Upload Section */}
-          <FormField
-            control={form.control}
-            name="backgroundPicture"
-            render={({ field: { value, onChange, ...fieldProps } }) => (
-              <MediaUploader
-                backgroundPreview={backgroundPreview}
-                profilePreview={profilePreview}
-                onFileChange={handleFileChange}
-                fieldProps={fieldProps}
-              />
-            )}
+          <MediaUploader
+            backgroundPreview={backgroundPreview}
+            profilePreview={profilePreview}
+            onFileChange={handleFileChange}
           />
 
           <div className="p-6 pt-4">
-            {/* Personal Information Section */}
             <PersonalInfoSection 
               form={form} 
               selectedSport={selectedSport}
@@ -235,7 +211,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
 
             <Separator className="my-6 bg-sport-light-purple/30" />
 
-            {/* Location Information Section */}
             <LocationInput 
               form={form} 
               cityFieldName="city" 
@@ -244,7 +219,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
 
             <Separator className="my-6 bg-sport-light-purple/30" />
 
-            {/* Career Information Section */}
             <div className="mb-6">
               <CareerSection
                 form={form}
@@ -255,7 +229,6 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
 
             <Separator className="my-6 bg-sport-light-purple/30" />
 
-            {/* Social Media Section */}
             <div className="mb-6">
               <SocialMediaSection form={form} />
             </div>
