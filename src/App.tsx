@@ -16,15 +16,14 @@ import SignupPage from "./pages/auth/SignupPage";
 import CreateProfilePage from "./pages/createprofile";
 
 const App = () => {
-  // Create a client inside the component - not outside
-  const [queryClient] = useState(() => new QueryClient());
+  const queryClient = new QueryClient();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />

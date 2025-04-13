@@ -105,7 +105,6 @@ const CareerHistoryEntry = ({
                 captionLayout="dropdown-buttons"
                 fromYear={1990}
                 toYear={2030}
-                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -148,7 +147,6 @@ const CareerHistoryEntry = ({
                       captionLayout="dropdown-buttons"
                       fromYear={1990}
                       toYear={2030}
-                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
