@@ -3,10 +3,11 @@ import React from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues } from "../schema";
+import { PlayerFormValues } from "@/components/player/profile/types";
 
+// Now this component is dedicated for the create profile page, not signup
 interface SocialMediaSectionProps {
-  form: UseFormReturn<FormValues>;
+  form: UseFormReturn<PlayerFormValues>;
 }
 
 const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ form }) => {

@@ -11,16 +11,23 @@ interface PersonalInfoSectionProps {
 
 const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ form }) => {
   return (
-    <>
-      {/* Email Address */}
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold">Account Information</h3>
+      
+      {/* Email */}
       <FormField
         control={form.control}
         name="email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Email Address*</FormLabel>
+            <FormLabel>Email*</FormLabel>
             <FormControl>
-              <Input placeholder="Enter your email" type="email" {...field} />
+              <Input 
+                type="email" 
+                placeholder="Enter your email address" 
+                autoComplete="email"
+                {...field} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -35,13 +42,18 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ form }) => {
           <FormItem>
             <FormLabel>Password*</FormLabel>
             <FormControl>
-              <Input placeholder="Create a password" type="password" {...field} />
+              <Input 
+                type="password" 
+                placeholder="Create a secure password"
+                autoComplete="new-password"
+                {...field} 
+              />
             </FormControl>
-            <FormMessage />
+            <FormMessage className="text-xs" />
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 };
 

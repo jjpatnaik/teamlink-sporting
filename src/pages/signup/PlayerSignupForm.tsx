@@ -20,7 +20,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Personal Information */}
+        {/* Email and Password fields only */}
         <PersonalInfoSection form={form} />
 
         {/* Submit Button */}

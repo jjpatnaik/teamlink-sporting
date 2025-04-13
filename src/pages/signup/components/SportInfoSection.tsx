@@ -5,11 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues } from "../schema";
+import { PlayerFormValues } from "@/components/player/profile/types";
 import { sports, sportPositions, clubs } from "../constants";
 
+// Now this component is dedicated for the create profile page, not signup
 interface SportInfoSectionProps {
-  form: UseFormReturn<FormValues>;
+  form: UseFormReturn<PlayerFormValues>;
   selectedSport: string;
   setSelectedSport: (sport: string) => void;
 }
