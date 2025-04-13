@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { 
   Carousel, 
   CarouselContent, 
@@ -23,11 +23,11 @@ const HeroSection = () => {
               Connect with players, teams, tournaments, and sponsors. Build your professional sports network and take your career to the next level.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button className="btn-primary text-lg" size="lg">
-                Join Now
+              <Button className="btn-primary text-lg" size="lg" asChild>
+                <Link to="/signup">Join Now</Link>
               </Button>
-              <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple text-lg" size="lg">
-                Learn More
+              <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple text-lg" size="lg" asChild>
+                <Link to="/how-it-works">Learn More</Link>
               </Button>
             </div>
           </div>

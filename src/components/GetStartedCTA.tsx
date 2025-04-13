@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const GetStartedCTA = () => {
   return (
@@ -15,11 +16,11 @@ const GetStartedCTA = () => {
             Create your profile today and start connecting with the sports community.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-white text-sport-purple hover:bg-gray-100 text-lg" size="lg">
-              Create Your Profile
+            <Button className="bg-white text-sport-purple hover:bg-gray-100 text-lg" size="lg" asChild>
+              <Link to="/signup">Create Your Profile</Link>
             </Button>
-            <Button className="bg-white text-sport-purple hover:bg-gray-100 text-lg" size="lg">
-              Explore Profiles
+            <Button className="bg-white text-sport-purple hover:bg-gray-100 text-lg" size="lg" asChild>
+              <Link to="/players">Explore Profiles</Link>
             </Button>
           </div>
         </div>
