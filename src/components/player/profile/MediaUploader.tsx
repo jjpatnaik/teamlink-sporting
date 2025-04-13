@@ -10,7 +10,7 @@ interface MediaUploaderProps {
   backgroundPreview: string | null;
   profilePreview: string | null;
   onFileChange: (files: FileList | null, type: 'profile' | 'background') => void;
-  fieldProps?: any; // Making this optional to fix the error
+  fieldProps?: any;
 }
 
 const MediaUploader = ({ 
@@ -42,12 +42,8 @@ const MediaUploader = ({
               id="bg-upload"
               type="file"
               accept="image/*"
-              onChange={(e) => {
-                if (fieldProps) fieldProps.onChange(e.target.files);
-                onFileChange(e.target.files, 'background');
-              }}
+              onChange={(e) => onFileChange(e.target.files, 'background')}
               className="hidden"
-              {...(fieldProps || {})}
             />
           </div>
         </AspectRatio>
@@ -56,7 +52,7 @@ const MediaUploader = ({
       <div className="w-32 h-32 rounded-full overflow-hidden bg-white mx-auto border-4 border-white relative -mt-16 shadow-lg">
         {profilePreview ? (
           <img
-            src={profilePreview || "/lovable-uploads/251880fc-c4e8-4d03-a4d1-ef1f621c6f07.png"}
+            src={profilePreview}
             alt="Profile preview"
             className="object-cover w-full h-full"
           />
@@ -77,12 +73,8 @@ const MediaUploader = ({
             id="profile-upload"
             type="file"
             accept="image/*"
-            onChange={(e) => {
-              if (fieldProps) fieldProps.onChange(e.target.files);
-              onFileChange(e.target.files, 'profile');
-            }}
+            onChange={(e) => onFileChange(e.target.files, 'profile')}
             className="hidden"
-            {...(fieldProps || {})}
           />
         </div>
       </div>

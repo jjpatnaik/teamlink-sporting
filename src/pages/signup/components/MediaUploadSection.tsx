@@ -1,9 +1,9 @@
 
 import React from "react";
 import { FormField } from "@/components/ui/form";
+import MediaUploader from "@/components/player/profile/MediaUploader";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "../schema";
-import MediaUploader from "@/components/player/profile/MediaUploader";
 
 interface MediaUploadSectionProps {
   form: UseFormReturn<FormValues>;
@@ -12,25 +12,31 @@ interface MediaUploadSectionProps {
   handleFileChange: (files: FileList | null, type: 'profile' | 'background') => void;
 }
 
-const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({ 
-  form, 
-  profilePreview, 
-  backgroundPreview, 
-  handleFileChange 
-}) => {
+const MediaUploadSection = ({
+  form,
+  profilePreview,
+  backgroundPreview,
+  handleFileChange,
+}: MediaUploadSectionProps) => {
   return (
-    <FormField
-      control={form.control}
-      name="profilePicture"
-      render={({ field }) => (
-        <MediaUploader
-          backgroundPreview={backgroundPreview}
-          profilePreview={profilePreview}
-          onFileChange={handleFileChange}
-          fieldProps={field}
-        />
-      )}
-    />
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium text-sport-dark-gray">Profile Images</h3>
+      <p className="text-sm text-gray-500">
+        Upload a profile picture and cover photo to personalize your profile.
+      </p>
+
+      <FormField
+        control={form.control}
+        name="profilePicture"
+        render={({ field: { value, onChange, ...fieldProps } }) => (
+          <MediaUploader 
+            profilePreview={profilePreview} 
+            backgroundPreview={backgroundPreview}
+            onFileChange={handleFileChange}
+          />
+        )}
+      />
+    </div>
   );
 };
 

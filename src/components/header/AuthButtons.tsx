@@ -85,8 +85,8 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
 
   return (
     <div className="flex items-center space-x-3">
-      <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
-        Log In
+      <Button variant="outline" asChild className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
+        <Link to="/login">Log In</Link>
       </Button>
       <Button className="btn-primary" asChild>
         <Link to="/signup">Sign Up</Link>

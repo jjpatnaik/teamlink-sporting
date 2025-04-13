@@ -134,8 +134,8 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
           </>
         ) : (
           <>
-            <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple w-full">
-              Log In
+            <Button variant="outline" asChild className="border-sport-purple text-sport-purple hover:bg-sport-light-purple w-full">
+              <Link to="/login">Log In</Link>
             </Button>
             <Button className="btn-primary w-full" asChild>
               <Link to="/signup">Sign Up</Link>
