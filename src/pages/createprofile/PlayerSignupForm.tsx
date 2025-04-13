@@ -89,22 +89,28 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
         return;
       }
       
+      console.log("Creating profile for user:", user.id);
+      
       // 1. Upload profile picture if provided
       let profilePictureUrl = null;
       if (profileFile) {
         profilePictureUrl = await uploadImage(profileFile, user.id, 'profile');
+        console.log("Profile picture uploaded:", profilePictureUrl);
       }
       
       // 2. Upload background picture if provided
       let backgroundPictureUrl = null;
       if (backgroundFile) {
         backgroundPictureUrl = await uploadImage(backgroundFile, user.id, 'background');
+        console.log("Background picture uploaded:", backgroundPictureUrl);
       }
       
       // Prepare career history as a string
       const clubsString = careerEntries
         .map(entry => `${entry.club} (${entry.position}, ${entry.startDate} - ${entry.endDate})`)
         .join('; ');
+      
+      console.log("Career history prepared:", clubsString);
       
       // 3. Create or update the player profile with the submitted data
       const playerProfile = {
@@ -122,16 +128,24 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       };
       
       // Check if profile already exists
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('player_details')
         .select('id')
         .eq('id', user.id)
         .maybeSingle();
       
+      if (fetchError) {
+        console.error("Error checking if profile exists:", fetchError);
+        throw new Error("Failed to check if profile exists: " + fetchError.message);
+      }
+      
+      console.log("Existing profile check:", existingProfile);
+      
       let profileError;
       
       if (existingProfile) {
         // Update existing profile
+        console.log("Updating existing profile");
         const { error } = await supabase
           .from('player_details')
           .update(playerProfile)
@@ -139,6 +153,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
         profileError = error;
       } else {
         // Create new profile
+        console.log("Creating new profile");
         const { error } = await supabase
           .from('player_details')
           .insert(playerProfile);
@@ -146,11 +161,14 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       }
       
       if (profileError) {
-        console.error("Profile creation error:", profileError);
-        throw new Error("Failed to create player profile: " + profileError.message);
+        console.error("Profile creation/update error:", profileError);
+        throw new Error("Failed to create/update player profile: " + profileError.message);
       }
       
+      console.log("Profile created/updated successfully");
       toast.success("Profile created successfully!");
+      
+      // Navigate to home page after a short delay
       setTimeout(() => navigate("/"), 1500);
     } catch (error: any) {
       console.error("Profile creation error:", error);
