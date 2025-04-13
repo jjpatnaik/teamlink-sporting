@@ -7,11 +7,13 @@ import { Form, FormField } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 import MediaUploader from "@/components/player/profile/MediaUploader";
 import PersonalInfoSection from "@/components/player/profile/PersonalInfoSection";
 import CareerSection from "@/components/player/profile/CareerSection";
 import SocialMediaSection from "@/components/player/profile/SocialMediaSection";
 import { playerFormSchema, PlayerFormValues } from "@/components/player/profile/types";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PlayerSignupFormProps {
   setIsLoading: (loading: boolean) => void;
@@ -22,6 +24,8 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
   const [selectedSport, setSelectedSport] = React.useState<string>("");
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [backgroundPreview, setBackgroundPreview] = useState<string | null>(null);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [careerEntries, setCareerEntries] = useState([
     { club: "", position: "", startDate: "", endDate: "Present" }
   ]);
@@ -41,15 +45,119 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
     },
   });
 
+  // Helper function to upload an image to Supabase storage
+  const uploadImage = async (file: File, userId: string, type: 'profile' | 'background'): Promise<string | null> => {
+    if (!file) return null;
+    
+    try {
+      // Create a unique file path with user ID and timestamp
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}-${type}-${Date.now()}.${fileExt}`;
+      const filePath = `${userId}/${fileName}`;
+      
+      // Upload the file to the 'images' bucket
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, file);
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL for the uploaded file
+      const { data } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+        
+      return data.publicUrl;
+    } catch (error: any) {
+      console.error(`Error uploading ${type} image:`, error);
+      return null;
+    }
+  };
+
   const onSubmit = async (data: PlayerFormValues) => {
-    setIsLoading(true);
-    
-    data.careerHistory = careerEntries;
-    
-    setTimeout(() => {
-      navigate("/");
+    try {
+      setIsLoading(true);
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to create a profile.");
+        navigate("/signup");
+        return;
+      }
+      
+      // 1. Upload profile picture if provided
+      let profilePictureUrl = null;
+      if (profileFile) {
+        profilePictureUrl = await uploadImage(profileFile, user.id, 'profile');
+      }
+      
+      // 2. Upload background picture if provided
+      let backgroundPictureUrl = null;
+      if (backgroundFile) {
+        backgroundPictureUrl = await uploadImage(backgroundFile, user.id, 'background');
+      }
+      
+      // Prepare career history as a string
+      const clubsString = careerEntries
+        .map(entry => `${entry.club} (${entry.position}, ${entry.startDate} - ${entry.endDate})`)
+        .join('; ');
+      
+      // 3. Create or update the player profile with the submitted data
+      const playerProfile = {
+        id: user.id,
+        full_name: data.fullName,
+        sport: data.sport,
+        position: data.position,
+        clubs: clubsString,
+        achievements: data.achievements || null,
+        facebook_id: data.facebookId || null,
+        whatsapp_id: data.whatsappId || null,
+        instagram_id: data.instagramId || null,
+        profile_picture_url: profilePictureUrl,
+        background_picture_url: backgroundPictureUrl,
+      };
+      
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('player_details')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      let profileError;
+      
+      if (existingProfile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from('player_details')
+          .update(playerProfile)
+          .eq('id', user.id);
+        profileError = error;
+      } else {
+        // Create new profile
+        const { error } = await supabase
+          .from('player_details')
+          .insert(playerProfile);
+        profileError = error;
+      }
+      
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+        throw new Error("Failed to create player profile: " + profileError.message);
+      }
+      
+      toast.success("Profile created successfully!");
+      setTimeout(() => navigate("/"), 1500);
+    } catch (error: any) {
+      console.error("Profile creation error:", error);
+      toast.error(error.message || "Failed to create profile. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleFileChange = (files: FileList | null, type: 'profile' | 'background') => {
@@ -61,8 +169,10 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
         const result = e.target?.result as string;
         if (type === 'profile') {
           setProfilePreview(result);
+          setProfileFile(file);
         } else {
           setBackgroundPreview(result);
+          setBackgroundFile(file);
         }
       };
       
