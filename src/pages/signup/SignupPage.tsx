@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { 
@@ -11,10 +12,37 @@ import {
 } from "@/components/ui/select";
 import PlayerSignupForm from "./PlayerSignupForm";
 import { userTypes } from "./constants";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const SignupPage = () => {
   const [userType, setUserType] = useState<string>("player");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        toast.info("You're already logged in!");
+        navigate("/");
+      }
+    };
+    
+    checkAuth();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        navigate("/");
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
   
   return (
     <div className="min-h-screen flex flex-col">

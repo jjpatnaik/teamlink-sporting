@@ -61,8 +61,9 @@ const MediaUploader = ({
             className="object-cover w-full h-full"
           />
         ) : (
-          <div className="flex items-center justify-center w-full h-full bg-sport-light-purple">
+          <div className="flex flex-col items-center justify-center w-full h-full bg-sport-light-purple">
             <UserCircle className="w-16 h-16 text-sport-purple" />
+            <span className="text-xs text-sport-purple mt-1">Add your profile pic</span>
           </div>
         )}
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">

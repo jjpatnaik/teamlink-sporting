@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,12 +21,11 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Card } from "@/components/ui/card";
-import { UserCircle, Image as ImageIcon } from "lucide-react";
+import MediaUploader from "@/components/player/profile/MediaUploader";
 import { formSchema, FormValues } from "./schema";
 import { sports, sportPositions, clubs } from "./constants";
 import { handleSignup } from "./utils";
+import { toast } from "sonner";
 
 interface PlayerSignupFormProps {
   setIsLoading: (loading: boolean) => void;
@@ -52,15 +52,25 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       whatsappId: "",
       instagramId: "",
     },
+    mode: "onChange", // Validate on change for better user feedback
   });
 
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
-    const success = await handleSignup(data);
-    if (success) {
-      setTimeout(() => navigate("/"), 2000);
+    try {
+      setIsLoading(true);
+      const success = await handleSignup(data);
+      if (success) {
+        toast.success("Profile created successfully!");
+        setTimeout(() => navigate("/"), 2000);
+      } else {
+        toast.error("Failed to create profile. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      toast.error(error.message || "An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleFileChange = (files: FileList | null, type: 'profile' | 'background') => {
@@ -85,87 +95,18 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Image Upload Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Profile Images</h3>
-          
-          {/* Background Image Upload */}
-          <FormField
-            control={form.control}
-            name="backgroundPicture"
-            render={({ field: { value, onChange, ...fieldProps } }) => (
-              <FormItem>
-                <FormLabel>Background Image</FormLabel>
-                <FormControl>
-                  <div className="space-y-2">
-                    <Card className="overflow-hidden">
-                      <AspectRatio ratio={3/1} className="bg-muted">
-                        {backgroundPreview ? (
-                          <img
-                            src={backgroundPreview}
-                            alt="Background preview"
-                            className="object-cover w-full h-full"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center w-full h-full bg-muted">
-                            <ImageIcon className="w-10 h-10 text-muted-foreground" />
-                          </div>
-                        )}
-                      </AspectRatio>
-                    </Card>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        onChange(e.target.files);
-                        handleFileChange(e.target.files, 'background');
-                      }}
-                      {...fieldProps}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Profile Picture Upload */}
-          <FormField
-            control={form.control}
-            name="profilePicture"
-            render={({ field: { value, onChange, ...fieldProps } }) => (
-              <FormItem>
-                <FormLabel>Profile Picture</FormLabel>
-                <FormControl>
-                  <div className="space-y-2">
-                    <div className="w-32 h-32 rounded-full overflow-hidden bg-muted mx-auto border-4 border-background relative -mt-16 shadow-lg">
-                      {profilePreview ? (
-                        <img
-                          src={profilePreview}
-                          alt="Profile preview"
-                          className="object-cover w-full h-full"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center w-full h-full">
-                          <UserCircle className="w-full h-full text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        onChange(e.target.files);
-                        handleFileChange(e.target.files, 'profile');
-                      }}
-                      {...fieldProps}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="profilePicture"
+          render={({ field }) => (
+            <MediaUploader
+              backgroundPreview={backgroundPreview}
+              profilePreview={profilePreview}
+              onFileChange={handleFileChange}
+              fieldProps={field}
+            />
+          )}
+        />
 
         {/* Full Name */}
         <FormField
@@ -173,7 +114,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>Full Name*</FormLabel>
               <FormControl>
                 <Input placeholder="Enter your full name" {...field} />
               </FormControl>
@@ -188,7 +129,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel>Email Address*</FormLabel>
               <FormControl>
                 <Input placeholder="Enter your email" type="email" {...field} />
               </FormControl>
@@ -203,7 +144,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Password*</FormLabel>
               <FormControl>
                 <Input placeholder="Create a password" type="password" {...field} />
               </FormControl>
@@ -218,7 +159,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
           name="sport"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Sport</FormLabel>
+              <FormLabel>Sport*</FormLabel>
               <Select 
                 onValueChange={(value) => {
                   field.onChange(value);
@@ -252,7 +193,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
             name="position"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Position/Role</FormLabel>
+                <FormLabel>Position/Role*</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
@@ -365,6 +306,11 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
               </FormItem>
             )}
           />
+        </div>
+
+        {/* Required Fields Notice */}
+        <div className="text-sm text-gray-500">
+          * Required fields
         </div>
 
         {/* Submit Button */}
