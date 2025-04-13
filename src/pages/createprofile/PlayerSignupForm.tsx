@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import { Form } from "@/components/ui/form";
+import { Form, FormField } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
@@ -75,7 +75,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Card className="overflow-hidden bg-white border-none shadow-md">
           {/* Media Upload Section */}
-          <form.FormField
+          <FormField
             control={form.control}
             name="backgroundPicture"
             render={({ field: { value, onChange, ...fieldProps } }) => (
