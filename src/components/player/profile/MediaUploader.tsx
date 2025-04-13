@@ -1,9 +1,10 @@
+
 import React from "react";
-import { Badge } from "@/components/ui/badge";
+import { Image as ImageIcon } from "lucide-react";
 import { FormControl, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { UserCircle, Image as ImageIcon } from "lucide-react";
+import { UserCircle } from "lucide-react";
 
 interface MediaUploaderProps {
   backgroundPreview: string | null;
@@ -22,13 +23,6 @@ const MediaUploader = ({
     <FormItem className="space-y-0 relative">
       <div className="relative">
         <AspectRatio ratio={3/1} className="bg-gradient-to-r from-sport-blue/20 to-sport-purple/20 relative">
-          <Badge 
-            variant="outline" 
-            className="absolute top-4 right-4 z-10 bg-sport-purple/10 text-sport-purple"
-          >
-            Player Profile
-          </Badge>
-          
           {backgroundPreview ? (
             <img
               src={backgroundPreview}
@@ -60,15 +54,9 @@ const MediaUploader = ({
       </div>
 
       <div className="w-32 h-32 rounded-full overflow-hidden bg-white mx-auto border-4 border-white relative -mt-16 shadow-lg">
-        <Badge 
-          variant="outline" 
-          className="absolute top-2 right-2 z-10 bg-sport-purple/10 text-sport-purple"
-        >
-          Profile Pic
-        </Badge>
         {profilePreview ? (
           <img
-            src={profilePreview}
+            src={profilePreview || "/lovable-uploads/251880fc-c4e8-4d03-a4d1-ef1f621c6f07.png"}
             alt="Profile preview"
             className="object-cover w-full h-full"
           />
