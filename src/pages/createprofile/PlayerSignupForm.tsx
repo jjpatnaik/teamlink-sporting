@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -196,10 +197,17 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Card className="overflow-hidden bg-white border-none shadow-md">
-          <MediaUploader
-            backgroundPreview={backgroundPreview}
-            profilePreview={profilePreview}
-            onFileChange={handleFileChange}
+          <FormField
+            control={form.control}
+            name="profilePicture"
+            render={({ field }) => (
+              <MediaUploader
+                backgroundPreview={backgroundPreview}
+                profilePreview={profilePreview}
+                onFileChange={handleFileChange}
+                fieldProps={field}
+              />
+            )}
           />
 
           <div className="p-6 pt-4">

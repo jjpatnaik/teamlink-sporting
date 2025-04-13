@@ -10,7 +10,7 @@ interface MediaUploaderProps {
   backgroundPreview: string | null;
   profilePreview: string | null;
   onFileChange: (files: FileList | null, type: 'profile' | 'background') => void;
-  fieldProps: any;
+  fieldProps?: any; // Making this optional to fix the error
 }
 
 const MediaUploader = ({ 
@@ -43,11 +43,11 @@ const MediaUploader = ({
               type="file"
               accept="image/*"
               onChange={(e) => {
-                fieldProps.onChange(e.target.files);
+                if (fieldProps) fieldProps.onChange(e.target.files);
                 onFileChange(e.target.files, 'background');
               }}
               className="hidden"
-              {...fieldProps}
+              {...(fieldProps || {})}
             />
           </div>
         </AspectRatio>
@@ -78,11 +78,11 @@ const MediaUploader = ({
             type="file"
             accept="image/*"
             onChange={(e) => {
-              fieldProps.onChange(e.target.files);
+              if (fieldProps) fieldProps.onChange(e.target.files);
               onFileChange(e.target.files, 'profile');
             }}
             className="hidden"
-            {...fieldProps}
+            {...(fieldProps || {})}
           />
         </div>
       </div>
