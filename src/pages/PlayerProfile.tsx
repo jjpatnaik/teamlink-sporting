@@ -19,15 +19,21 @@ const PlayerProfile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if redirected after profile creation
+    const checkProfileCreated = () => {
+      const profileCreated = localStorage.getItem('profileCreated');
+      if (profileCreated === 'true') {
+        toast.success("Profile created successfully! Welcome to your profile page.");
+        localStorage.removeItem('profileCreated');
+      }
+    };
+    
+    checkProfileCreated();
+    
     // Check authentication status
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
       setIsAuthenticated(!!data.session);
-      
-      if (!data.session) {
-        toast.error("Please sign up or login to view your profile");
-        navigate("/signup");
-      }
     };
     
     checkAuth();
@@ -37,7 +43,7 @@ const PlayerProfile = () => {
       setIsAuthenticated(!!session);
       
       if (!session && event === 'SIGNED_OUT') {
-        navigate("/signup");
+        navigate("/");
       }
     });
     

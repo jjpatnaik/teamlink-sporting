@@ -17,6 +17,8 @@ import {
   MapPin,
   Dumbbell
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface SearchFiltersProps {
   searchType: string;
@@ -29,6 +31,8 @@ interface SearchFiltersProps {
   setNameSearch: (value: string) => void;
   sports: string[];
   areas: string[];
+  nearMeOnly: boolean;
+  setNearMeOnly: (value: boolean) => void;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
@@ -41,7 +45,9 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   nameSearch,
   setNameSearch,
   sports,
-  areas
+  areas,
+  nearMeOnly,
+  setNearMeOnly
 }) => {
   return (
     <div className="bg-white p-6 rounded-xl shadow-md mb-8">
@@ -122,7 +128,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         </div>
       </div>
       
-      <div className="relative">
+      <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
         <Input
           placeholder={`Search ${searchType.toLowerCase()} by name...`}
@@ -130,6 +136,20 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           value={nameSearch}
           onChange={(e) => setNameSearch(e.target.value)}
         />
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="nearMe" 
+          checked={nearMeOnly}
+          onCheckedChange={(checked) => setNearMeOnly(checked as boolean)}
+        />
+        <Label 
+          htmlFor="nearMe"
+          className="text-sm text-sport-gray cursor-pointer"
+        >
+          Only show results in my area
+        </Label>
       </div>
     </div>
   );

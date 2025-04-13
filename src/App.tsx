@@ -3,8 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import HowItWorksPage from "./pages/HowItWorksPage";
@@ -18,6 +19,59 @@ import SearchPage from "./pages/SearchPage";
 
 const App = () => {
   const queryClient = new QueryClient();
+  const [session, setSession] = useState<any>(null);
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      
+      // If user is logged in, check if they have a profile
+      if (data.session?.user) {
+        const { data: profileData, error } = await supabase
+          .from('player_details')
+          .select('id')
+          .eq('id', data.session.user.id)
+          .maybeSingle();
+          
+        setHasProfile(!!profileData);
+      } else {
+        setHasProfile(null);
+      }
+      
+      setLoading(false);
+    };
+    
+    checkSession();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from('player_details')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
+          
+        setHasProfile(!!profileData);
+      } else {
+        setHasProfile(null);
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -28,16 +82,38 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
-            <Route path="/players" element={<PlayerProfile />} />
-            <Route path="/players/:id" element={<PlayerProfile />} />
+            <Route 
+              path="/players" 
+              element={
+                session ? <PlayerProfile /> : <Navigate to="/signup" />
+              } 
+            />
+            <Route 
+              path="/players/:id" 
+              element={<PlayerProfile />} 
+            />
             <Route path="/teams" element={<TeamProfile />} />
             <Route path="/teams/:id" element={<TeamProfile />} />
             <Route path="/tournaments" element={<TournamentProfile />} />
             <Route path="/tournaments/:id" element={<TournamentProfile />} />
             <Route path="/sponsors" element={<SponsorProfile />} />
             <Route path="/sponsors/:id" element={<SponsorProfile />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/createprofile" element={<CreateProfilePage />} />
+            <Route 
+              path="/signup" 
+              element={
+                session ? 
+                  (hasProfile ? <Navigate to="/players" /> : <Navigate to="/createprofile" />) : 
+                  <SignupPage />
+              } 
+            />
+            <Route 
+              path="/createprofile" 
+              element={
+                session ? 
+                  (hasProfile ? <Navigate to="/players" /> : <CreateProfilePage />) : 
+                  <Navigate to="/signup" />
+              } 
+            />
             <Route path="/search" element={<SearchPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

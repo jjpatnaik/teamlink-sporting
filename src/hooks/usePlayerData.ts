@@ -14,6 +14,8 @@ export type PlayerData = {
   sport: string;
   position: string;
   clubs?: string;
+  city?: string;
+  postcode?: string;
   achievements: string;
   profile_picture_url: string | null;
   background_picture_url: string | null;
@@ -39,7 +41,7 @@ export const usePlayerData = () => {
             .from('player_details')
             .select('*')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
             
           if (error) throw error;
           setPlayerData(data);
@@ -50,6 +52,8 @@ export const usePlayerData = () => {
             sport: "Basketball",
             position: "Point Guard",
             clubs: "Chicago Breeze",
+            city: "Chicago",
+            postcode: "60601",
             achievements: "Regional League MVP (2022), All-Star Selection (2021, 2022, 2023)",
             profile_picture_url: null,
             background_picture_url: null,

@@ -12,6 +12,7 @@ import MediaUploader from "@/components/player/profile/MediaUploader";
 import PersonalInfoSection from "@/components/player/profile/PersonalInfoSection";
 import CareerSection from "@/components/player/profile/CareerSection";
 import SocialMediaSection from "@/components/player/profile/SocialMediaSection";
+import LocationInput from "@/components/LocationInput";
 import { playerFormSchema, PlayerFormValues } from "@/components/player/profile/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -37,6 +38,8 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       fullName: "",
       sport: "",
       position: "",
+      city: "",
+      postcode: "",
       careerHistory: [{ club: "", position: "", startDate: "", endDate: "Present" }],
       achievements: "",
       facebookId: "",
@@ -118,6 +121,8 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
         full_name: data.fullName,
         sport: data.sport,
         position: data.position,
+        city: data.city,
+        postcode: data.postcode,
         clubs: clubsString,
         achievements: data.achievements || null,
         facebook_id: data.facebookId || null,
@@ -226,6 +231,15 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
               form={form} 
               selectedSport={selectedSport}
               setSelectedSport={setSelectedSport}
+            />
+
+            <Separator className="my-6 bg-sport-light-purple/30" />
+
+            {/* Location Information Section */}
+            <LocationInput 
+              form={form} 
+              cityFieldName="city" 
+              postcodeFieldName="postcode" 
             />
 
             <Separator className="my-6 bg-sport-light-purple/30" />

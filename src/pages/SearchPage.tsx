@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SearchFilters from '@/components/search/SearchFilters';
@@ -13,57 +13,117 @@ import {
   MOCK_TOURNAMENTS, 
   MOCK_SPONSORSHIPS 
 } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 
 const SearchPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [searchType, setSearchType] = useState<string>("Player");
   const [selectedSport, setSelectedSport] = useState<string>("any_sport");
   const [selectedArea, setSelectedArea] = useState<string>("any_area");
   const [nameSearch, setNameSearch] = useState<string>("");
+  const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
+  const [userCity, setUserCity] = useState<string | null>(null);
+  const [userPostcode, setUserPostcode] = useState<string | null>(null);
+
+  // Get user location data if they're logged in
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data } = await supabase
+          .from('player_details')
+          .select('city, postcode')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (data) {
+          setUserCity(data.city);
+          setUserPostcode(data.postcode);
+        }
+      }
+    };
+    
+    fetchUserLocation();
+  }, []);
+
+  // Handle URL parameters
+  useEffect(() => {
+    const sportParam = searchParams.get('sport');
+    const areaParam = searchParams.get('area');
+    const typeParam = searchParams.get('type');
+    
+    if (sportParam) {
+      setSelectedSport(sportParam);
+    }
+    
+    if (areaParam === 'local' && userCity) {
+      // If we have the user's city, use it as the area
+      const cityArea = MOCK_AREAS.find(area => area.toLowerCase().includes(userCity.toLowerCase()));
+      if (cityArea) {
+        setSelectedArea(cityArea);
+      }
+      setNearMeOnly(true);
+    }
+    
+    if (typeParam) {
+      setSearchType(typeParam);
+    }
+  }, [searchParams, userCity]);
 
   // Update results whenever filters change
   useEffect(() => {
     let results: any[] = [];
     
+    // Filter by search type
     switch (searchType) {
       case "Player":
-        results = MOCK_PLAYERS.filter(player => 
-          (selectedSport === "any_sport" || player.sport === selectedSport) &&
-          (selectedArea === "any_area" || player.area === selectedArea) &&
-          (nameSearch === "" || player.name.toLowerCase().includes(nameSearch.toLowerCase()))
-        );
+        results = MOCK_PLAYERS;
         break;
       case "Team":
-        results = MOCK_TEAMS.filter(team => 
-          (selectedSport === "any_sport" || team.sport === selectedSport) &&
-          (selectedArea === "any_area" || team.area === selectedArea) &&
-          (nameSearch === "" || team.name.toLowerCase().includes(nameSearch.toLowerCase()))
-        );
+        results = MOCK_TEAMS;
         break;
       case "Tournament":
-        results = MOCK_TOURNAMENTS.filter(tournament => 
-          (selectedSport === "any_sport" || tournament.sport === selectedSport) &&
-          (selectedArea === "any_area" || tournament.area === selectedArea) &&
-          (nameSearch === "" || tournament.name.toLowerCase().includes(nameSearch.toLowerCase()))
-        );
+        results = MOCK_TOURNAMENTS;
         break;
       case "Sponsorship":
-        results = MOCK_SPONSORSHIPS.filter(sponsorship => 
-          (selectedSport === "any_sport" || sponsorship.sport === selectedSport) &&
-          (selectedArea === "any_area" || sponsorship.area === selectedArea) &&
-          (nameSearch === "" || sponsorship.name.toLowerCase().includes(nameSearch.toLowerCase()))
-        );
+        results = MOCK_SPONSORSHIPS;
         break;
     }
     
+    // Apply sport filter
+    if (selectedSport !== "any_sport") {
+      results = results.filter(item => item.sport === selectedSport);
+    }
+    
+    // Apply area filter
+    if (selectedArea !== "any_area") {
+      results = results.filter(item => item.area === selectedArea);
+    }
+    
+    // Apply name search filter
+    if (nameSearch) {
+      results = results.filter(item => 
+        item.name.toLowerCase().includes(nameSearch.toLowerCase())
+      );
+    }
+    
+    // Apply near me filter if enabled and we know user's location
+    if (nearMeOnly && userCity) {
+      results = results.filter(item => {
+        // This is a simplification - in a real app, you'd use more sophisticated
+        // location matching based on city/postcode proximity
+        return item.area.toLowerCase().includes(userCity.toLowerCase());
+      });
+    }
+    
     setFilteredResults(results);
-  }, [searchType, selectedSport, selectedArea, nameSearch]);
+  }, [searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, userCity]);
 
-  // Reset filters when search type changes
+  // Reset certain filters when search type changes
   useEffect(() => {
-    setSelectedSport("any_sport");
-    setSelectedArea("any_area");
     setNameSearch("");
   }, [searchType]);
 
@@ -105,6 +165,8 @@ const SearchPage = () => {
             setNameSearch={setNameSearch}
             sports={MOCK_SPORTS}
             areas={MOCK_AREAS}
+            nearMeOnly={nearMeOnly}
+            setNearMeOnly={setNearMeOnly}
           />
           
           <div className="mb-4">
