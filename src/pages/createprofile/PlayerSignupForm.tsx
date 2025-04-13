@@ -182,6 +182,12 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                   name="profilePicture"
                   render={({ field: { value, onChange, ...fieldProps } }) => (
                     <div className="w-32 h-32 rounded-full overflow-hidden bg-white mx-auto border-4 border-white relative -mt-16 shadow-lg">
+                      <Badge 
+                        variant="outline" 
+                        className="absolute top-2 right-2 z-10 bg-sport-purple/10 text-sport-purple"
+                      >
+                        Profile Pic
+                      </Badge>
                       {profilePreview ? (
                         <img
                           src={profilePreview}
@@ -194,7 +200,10 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                         </div>
                       )}
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
-                        <label htmlFor="profile-upload" className="cursor-pointer rounded-full p-2 bg-white/80 text-sport-dark-purple">
+                        <label 
+                          htmlFor="profile-upload" 
+                          className="cursor-pointer rounded-full p-2 bg-white/80 text-sport-dark-purple hover:bg-white/90"
+                        >
                           <ImageIcon className="w-5 h-5" />
                         </label>
                         <Input
