@@ -24,9 +24,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { UserCircle, Image as ImageIcon, Trophy, Medal } from "lucide-react";
+import { UserCircle, Image as ImageIcon, Trophy, Medal, Plus } from "lucide-react";
 import { sports, sportPositions, clubs } from "../signup/constants";
 import { handleSignup } from "../signup/utils";
+import CareerHistoryEntry from "@/components/player/CareerHistoryEntry";
 import * as z from "zod";
 
 interface PlayerSignupFormProps {
@@ -34,12 +35,20 @@ interface PlayerSignupFormProps {
   isLoading: boolean;
 }
 
+// Career history entry schema
+const careerEntrySchema = z.object({
+  club: z.string().min(1, "Club name is required"),
+  position: z.string().optional(),
+  startDate: z.string().min(1, "Start date is required"),
+  endDate: z.string(),
+});
+
 // Create a simplified form schema without email and password
 const playerFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   sport: z.string().min(1, "Please select a sport"),
   position: z.string().optional(),
-  clubs: z.string().optional(),
+  careerHistory: z.array(careerEntrySchema).optional().default([]),
   achievements: z.string().optional(),
   facebookId: z.string().optional(),
   whatsappId: z.string().optional(),
@@ -54,6 +63,9 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
   const [selectedSport, setSelectedSport] = React.useState<string>("");
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [backgroundPreview, setBackgroundPreview] = useState<string | null>(null);
+  const [careerEntries, setCareerEntries] = useState([
+    { club: "", position: "", startDate: "", endDate: "Present" }
+  ]);
   const navigate = useNavigate();
   
   const form = useForm<PlayerFormValues>({
@@ -62,7 +74,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       fullName: "",
       sport: "",
       position: "",
-      clubs: "",
+      careerHistory: [{ club: "", position: "", startDate: "", endDate: "Present" }],
       achievements: "",
       facebookId: "",
       whatsappId: "",
@@ -72,6 +84,9 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
 
   const onSubmit = async (data: PlayerFormValues) => {
     setIsLoading(true);
+    
+    // Add career entries to the form data
+    data.careerHistory = careerEntries;
     
     // We'd need to adapt the signup handler to work without email/password
     // For now, we'll simulate success after a short delay
@@ -96,6 +111,26 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       };
       
       fileReader.readAsDataURL(file);
+    }
+  };
+
+  const handleCareerEntryChange = (index: number, field: string, value: string) => {
+    const updatedEntries = [...careerEntries];
+    updatedEntries[index] = { ...updatedEntries[index], [field]: value };
+    setCareerEntries(updatedEntries);
+  };
+
+  const addCareerEntry = () => {
+    setCareerEntries([
+      ...careerEntries,
+      { club: "", position: "", startDate: "", endDate: "Present" }
+    ]);
+  };
+
+  const removeCareerEntry = (index: number) => {
+    if (careerEntries.length > 1) {
+      const updatedEntries = careerEntries.filter((_, i) => i !== index);
+      setCareerEntries(updatedEntries);
     }
   };
 
@@ -273,30 +308,30 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
                 Career Information
               </h3>
               
-              {/* Clubs Played For */}
-              <FormField
-                control={form.control}
-                name="clubs"
-                render={({ field }) => (
-                  <FormItem className="mb-4">
-                    <FormLabel className="text-sport-dark-gray font-medium">Clubs Played For</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Enter your current or previous club names" 
-                        list="clubs-list"
-                        className="border-sport-light-purple/50 focus-visible:ring-sport-purple/40"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <datalist id="clubs-list">
-                      {clubs.map((club) => (
-                        <option key={club} value={club} />
-                      ))}
-                    </datalist>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Career history entries */}
+              <div className="space-y-4 mb-4">
+                {careerEntries.map((entry, index) => (
+                  <CareerHistoryEntry
+                    key={index}
+                    index={index}
+                    entry={entry}
+                    onChange={handleCareerEntryChange}
+                    onRemove={removeCareerEntry}
+                    isLast={index === careerEntries.length - 1}
+                  />
+                ))}
+              </div>
+              
+              {/* Add Career Entry Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addCareerEntry}
+                className="mb-6 border-sport-light-purple/50 text-sport-purple hover:bg-sport-light-purple/10"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Add Career Entry
+              </Button>
 
               {/* Achievements */}
               <FormField
