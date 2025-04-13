@@ -12,7 +12,7 @@ import PlayerProfile from "./pages/PlayerProfile";
 import TeamProfile from "./pages/TeamProfile";
 import TournamentProfile from "./pages/TournamentProfile";
 import SponsorProfile from "./pages/SponsorProfile";
-import SignupPage from "./pages/auth/SignupPage";
+import SignupPage from "./pages/signup";
 import CreateProfilePage from "./pages/createprofile";
 import SearchPage from "./pages/SearchPage";
 

@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { 
@@ -11,10 +12,37 @@ import {
 } from "@/components/ui/select";
 import PlayerSignupForm from "./PlayerSignupForm";
 import { userTypes } from "../signup/constants";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const CreateProfilePage = () => {
   const [userType, setUserType] = useState<string>("player");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast.error("You must be logged in to create a profile");
+        navigate("/signup");
+      }
+    };
+    
+    checkAuth();
+    
+    // Check for profile completion events
+    const handleProfileCreated = () => {
+      const profileCreatedFlag = localStorage.getItem('profileCreated');
+      if (profileCreatedFlag === 'true') {
+        toast.success("Profile created successfully! You can now explore the platform.");
+        localStorage.removeItem('profileCreated');
+      }
+    };
+    
+    handleProfileCreated();
+  }, [navigate]);
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-sport-light-purple/10">

@@ -166,10 +166,14 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       }
       
       console.log("Profile created/updated successfully");
-      toast.success("Profile created successfully!");
       
-      // Navigate to home page after a short delay
-      setTimeout(() => navigate("/"), 1500);
+      // Set flag for success message
+      localStorage.setItem('profileCreated', 'true');
+      
+      // Navigate to player profile page after a short delay
+      setTimeout(() => navigate("/players"), 1500);
+      
+      toast.success("Profile created successfully!");
     } catch (error: any) {
       console.error("Profile creation error:", error);
       toast.error(error.message || "Failed to create profile. Please try again.");

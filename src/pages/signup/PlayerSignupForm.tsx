@@ -7,6 +7,7 @@ import SportInfoSection from "./components/SportInfoSection";
 import SocialMediaSection from "./components/SocialMediaSection";
 import MediaUploadSection from "./components/MediaUploadSection";
 import { useSignupForm } from "./hooks/useSignupForm";
+import { handleSignup } from "./utils";
 
 interface PlayerSignupFormProps {
   setIsLoading: (loading: boolean) => void;
@@ -22,7 +23,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
     backgroundPreview,
     handleFileChange,
     onSubmit
-  } = useSignupForm(setIsLoading);
+  } = useSignupForm(setIsLoading, handleSignup);
 
   return (
     <Form {...form}>

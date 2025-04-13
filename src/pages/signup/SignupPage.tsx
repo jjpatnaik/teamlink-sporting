@@ -25,8 +25,8 @@ const SignupPage = () => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        toast.info("You're already logged in!");
-        navigate("/");
+        toast.info("You're already signed up! Let's complete your profile.");
+        navigate("/createprofile");
       }
     };
     
@@ -35,7 +35,8 @@ const SignupPage = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate("/");
+        toast.success("Successfully signed up! Now let's create your profile.");
+        navigate("/createprofile");
       }
     });
     
