@@ -186,7 +186,7 @@ const SearchPage = () => {
                     <SelectValue placeholder="Any sport" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any sport</SelectItem>
+                    <SelectItem value="any_sport">Any sport</SelectItem>
                     {MOCK_SPORTS.map(sport => (
                       <SelectItem key={sport} value={sport}>
                         <div className="flex items-center gap-2">
@@ -206,7 +206,7 @@ const SearchPage = () => {
                     <SelectValue placeholder="Any area" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any area</SelectItem>
+                    <SelectItem value="any_area">Any area</SelectItem>
                     {MOCK_AREAS.map(area => (
                       <SelectItem key={area} value={area}>
                         <div className="flex items-center gap-2">
@@ -236,8 +236,8 @@ const SearchPage = () => {
             <p className="text-sport-gray mb-4">
               {filteredResults.length} {searchType.toLowerCase()}
               {filteredResults.length !== 1 ? 's' : ''} found
-              {selectedSport && ` for ${selectedSport}`}
-              {selectedArea && ` in ${selectedArea}`}
+              {selectedSport && selectedSport !== "any_sport" ? ` for ${selectedSport}` : ''}
+              {selectedArea && selectedArea !== "any_area" ? ` in ${selectedArea}` : ''}
             </p>
             
             {filteredResults.length === 0 ? (
