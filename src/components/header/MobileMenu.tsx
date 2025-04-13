@@ -1,9 +1,11 @@
 
 import React from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import { User, Users, Trophy, Award, Search } from 'lucide-react';
+import { User, Users, Trophy, Award, Search, LogOut, Pencil } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePlayerData } from '@/hooks/usePlayerData';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface MobileMenuProps {
 
 const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
   const navigate = useNavigate();
+  const { playerData } = usePlayerData();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -20,6 +23,18 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
 
   const navigateToSearch = (type: string) => {
     navigate(`/search?type=${type}&area=local`);
+  };
+
+  // Get initials for avatar fallback
+  const getInitials = () => {
+    if (playerData?.full_name) {
+      const nameParts = playerData.full_name.split(' ');
+      if (nameParts.length >= 2) {
+        return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
+      }
+      return nameParts[0][0].toUpperCase();
+    }
+    return 'U';
   };
 
   if (!isOpen) {
@@ -72,18 +87,48 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
       <div className="flex flex-col space-y-2 px-2 pt-2">
         {isAuthenticated ? (
           <>
+            {playerData && (
+              <div className="flex items-center space-x-2 py-2 mb-2">
+                <Avatar className="h-10 w-10 border-2 border-white">
+                  <AvatarImage 
+                    src={playerData.profile_picture_url || ''} 
+                    alt={playerData.full_name || 'User'} 
+                  />
+                  <AvatarFallback className="bg-sport-purple text-white">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{playerData.full_name || 'User'}</p>
+                  <p className="text-xs text-muted-foreground">{playerData.sport || 'Athlete'}</p>
+                </div>
+              </div>
+            )}
+            
             <Button 
               variant="outline" 
-              className="border-sport-purple text-sport-purple hover:bg-sport-light-purple w-full"
+              className="border-sport-purple text-sport-purple hover:bg-sport-light-purple w-full justify-start"
               onClick={() => navigate('/players')}
             >
+              <User className="mr-2 h-4 w-4" />
               My Profile
             </Button>
+            
+            <Button 
+              variant="outline" 
+              className="border-sport-purple text-sport-purple hover:bg-sport-light-purple w-full justify-start"
+              onClick={() => navigate('/createprofile')}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit Profile
+            </Button>
+            
             <Button 
               variant="ghost" 
-              className="text-sport-gray hover:text-sport-purple hover:bg-sport-light-purple/20 w-full"
+              className="text-sport-gray hover:text-sport-purple hover:bg-sport-light-purple/20 w-full justify-start"
               onClick={handleSignOut}
             >
+              <LogOut className="mr-2 h-4 w-4" />
               Sign Out
             </Button>
           </>
