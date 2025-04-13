@@ -21,15 +21,15 @@ const MediaUploader = ({
 }: MediaUploaderProps) => {
   return (
     <FormItem className="space-y-0 relative">
-      <Badge 
-        variant="outline" 
-        className="absolute top-4 right-4 z-10 bg-sport-purple/10 text-sport-purple"
-      >
-        Player Profile
-      </Badge>
-      
       <div className="relative">
-        <AspectRatio ratio={3/1} className="bg-gradient-to-r from-sport-blue/20 to-sport-purple/20">
+        <AspectRatio ratio={3/1} className="bg-gradient-to-r from-sport-blue/20 to-sport-purple/20 relative">
+          <Badge 
+            variant="outline" 
+            className="absolute top-4 right-4 z-10 bg-sport-purple/10 text-sport-purple"
+          >
+            Player Profile
+          </Badge>
+          
           {backgroundPreview ? (
             <img
               src={backgroundPreview}
@@ -103,3 +103,4 @@ const MediaUploader = ({
 };
 
 export default MediaUploader;
+
