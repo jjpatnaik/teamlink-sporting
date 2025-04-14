@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { usePlayerData } from '@/hooks/usePlayerData';
 import Header from "@/components/Header";
 import ProfileHeader from "@/components/player/ProfileHeader";
@@ -17,6 +17,7 @@ const PlayerProfile = () => {
   const { playerData, loading } = usePlayerData();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { id } = useParams();
 
   useEffect(() => {
     // Check if redirected after profile creation
@@ -66,7 +67,7 @@ const PlayerProfile = () => {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !id) {
     return (
       <>
         <Header />
@@ -74,7 +75,7 @@ const PlayerProfile = () => {
           <div className="text-center p-8">
             <p className="text-xl text-sport-gray mb-4">You need to be logged in to view your profile</p>
             <button 
-              onClick={() => navigate("/signup")}
+              onClick={() => navigate("/login")}
               className="px-6 py-3 bg-sport-purple text-white rounded-md hover:bg-sport-purple/90 transition-colors"
             >
               Sign Up or Login
@@ -85,7 +86,7 @@ const PlayerProfile = () => {
     );
   }
 
-  if (!playerData) {
+  if (!playerData && !id) {
     return (
       <>
         <Header />
