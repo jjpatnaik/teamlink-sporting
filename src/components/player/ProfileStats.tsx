@@ -15,15 +15,15 @@ const ProfileStats = ({ playerData }: ProfileStatsProps) => {
       </div>
       <div className="bg-gray-50 p-4 rounded-lg">
         <p className="text-sm text-sport-gray">Height</p>
-        <p className="text-lg font-semibold">6'2" (188 cm)</p>
+        <p className="text-lg font-semibold">{playerData?.height}</p>
       </div>
       <div className="bg-gray-50 p-4 rounded-lg">
         <p className="text-sm text-sport-gray">Weight</p>
-        <p className="text-lg font-semibold">185 lbs (84 kg)</p>
+        <p className="text-lg font-semibold">{playerData?.weight}</p>
       </div>
       <div className="bg-gray-50 p-4 rounded-lg">
         <p className="text-sm text-sport-gray">Age</p>
-        <p className="text-lg font-semibold">27</p>
+        <p className="text-lg font-semibold">{playerData?.age}</p>
       </div>
     </div>
   );
