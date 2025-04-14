@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import { useParams } from 'react-router-dom';
 
 export type CareerEntry = {
   club: string;
@@ -28,50 +29,36 @@ export type PlayerData = {
 export const usePlayerData = () => {
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { id } = useParams();
 
   useEffect(() => {
     const fetchPlayerData = async () => {
       try {
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          // Fetch player details
+        // If ID is provided in the URL, fetch that player's data
+        if (id) {
           const { data, error } = await supabase
             .from('player_details')
             .select('*')
-            .eq('id', user.id)
+            .eq('id', id)
             .maybeSingle();
             
           if (error) throw error;
           setPlayerData(data);
         } else {
-          // For demo, use sample data
-          setPlayerData({
-            full_name: "John Smith",
-            sport: "Basketball",
-            position: "Point Guard",
-            clubs: "Chicago Breeze",
-            city: "Chicago",
-            postcode: "60601",
-            achievements: "Regional League MVP (2022), All-Star Selection (2021, 2022, 2023)",
-            profile_picture_url: null,
-            background_picture_url: null,
-            careerHistory: [
-              {
-                club: "Chicago Breeze",
-                position: "Point Guard",
-                startDate: "2020-01",
-                endDate: "Present"
-              },
-              {
-                club: "Michigan Wolverines",
-                position: "Shooting Guard",
-                startDate: "2018-09",
-                endDate: "2019-12"
-              }
-            ]
-          });
+          // Get current user
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (user) {
+            // Fetch player details for the current user
+            const { data, error } = await supabase
+              .from('player_details')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
+              
+            if (error) throw error;
+            setPlayerData(data);
+          }
         }
       } catch (error) {
         console.error("Error fetching player data:", error);
@@ -81,7 +68,7 @@ export const usePlayerData = () => {
     };
     
     fetchPlayerData();
-  }, []);
+  }, [id]);
 
   return { playerData, loading };
 };

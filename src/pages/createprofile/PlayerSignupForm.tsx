@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -14,38 +15,90 @@ import SocialMediaSection from "@/components/player/profile/SocialMediaSection";
 import LocationInput from "@/components/LocationInput";
 import { playerFormSchema, PlayerFormValues } from "@/components/player/profile/types";
 import { supabase } from "@/integrations/supabase/client";
+import { PlayerData } from "@/hooks/usePlayerData";
 
 interface PlayerSignupFormProps {
   setIsLoading: (loading: boolean) => void;
   isLoading: boolean;
+  existingData?: PlayerData | null;
+  isEditing?: boolean;
 }
 
-const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoading }) => {
-  const [selectedSport, setSelectedSport] = React.useState<string>("");
-  const [profilePreview, setProfilePreview] = useState<string | null>(null);
-  const [backgroundPreview, setBackgroundPreview] = useState<string | null>(null);
+const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ 
+  setIsLoading, 
+  isLoading, 
+  existingData, 
+  isEditing = false 
+}) => {
+  const [selectedSport, setSelectedSport] = React.useState<string>(existingData?.sport || "");
+  const [profilePreview, setProfilePreview] = useState<string | null>(existingData?.profile_picture_url || null);
+  const [backgroundPreview, setBackgroundPreview] = useState<string | null>(existingData?.background_picture_url || null);
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
-  const [careerEntries, setCareerEntries] = useState([
-    { club: "", position: "", startDate: "", endDate: "Present" }
-  ]);
+  
+  // Parse career history from string to array for form
+  const parseCareerHistory = () => {
+    if (existingData?.clubs) {
+      try {
+        const entries = existingData.clubs.split('; ').map(entry => {
+          const clubMatch = entry.match(/(.*?)\s\((.*?),\s(.*?)\s-\s(.*?)\)/);
+          if (clubMatch && clubMatch.length >= 5) {
+            return {
+              club: clubMatch[1],
+              position: clubMatch[2],
+              startDate: clubMatch[3],
+              endDate: clubMatch[4]
+            };
+          }
+          return { club: "", position: "", startDate: "", endDate: "Present" };
+        });
+        return entries.length > 0 ? entries : [{ club: "", position: "", startDate: "", endDate: "Present" }];
+      } catch (error) {
+        console.error("Error parsing career history:", error);
+        return [{ club: "", position: "", startDate: "", endDate: "Present" }];
+      }
+    }
+    return [{ club: "", position: "", startDate: "", endDate: "Present" }];
+  };
+  
+  const [careerEntries, setCareerEntries] = useState(parseCareerHistory());
+  
   const navigate = useNavigate();
   
   const form = useForm<PlayerFormValues>({
     resolver: zodResolver(playerFormSchema),
     defaultValues: {
-      fullName: "",
-      sport: "",
-      position: "",
-      city: "",
-      postcode: "",
-      careerHistory: [{ club: "", position: "", startDate: "", endDate: "Present" }],
-      achievements: "",
-      facebookId: "",
-      whatsappId: "",
-      instagramId: "",
+      fullName: existingData?.full_name || "",
+      sport: existingData?.sport || "",
+      position: existingData?.position || "",
+      city: existingData?.city || "",
+      postcode: existingData?.postcode || "",
+      careerHistory: parseCareerHistory(),
+      achievements: existingData?.achievements || "",
+      facebookId: existingData?.facebook_id || "",
+      whatsappId: existingData?.whatsapp_id || "",
+      instagramId: existingData?.instagram_id || "",
     },
   });
+
+  // Update form when existingData changes
+  useEffect(() => {
+    if (existingData) {
+      form.reset({
+        fullName: existingData.full_name || "",
+        sport: existingData.sport || "",
+        position: existingData.position || "",
+        city: existingData.city || "",
+        postcode: existingData.postcode || "",
+        careerHistory: parseCareerHistory(),
+        achievements: existingData.achievements || "",
+        facebookId: existingData.facebook_id || "",
+        whatsappId: existingData.whatsapp_id || "",
+        instagramId: existingData.instagram_id || "",
+      });
+      setSelectedSport(existingData.sport || "");
+    }
+  }, [existingData, form]);
 
   const uploadImage = async (file: File, userId: string, type: 'profile' | 'background'): Promise<string | null> => {
     if (!file) return null;
@@ -81,20 +134,20 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast.error("You must be logged in to create a profile.");
+        toast.error("You must be logged in to create or update a profile.");
         navigate("/signup");
         return;
       }
       
-      console.log("Creating profile for user:", user.id);
+      console.log(`${isEditing ? "Updating" : "Creating"} profile for user:`, user.id);
       
-      let profilePictureUrl = null;
+      let profilePictureUrl = existingData?.profile_picture_url || null;
       if (profileFile) {
         profilePictureUrl = await uploadImage(profileFile, user.id, 'profile');
         console.log("Profile picture uploaded:", profilePictureUrl);
       }
       
-      let backgroundPictureUrl = null;
+      let backgroundPictureUrl = existingData?.background_picture_url || null;
       if (backgroundFile) {
         backgroundPictureUrl = await uploadImage(backgroundFile, user.id, 'background');
         console.log("Background picture uploaded:", backgroundPictureUrl);
@@ -163,10 +216,10 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
       
       setTimeout(() => navigate("/players"), 1500);
       
-      toast.success("Profile created successfully!");
+      toast.success(`Profile ${isEditing ? "updated" : "created"} successfully!`);
     } catch (error: any) {
-      console.error("Profile creation error:", error);
-      toast.error(error.message || "Failed to create profile. Please try again.");
+      console.error("Profile creation/update error:", error);
+      toast.error(error.message || `Failed to ${isEditing ? "update" : "create"} profile. Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -238,7 +291,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({ setIsLoading, isLoa
               className="w-full bg-gradient-to-r from-sport-blue to-sport-purple hover:from-sport-purple hover:to-sport-blue text-white font-medium py-2.5 mt-4" 
               disabled={isLoading}
             >
-              {isLoading ? "Creating Profile..." : "Create My Profile"}
+              {isLoading ? (isEditing ? "Updating Profile..." : "Creating Profile...") : (isEditing ? "Update My Profile" : "Create My Profile")}
             </Button>
           </div>
         </Card>
