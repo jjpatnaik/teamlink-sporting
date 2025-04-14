@@ -17,6 +17,9 @@ export type PlayerData = {
   clubs?: string;
   city?: string;
   postcode?: string;
+  age?: string;
+  height?: string;
+  weight?: string;
   achievements: string;
   profile_picture_url: string | null;
   background_picture_url: string | null;

@@ -53,6 +53,26 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ form }) => {
           </FormItem>
         )}
       />
+      
+      {/* Confirm Password */}
+      <FormField
+        control={form.control}
+        name="confirmPassword"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Confirm Password*</FormLabel>
+            <FormControl>
+              <Input 
+                type="password" 
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+                {...field} 
+              />
+            </FormControl>
+            <FormMessage className="text-xs" />
+          </FormItem>
+        )}
+      />
     </div>
   );
 };

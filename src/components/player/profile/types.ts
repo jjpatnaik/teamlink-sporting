@@ -7,6 +7,9 @@ export const playerFormSchema = z.object({
   position: z.string().min(1, { message: "Position is required" }),
   city: z.string().min(1, { message: "City is required" }),
   postcode: z.string().min(1, { message: "Postcode is required" }),
+  age: z.string().min(1, { message: "Age is required" }),
+  height: z.string().optional(),
+  weight: z.string().optional(),
   careerHistory: z.array(
     z.object({
       club: z.string(),
