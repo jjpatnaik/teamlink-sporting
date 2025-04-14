@@ -16,6 +16,9 @@ import LocationInput from "@/components/LocationInput";
 import { playerFormSchema, PlayerFormValues } from "@/components/player/profile/types";
 import { supabase } from "@/integrations/supabase/client";
 import { PlayerData } from "@/hooks/usePlayerData";
+import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PlayerSignupFormProps {
   setIsLoading: (loading: boolean) => void;
@@ -73,9 +76,9 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({
       position: existingData?.position || "",
       city: existingData?.city || "",
       postcode: existingData?.postcode || "",
-      age: "",
-      height: "",
-      weight: "",
+      age: existingData?.age || "",
+      height: existingData?.height || "",
+      weight: existingData?.weight || "",
       careerHistory: parseCareerHistory(),
       achievements: existingData?.achievements || "",
       facebookId: existingData?.facebook_id || "",
@@ -176,7 +179,7 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({
         height: data.height,
         weight: data.weight,
         clubs: clubsString,
-        achievements: data.achievements || null,
+        achievements: data.achievements,
         facebook_id: data.facebookId || null,
         whatsapp_id: data.whatsappId || null,
         instagram_id: data.instagramId || null,
@@ -286,6 +289,30 @@ const PlayerSignupForm: React.FC<PlayerSignupFormProps> = ({
                 form={form}
                 careerEntries={careerEntries}
                 setCareerEntries={setCareerEntries}
+              />
+            </div>
+
+            <Separator className="my-6 bg-sport-light-purple/30" />
+
+            {/* Achievements Section */}
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-4 text-sport-dark-gray">Achievements</h3>
+              <FormField
+                control={form.control}
+                name="achievements"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Achievements*</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="List your achievements, awards, and recognitions"
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
 

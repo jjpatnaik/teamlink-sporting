@@ -12,12 +12,14 @@ export type Database = {
       player_details: {
         Row: {
           achievements: string | null
+          age: string | null
           background_picture_url: string | null
           city: string | null
           clubs: string | null
           created_at: string
           facebook_id: string | null
           full_name: string
+          height: string | null
           id: string
           instagram_id: string | null
           position: string
@@ -25,16 +27,19 @@ export type Database = {
           profile_picture_url: string | null
           sport: string
           updated_at: string
+          weight: string | null
           whatsapp_id: string | null
         }
         Insert: {
           achievements?: string | null
+          age?: string | null
           background_picture_url?: string | null
           city?: string | null
           clubs?: string | null
           created_at?: string
           facebook_id?: string | null
           full_name: string
+          height?: string | null
           id: string
           instagram_id?: string | null
           position: string
@@ -42,16 +47,19 @@ export type Database = {
           profile_picture_url?: string | null
           sport: string
           updated_at?: string
+          weight?: string | null
           whatsapp_id?: string | null
         }
         Update: {
           achievements?: string | null
+          age?: string | null
           background_picture_url?: string | null
           city?: string | null
           clubs?: string | null
           created_at?: string
           facebook_id?: string | null
           full_name?: string
+          height?: string | null
           id?: string
           instagram_id?: string | null
           position?: string
@@ -59,6 +67,7 @@ export type Database = {
           profile_picture_url?: string | null
           sport?: string
           updated_at?: string
+          weight?: string | null
           whatsapp_id?: string | null
         }
         Relationships: []

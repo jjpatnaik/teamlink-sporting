@@ -8,8 +8,8 @@ export const playerFormSchema = z.object({
   city: z.string().min(1, { message: "City is required" }),
   postcode: z.string().min(1, { message: "Postcode is required" }),
   age: z.string().min(1, { message: "Age is required" }),
-  height: z.string().optional(),
-  weight: z.string().optional(),
+  height: z.string().min(1, { message: "Height is required" }),
+  weight: z.string().min(1, { message: "Weight is required" }),
   careerHistory: z.array(
     z.object({
       club: z.string(),
@@ -18,7 +18,7 @@ export const playerFormSchema = z.object({
       endDate: z.string()
     })
   ),
-  achievements: z.string().optional(),
+  achievements: z.string().min(1, { message: "Achievements are required" }),
   facebookId: z.string().optional(),
   whatsappId: z.string().optional(),
   instagramId: z.string().optional(),
