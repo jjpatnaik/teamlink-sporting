@@ -14,6 +14,7 @@ import TeamProfile from "./pages/TeamProfile";
 import TournamentProfile from "./pages/TournamentProfile";
 import SponsorProfile from "./pages/SponsorProfile";
 import SignupPage from "./pages/signup";
+import LoginPage from "./pages/login";
 import CreateProfilePage from "./pages/createprofile";
 import SearchPage from "./pages/SearchPage";
 
@@ -85,7 +86,7 @@ const App = () => {
             <Route 
               path="/players" 
               element={
-                session ? <PlayerProfile /> : <Navigate to="/signup" />
+                session ? <PlayerProfile /> : <Navigate to="/login" />
               } 
             />
             <Route 
@@ -107,11 +108,19 @@ const App = () => {
               } 
             />
             <Route 
+              path="/login" 
+              element={
+                session ? 
+                  (hasProfile ? <Navigate to="/players" /> : <Navigate to="/createprofile" />) : 
+                  <LoginPage />
+              } 
+            />
+            <Route 
               path="/createprofile" 
               element={
                 session ? 
                   (hasProfile ? <Navigate to="/players" /> : <CreateProfilePage />) : 
-                  <Navigate to="/signup" />
+                  <Navigate to="/login" />
               } 
             />
             <Route path="/search" element={<SearchPage />} />
