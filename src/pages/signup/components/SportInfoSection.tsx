@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 import { PlayerFormValues } from "@/components/player/profile/types";
-import { sports, sportPositions, clubs } from "../constants";
+import { sports, sportPositions } from "../constants";
 
 // Now this component is dedicated for the create profile page, not signup
 interface SportInfoSectionProps {
@@ -81,30 +81,6 @@ const SportInfoSection: React.FC<SportInfoSectionProps> = ({ form, selectedSport
           )}
         />
       )}
-
-      {/* Clubs Played For */}
-      <FormField
-        control={form.control}
-        name="clubs"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Clubs Played For</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Enter your current or previous club names" 
-                list="clubs-list"
-                {...field} 
-              />
-            </FormControl>
-            <datalist id="clubs-list">
-              {clubs.map((club) => (
-                <option key={club} value={club} />
-              ))}
-            </datalist>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
 
       {/* Achievements */}
       <FormField
