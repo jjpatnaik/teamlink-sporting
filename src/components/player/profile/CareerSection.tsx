@@ -1,8 +1,6 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { Trophy, Plus } from "lucide-react";
 import CareerHistoryEntry from "@/components/player/CareerHistoryEntry";
 import { UseFormReturn } from "react-hook-form";
@@ -78,24 +76,6 @@ const CareerSection = ({ form, careerEntries, setCareerEntries }: CareerSectionP
       >
         <Plus className="w-4 h-4 mr-2" /> Add Career Entry
       </Button>
-
-      <FormField
-        control={form.control}
-        name="achievements"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sport-dark-gray font-medium">Achievements</FormLabel>
-            <FormControl>
-              <Textarea 
-                placeholder="List your key achievements (e.g., MVP, All-Star selections)"
-                {...field}
-                className="min-h-[120px] border-sport-light-purple/50 focus-visible:ring-sport-purple/40"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </>
   );
 };
