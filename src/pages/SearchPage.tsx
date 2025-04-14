@@ -8,12 +8,11 @@ import SearchResults from '@/components/search/SearchResults';
 import { 
   MOCK_SPORTS, 
   MOCK_AREAS, 
-  MOCK_PLAYERS, 
   MOCK_TEAMS, 
   MOCK_TOURNAMENTS, 
   MOCK_SPONSORSHIPS 
 } from '@/data/mockData';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -26,6 +25,8 @@ const SearchPage = () => {
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [userCity, setUserCity] = useState<string | null>(null);
   const [userPostcode, setUserPostcode] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [playerProfiles, setPlayerProfiles] = useState<any[]>([]);
 
   // Get user location data if they're logged in
   useEffect(() => {
@@ -56,6 +57,43 @@ const SearchPage = () => {
     };
     
     fetchUserLocation();
+  }, []);
+
+  // Fetch player profiles from the database
+  useEffect(() => {
+    const fetchPlayerProfiles = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('player_details')
+          .select('*');
+
+        if (error) {
+          console.error("Error fetching player profiles:", error);
+          return;
+        }
+
+        if (data) {
+          // Transform the data to match the expected format
+          const transformedData = data.map((player, index) => ({
+            id: index + 1,
+            userId: player.id,
+            name: player.full_name,
+            sport: player.sport,
+            area: player.city || "Unknown",
+            image: player.profile_picture_url || "https://via.placeholder.com/300x200?text=No+Image"
+          }));
+          
+          setPlayerProfiles(transformedData);
+        }
+      } catch (error) {
+        console.error("Error in fetchPlayerProfiles:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlayerProfiles();
   }, []);
 
   // Handle URL parameters
@@ -89,7 +127,7 @@ const SearchPage = () => {
     // Filter by search type
     switch (searchType) {
       case "Player":
-        results = MOCK_PLAYERS;
+        results = playerProfiles;
         break;
       case "Team":
         results = MOCK_TEAMS;
@@ -129,7 +167,7 @@ const SearchPage = () => {
     }
     
     setFilteredResults(results);
-  }, [searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, userCity]);
+  }, [searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, userCity, playerProfiles]);
 
   // Reset certain filters when search type changes
   useEffect(() => {
@@ -138,9 +176,15 @@ const SearchPage = () => {
 
   const handleItemClick = (id: number) => {
     switch (searchType) {
-      case "Player":
-        navigate(`/players/${id}`);
+      case "Player": {
+        const player = playerProfiles.find(p => p.id === id);
+        if (player && player.userId) {
+          navigate(`/players/${player.userId}`);
+        } else {
+          navigate(`/players/${id}`);
+        }
         break;
+      }
       case "Team":
         navigate(`/teams/${id}`);
         break;
@@ -185,6 +229,7 @@ const SearchPage = () => {
               selectedSport={selectedSport}
               selectedArea={selectedArea}
               handleItemClick={handleItemClick}
+              loading={loading}
             />
           </div>
         </div>

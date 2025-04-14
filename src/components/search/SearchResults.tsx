@@ -12,6 +12,7 @@ interface SearchResultsProps {
   selectedSport: string;
   selectedArea: string;
   handleItemClick: (id: number) => void;
+  loading?: boolean;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({
@@ -19,8 +20,19 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   filteredResults,
   selectedSport,
   selectedArea,
-  handleItemClick
+  handleItemClick,
+  loading = false
 }) => {
+  if (loading) {
+    return (
+      <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sport-purple mx-auto mb-4"></div>
+        <h3 className="text-lg font-medium">Loading results...</h3>
+        <p className="text-gray-500">Please wait while we fetch the data</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-2">Results</h2>
