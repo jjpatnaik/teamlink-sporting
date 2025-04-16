@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePlayerData } from '@/hooks/usePlayerData';
@@ -13,6 +12,7 @@ import SocialConnect from "@/components/player/SocialConnect";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import TestUserCreator from "@/components/TestUserCreator";
 
 const PlayerProfile = () => {
   const { playerData, loading } = usePlayerData();
@@ -22,7 +22,6 @@ const PlayerProfile = () => {
   const { id } = useParams();
 
   useEffect(() => {
-    // Check if redirected after profile creation
     const checkProfileCreated = () => {
       const profileCreated = localStorage.getItem('profileCreated');
       if (profileCreated === 'true') {
@@ -33,12 +32,10 @@ const PlayerProfile = () => {
     
     checkProfileCreated();
     
-    // Check authentication status
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
       setIsAuthenticated(!!data.session);
       
-      // Check if viewing own profile
       if (data.session?.user && !id) {
         setIsCurrentUser(true);
       } else if (data.session?.user && id === data.session.user.id) {
@@ -48,7 +45,6 @@ const PlayerProfile = () => {
     
     checkAuth();
     
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
       
@@ -122,6 +118,12 @@ const PlayerProfile = () => {
     <>
       <Header />
       <div className="container mx-auto px-4 py-8">
+        {process.env.NODE_ENV === 'development' && (
+          <div className="max-w-4xl mx-auto mb-6">
+            <TestUserCreator />
+          </div>
+        )}
+
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             <ProfileHeader playerData={playerData} />
