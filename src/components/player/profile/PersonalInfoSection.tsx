@@ -30,7 +30,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
     <div>
       <h3 className="text-xl font-semibold mb-4 text-sport-dark-gray">Personal Information</h3>
       
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Full Name */}
         <FormField
           control={form.control}
@@ -46,113 +46,119 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           )}
         />
 
-        {/* Age */}
-        <FormField
-          control={form.control}
-          name="age"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Age*</FormLabel>
-              <FormControl>
-                <Input type="number" placeholder="Enter your age" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Height */}
-        <FormField
-          control={form.control}
-          name="height"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Height (cm)</FormLabel>
-              <FormControl>
-                <Input type="number" placeholder="Enter your height in cm" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Weight */}
-        <FormField
-          control={form.control}
-          name="weight"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Weight (kg)</FormLabel>
-              <FormControl>
-                <Input type="number" placeholder="Enter your weight in kg" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Sport */}
-        <FormField
-          control={form.control}
-          name="sport"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sport*</FormLabel>
-              <Select
-                value={field.value}
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  setSelectedSport(value);
-                  form.setValue("position", "");
-                }}
-              >
+        {/* Age, Height, Weight in a grid */}
+        <div className="grid grid-cols-3 gap-4">
+          {/* Age */}
+          <FormField
+            control={form.control}
+            name="age"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Age*</FormLabel>
                 <FormControl>
-                  <SelectTrigger className="text-base md:text-sm">
-                    <SelectValue placeholder="Select your sport" />
-                  </SelectTrigger>
+                  <Input type="number" placeholder="Age" {...field} />
                 </FormControl>
-                <SelectContent>
-                  {sportsOptions.map((sport) => (
-                    <SelectItem key={sport.value} value={sport.value}>
-                      {sport.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Position */}
-        <FormField
-          control={form.control}
-          name="position"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Position*</FormLabel>
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={!selectedSport}
-              >
+          {/* Height */}
+          <FormField
+            control={form.control}
+            name="height"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Height (cm)</FormLabel>
                 <FormControl>
-                  <SelectTrigger className="text-base md:text-sm">
-                    <SelectValue placeholder={selectedSport ? "Select your position" : "Select a sport first"} />
-                  </SelectTrigger>
+                  <Input type="number" placeholder="Height" {...field} />
                 </FormControl>
-                <SelectContent>
-                  {availablePositions.map((position) => (
-                    <SelectItem key={position.value} value={position.value}>
-                      {position.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Weight */}
+          <FormField
+            control={form.control}
+            name="weight"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Weight (kg)</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="Weight" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Sport and Position in a grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Sport */}
+          <FormField
+            control={form.control}
+            name="sport"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sport*</FormLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    setSelectedSport(value);
+                    form.setValue("position", "");
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger className="text-base md:text-sm">
+                      <SelectValue placeholder="Select your sport" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {sportsOptions.map((sport) => (
+                      <SelectItem key={sport.value} value={sport.value}>
+                        {sport.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Position */}
+          <FormField
+            control={form.control}
+            name="position"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Position*</FormLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={!selectedSport}
+                >
+                  <FormControl>
+                    <SelectTrigger className="text-base md:text-sm">
+                      <SelectValue placeholder={selectedSport ? "Select your position" : "Select a sport first"} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {availablePositions.map((position) => (
+                      <SelectItem key={position.value} value={position.value}>
+                        {position.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
     </div>
   );
