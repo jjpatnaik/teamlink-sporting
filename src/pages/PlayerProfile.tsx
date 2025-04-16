@@ -12,10 +12,12 @@ import Achievements from "@/components/player/Achievements";
 import SocialConnect from "@/components/player/SocialConnect";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const PlayerProfile = () => {
   const { playerData, loading } = usePlayerData();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isCurrentUser, setIsCurrentUser] = useState<boolean>(false);
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -35,6 +37,13 @@ const PlayerProfile = () => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
       setIsAuthenticated(!!data.session);
+      
+      // Check if viewing own profile
+      if (data.session?.user && !id) {
+        setIsCurrentUser(true);
+      } else if (data.session?.user && id === data.session.user.id) {
+        setIsCurrentUser(true);
+      }
     };
     
     checkAuth();
@@ -51,7 +60,11 @@ const PlayerProfile = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, id]);
+
+  const handleEditProfile = () => {
+    navigate('/createprofile');
+  };
 
   if (loading) {
     return (
@@ -115,6 +128,18 @@ const PlayerProfile = () => {
             
             <div className="relative px-6 pb-6">
               <ProfileInfo playerData={playerData} />
+              
+              {isCurrentUser && (
+                <div className="mt-4 flex justify-end">
+                  <Button 
+                    onClick={handleEditProfile}
+                    className="bg-sport-purple hover:bg-sport-purple/90 text-white"
+                  >
+                    Edit My Profile
+                  </Button>
+                </div>
+              )}
+              
               <ProfileBio playerData={playerData} />
               <ProfileStats playerData={playerData} />
               <CareerHistory playerData={playerData} />

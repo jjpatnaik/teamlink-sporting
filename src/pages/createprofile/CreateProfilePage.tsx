@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -34,23 +33,13 @@ const CreateProfilePage = () => {
     };
     
     checkAuth();
-    
-    // Check for profile completion events
-    const handleProfileCreated = () => {
-      const profileCreatedFlag = localStorage.getItem('profileCreated');
-      if (profileCreatedFlag === 'true') {
-        toast.success("Profile created successfully! You can now explore the platform.");
-        localStorage.removeItem('profileCreated');
-      }
-    };
-    
-    handleProfileCreated();
   }, [navigate]);
 
   // Determine if we're editing an existing profile
   useEffect(() => {
     if (playerData) {
       setIsEditing(true);
+      console.log("Editing existing profile with data:", playerData);
     }
   }, [playerData]);
   

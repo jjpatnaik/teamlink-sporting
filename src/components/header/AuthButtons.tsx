@@ -27,6 +27,10 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
     navigate('/');
   };
 
+  const handleEditProfile = () => {
+    navigate('/createprofile');
+  };
+
   if (isAuthenticated) {
     // Get initials for avatar fallback
     const getInitials = () => {
@@ -68,7 +72,7 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
               <User className="mr-2 h-4 w-4" />
               <span>My Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/createprofile')}>
+            <DropdownMenuItem onClick={handleEditProfile}>
               <Pencil className="mr-2 h-4 w-4" />
               <span>Edit Profile</span>
             </DropdownMenuItem>

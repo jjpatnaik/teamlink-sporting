@@ -4,12 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserCircle } from 'lucide-react';
 import { PlayerData } from '@/hooks/usePlayerData';
+import { useNavigate } from 'react-router-dom';
 
 type ProfileHeaderProps = {
   playerData: PlayerData | null;
 };
 
 const ProfileHeader = ({ playerData }: ProfileHeaderProps) => {
+  const navigate = useNavigate();
+  
+  const handleEditProfile = () => {
+    navigate('/createprofile');
+  };
+  
   return (
     <>
       {/* Cover Photo */}
@@ -21,7 +28,11 @@ const ProfileHeader = ({ playerData }: ProfileHeaderProps) => {
             className="w-full h-full object-cover"
           />
         )}
-        <Button variant="ghost" className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white">
+        <Button 
+          variant="ghost" 
+          className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white"
+          onClick={handleEditProfile}
+        >
           Edit Profile
         </Button>
       </div>
