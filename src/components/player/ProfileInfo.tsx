@@ -10,6 +10,11 @@ type ProfileInfoProps = {
 };
 
 const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) => {
+  // Determine location display
+  const locationDisplay = playerData?.city 
+    ? `${playerData.city}${playerData.postcode ? `, ${playerData.postcode}` : ''}`
+    : 'Location not specified';
+
   return (
     <div className="flex flex-col md:flex-row justify-between">
       <div>
@@ -17,7 +22,7 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
         <p className="text-xl text-sport-purple">{playerData?.sport} Player</p>
         <div className="flex items-center mt-2 text-sport-gray">
           <MapPin className="w-4 h-4 mr-1" />
-          <span>Chicago, IL, USA</span>
+          <span>{locationDisplay}</span>
         </div>
       </div>
       
