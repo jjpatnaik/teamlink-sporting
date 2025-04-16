@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface CareerHistoryEntryProps {
@@ -30,18 +30,37 @@ const CareerHistoryEntry = ({
 }: CareerHistoryEntryProps) => {
   // Helper function to convert dates
   const formatDate = (date: Date | undefined): string => {
-    if (!date) return "";
+    if (!date || !isValid(date)) return "";
     return format(date, "yyyy-MM");
   };
 
   const parseDate = (dateStr: string): Date | undefined => {
-    if (!dateStr) return undefined;
+    if (!dateStr || dateStr === 'Present') return undefined;
+    
     try {
-      const [year, month] = dateStr.split('-').map(num => parseInt(num));
-      return new Date(year, month - 1); // Month is 0-indexed in JS Date
+      // Add a day value to ensure proper date parsing
+      const [year, month] = dateStr.split('-').map(num => parseInt(num, 10));
+      if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+        return undefined;
+      }
+      // Create date with 1st day of month for consistency
+      const date = new Date(year, month - 1, 1);
+      return isValid(date) ? date : undefined;
     } catch (e) {
+      console.error("Error parsing date:", e);
       return undefined;
     }
+  };
+
+  const formatDisplayDate = (dateStr: string): string => {
+    if (!dateStr || dateStr === 'Present') return dateStr || "Select date";
+    
+    const parsedDate = parseDate(dateStr);
+    if (!parsedDate || !isValid(parsedDate)) {
+      return "Select date";
+    }
+    
+    return format(parsedDate, "MMMM yyyy");
   };
 
   return (
@@ -89,7 +108,7 @@ const CareerHistoryEntry = ({
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {entry.startDate ? format(parseDate(entry.startDate) || new Date(), "MMMM yyyy") : <span>Select date</span>}
+                {formatDisplayDate(entry.startDate)}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -105,6 +124,7 @@ const CareerHistoryEntry = ({
                 captionLayout="dropdown-buttons"
                 fromYear={1990}
                 toYear={2030}
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -128,10 +148,7 @@ const CareerHistoryEntry = ({
                       disabled={entry.endDate === 'Present'}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {entry.endDate && entry.endDate !== 'Present' 
-                        ? format(parseDate(entry.endDate) || new Date(), "MMMM yyyy") 
-                        : <span>Select date</span>
-                      }
+                      {formatDisplayDate(entry.endDate)}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -147,6 +164,7 @@ const CareerHistoryEntry = ({
                       captionLayout="dropdown-buttons"
                       fromYear={1990}
                       toYear={2030}
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
