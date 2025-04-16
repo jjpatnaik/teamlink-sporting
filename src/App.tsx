@@ -118,9 +118,7 @@ const App = () => {
             <Route 
               path="/createprofile" 
               element={
-                session ? 
-                  (hasProfile ? <Navigate to="/players" /> : <CreateProfilePage />) : 
-                  <Navigate to="/login" />
+                session ? <CreateProfilePage /> : <Navigate to="/login" />
               } 
             />
             <Route path="/search" element={<SearchPage />} />
