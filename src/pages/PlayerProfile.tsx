@@ -127,7 +127,7 @@ const PlayerProfile = () => {
             <ProfileHeader playerData={playerData} />
             
             <div className="relative px-6 pb-6">
-              <ProfileInfo playerData={playerData} />
+              <ProfileInfo playerData={playerData} isCurrentUser={isCurrentUser} />
               
               {isCurrentUser && (
                 <div className="mt-4 flex justify-end">

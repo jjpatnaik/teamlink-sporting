@@ -6,9 +6,10 @@ import { PlayerData } from '@/hooks/usePlayerData';
 
 type ProfileInfoProps = {
   playerData: PlayerData | null;
+  isCurrentUser?: boolean;
 };
 
-const ProfileInfo = ({ playerData }: ProfileInfoProps) => {
+const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) => {
   return (
     <div className="flex flex-col md:flex-row justify-between">
       <div>
@@ -21,10 +22,14 @@ const ProfileInfo = ({ playerData }: ProfileInfoProps) => {
       </div>
       
       <div className="mt-4 md:mt-0 flex space-x-2">
-        <Button className="btn-primary">Connect</Button>
-        <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
-          Message
-        </Button>
+        {!isCurrentUser ? (
+          <>
+            <Button className="btn-primary">Connect</Button>
+            <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
+              Message
+            </Button>
+          </>
+        ) : null}
       </div>
     </div>
   );
