@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { UserCircle, Link } from 'lucide-react';
 import { PlayerData } from '@/hooks/usePlayerData';
+import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 
 type ProfileHeaderProps = {
@@ -13,10 +13,6 @@ type ProfileHeaderProps = {
 const ProfileHeader = ({ playerData }: ProfileHeaderProps) => {
   const navigate = useNavigate();
   
-  const handleEditProfile = () => {
-    navigate('/createprofile');
-  };
-
   const handleConnections = () => {
     navigate('/connections');
   };
@@ -41,13 +37,6 @@ const ProfileHeader = ({ playerData }: ProfileHeaderProps) => {
             <Link className="mr-2 h-4 w-4" />
             Connections
           </Button>
-          <Button 
-            variant="ghost" 
-            className="bg-white/20 hover:bg-white/30 text-white"
-            onClick={handleEditProfile}
-          >
-            Edit Profile
-          </Button>
         </div>
       </div>
       
@@ -70,3 +59,4 @@ const ProfileHeader = ({ playerData }: ProfileHeaderProps) => {
 };
 
 export default ProfileHeader;
+
