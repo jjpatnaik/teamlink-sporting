@@ -20,6 +20,7 @@ export type PlayerData = {
   age?: string;
   height?: string;
   weight?: string;
+  bio?: string;
   achievements: string;
   profile_picture_url: string | null;
   background_picture_url: string | null;

@@ -1,8 +1,9 @@
 
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PlayerFormValues } from "./types";
 import { 
   Select,
@@ -93,6 +94,29 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             )}
           />
         </div>
+
+        {/* Something About You */}
+        <FormField
+          control={form.control}
+          name="bio"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Something About You</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Share something about yourself (max 500 characters)" 
+                  className="min-h-[100px] resize-y"
+                  maxLength={500}
+                  {...field} 
+                />
+              </FormControl>
+              <FormDescription className="text-xs text-right">
+                {field.value?.length || 0}/500 characters
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Sport and Position in a grid */}
         <div className="grid grid-cols-2 gap-4">

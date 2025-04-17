@@ -10,6 +10,7 @@ export const playerFormSchema = z.object({
   age: z.string().min(1, { message: "Age is required" }),
   height: z.string().min(1, { message: "Height is required" }),
   weight: z.string().min(1, { message: "Weight is required" }),
+  bio: z.string().max(500, { message: "Bio cannot exceed 500 characters" }).optional(),
   careerHistory: z.array(
     z.object({
       club: z.string(),

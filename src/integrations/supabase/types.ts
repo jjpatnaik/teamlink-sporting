@@ -14,6 +14,7 @@ export type Database = {
           achievements: string | null
           age: string | null
           background_picture_url: string | null
+          bio: string | null
           city: string | null
           clubs: string | null
           created_at: string
@@ -34,6 +35,7 @@ export type Database = {
           achievements?: string | null
           age?: string | null
           background_picture_url?: string | null
+          bio?: string | null
           city?: string | null
           clubs?: string | null
           created_at?: string
@@ -54,6 +56,7 @@ export type Database = {
           achievements?: string | null
           age?: string | null
           background_picture_url?: string | null
+          bio?: string | null
           city?: string | null
           clubs?: string | null
           created_at?: string

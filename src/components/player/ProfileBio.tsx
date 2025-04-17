@@ -11,9 +11,15 @@ const ProfileBio = ({ playerData }: ProfileBioProps) => {
     <div className="mt-6">
       <h2 className="text-xl font-semibold mb-2">About</h2>
       <p className="text-sport-gray">
-        Professional {playerData?.sport} player with 5+ years of experience playing at collegiate and semi-professional levels. 
-        {playerData?.position} with strong leadership skills, court vision, and defensive abilities.
-        Looking for opportunities with professional teams in Europe or Asia.
+        {playerData?.bio ? (
+          playerData.bio
+        ) : (
+          <>
+            Professional {playerData?.sport} player with 5+ years of experience playing at collegiate and semi-professional levels. 
+            {playerData?.position} with strong leadership skills, court vision, and defensive abilities.
+            Looking for opportunities with professional teams in Europe or Asia.
+          </>
+        )}
       </p>
     </div>
   );
