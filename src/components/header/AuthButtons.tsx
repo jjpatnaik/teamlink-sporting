@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User, Pencil } from 'lucide-react';
-import { usePlayerData } from '@/hooks/usePlayerData';
 
 interface AuthButtonsProps {
   isAuthenticated: boolean;
@@ -20,7 +19,35 @@ interface AuthButtonsProps {
 
 const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   const navigate = useNavigate();
-  const { playerData } = usePlayerData();
+  const [currentUserData, setCurrentUserData] = useState<any>(null);
+
+  // Fetch the current logged-in user's data
+  useEffect(() => {
+    const fetchCurrentUserData = async () => {
+      if (isAuthenticated) {
+        try {
+          // Get current user
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (user) {
+            // Fetch player details for the current user
+            const { data, error } = await supabase
+              .from('player_details')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
+              
+            if (error) throw error;
+            setCurrentUserData(data);
+          }
+        } catch (error) {
+          console.error("Error fetching current user data:", error);
+        }
+      }
+    };
+    
+    fetchCurrentUserData();
+  }, [isAuthenticated]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -34,8 +61,8 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   if (isAuthenticated) {
     // Get initials for avatar fallback
     const getInitials = () => {
-      if (playerData?.full_name) {
-        const nameParts = playerData.full_name.split(' ');
+      if (currentUserData?.full_name) {
+        const nameParts = currentUserData.full_name.split(' ');
         if (nameParts.length >= 2) {
           return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
         }
@@ -51,8 +78,8 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10 border-2 border-white cursor-pointer">
                 <AvatarImage 
-                  src={playerData?.profile_picture_url || ''} 
-                  alt={playerData?.full_name || 'User'} 
+                  src={currentUserData?.profile_picture_url || ''} 
+                  alt={currentUserData?.full_name || 'User'} 
                 />
                 <AvatarFallback className="bg-sport-purple text-white">
                   {getInitials()}
@@ -63,8 +90,8 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
           <DropdownMenuContent align="end" className="w-56">
             <div className="flex items-center justify-start gap-2 p-2">
               <div className="flex flex-col space-y-1 leading-none">
-                <p className="font-medium">{playerData?.full_name || 'User'}</p>
-                <p className="text-sm text-muted-foreground">{playerData?.sport || 'Athlete'}</p>
+                <p className="font-medium">{currentUserData?.full_name || 'User'}</p>
+                <p className="text-sm text-muted-foreground">{currentUserData?.sport || 'Athlete'}</p>
               </div>
             </div>
             <DropdownMenuSeparator />
