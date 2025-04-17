@@ -43,7 +43,7 @@ export const useConnections = () => {
             receiver_id,
             status,
             created_at,
-            user:profiles!receiver_id(
+            user:player_details!receiver_id(
               full_name,
               sport,
               position,
@@ -64,7 +64,7 @@ export const useConnections = () => {
             receiver_id,
             status,
             created_at,
-            user:profiles!requester_id(
+            user:player_details!requester_id(
               full_name,
               sport,
               position,
@@ -85,7 +85,7 @@ export const useConnections = () => {
             receiver_id,
             status,
             created_at,
-            user:profiles!requester_id(
+            user:player_details!requester_id(
               full_name,
               sport,
               position,
