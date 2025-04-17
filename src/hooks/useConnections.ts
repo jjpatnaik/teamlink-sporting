@@ -43,7 +43,7 @@ export const useConnections = () => {
             receiver_id,
             status,
             created_at,
-            user:receiver_id(
+            user:profiles!receiver_id(
               full_name,
               sport,
               position,
@@ -64,7 +64,7 @@ export const useConnections = () => {
             receiver_id,
             status,
             created_at,
-            user:requester_id(
+            user:profiles!requester_id(
               full_name,
               sport,
               position,
@@ -85,7 +85,7 @@ export const useConnections = () => {
             receiver_id,
             status,
             created_at,
-            user:requester_id(
+            user:profiles!requester_id(
               full_name,
               sport,
               position,
@@ -97,10 +97,26 @@ export const useConnections = () => {
 
         if (pendingError) throw pendingError;
 
+        // Manually validate and cast the data
+        const typedSentConnections = sentConnections?.map(conn => ({
+          ...conn,
+          status: conn.status as 'pending' | 'accepted' | 'rejected'
+        })) || [];
+        
+        const typedReceivedConnections = receivedConnections?.map(conn => ({
+          ...conn,
+          status: conn.status as 'pending' | 'accepted' | 'rejected'
+        })) || [];
+        
+        const typedPendingRequests = pendingReqs?.map(req => ({
+          ...req,
+          status: req.status as 'pending' | 'accepted' | 'rejected'
+        })) || [];
+
         // Combine accepted connections
-        const allConnections = [...(sentConnections || []), ...(receivedConnections || [])];
+        const allConnections = [...typedSentConnections, ...typedReceivedConnections];
         setConnections(allConnections);
-        setPendingRequests(pendingReqs || []);
+        setPendingRequests(typedPendingRequests);
       } catch (error: any) {
         console.error("Error fetching connections:", error);
         setError(error.message || "Failed to fetch connections");

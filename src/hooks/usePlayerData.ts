@@ -11,6 +11,7 @@ export type CareerEntry = {
 };
 
 export type PlayerData = {
+  id: string; // Added id property
   full_name: string;
   sport: string;
   position: string;
