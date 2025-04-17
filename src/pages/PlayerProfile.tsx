@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePlayerData } from '@/hooks/usePlayerData';
@@ -60,6 +61,10 @@ const PlayerProfile = () => {
 
   const handleEditProfile = () => {
     navigate('/createprofile');
+  };
+
+  const handleConnections = () => {
+    navigate('/connections');
   };
 
   if (loading) {
@@ -132,7 +137,14 @@ const PlayerProfile = () => {
               <ProfileInfo playerData={playerData} isCurrentUser={isCurrentUser} />
               
               {isCurrentUser && (
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex justify-end space-x-2">
+                  <Button 
+                    onClick={handleConnections}
+                    variant="outline"
+                    className="bg-sport-purple/10 hover:bg-sport-purple/20 text-sport-purple"
+                  >
+                    My Connections
+                  </Button>
                   <Button 
                     onClick={handleEditProfile}
                     className="bg-sport-purple hover:bg-sport-purple/90 text-white"
