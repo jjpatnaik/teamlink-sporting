@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { UserCircle } from 'lucide-react';
+import { UserCircle, Link } from 'lucide-react';
 import { PlayerData } from '@/hooks/usePlayerData';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,6 +16,10 @@ const ProfileHeader = ({ playerData }: ProfileHeaderProps) => {
   const handleEditProfile = () => {
     navigate('/createprofile');
   };
+
+  const handleConnections = () => {
+    navigate('/connections');
+  };
   
   return (
     <>
@@ -28,13 +32,23 @@ const ProfileHeader = ({ playerData }: ProfileHeaderProps) => {
             className="w-full h-full object-cover"
           />
         )}
-        <Button 
-          variant="ghost" 
-          className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white"
-          onClick={handleEditProfile}
-        >
-          Edit Profile
-        </Button>
+        <div className="absolute top-4 right-4 flex space-x-2">
+          <Button 
+            variant="ghost" 
+            className="bg-white/20 hover:bg-white/30 text-white"
+            onClick={handleConnections}
+          >
+            <Link className="mr-2 h-4 w-4" />
+            Connections
+          </Button>
+          <Button 
+            variant="ghost" 
+            className="bg-white/20 hover:bg-white/30 text-white"
+            onClick={handleEditProfile}
+          >
+            Edit Profile
+          </Button>
+        </div>
       </div>
       
       {/* Profile Image & Basic Info */}

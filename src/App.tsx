@@ -17,6 +17,7 @@ import SignupPage from "./pages/signup";
 import LoginPage from "./pages/login";
 import CreateProfilePage from "./pages/createprofile";
 import SearchPage from "./pages/SearchPage";
+import ConnectionsPage from "./pages/ConnectionsPage";
 
 const App = () => {
   const queryClient = new QueryClient();
@@ -99,6 +100,12 @@ const App = () => {
             <Route path="/tournaments/:id" element={<TournamentProfile />} />
             <Route path="/sponsors" element={<SponsorProfile />} />
             <Route path="/sponsors/:id" element={<SponsorProfile />} />
+            <Route 
+              path="/connections" 
+              element={
+                session ? <ConnectionsPage /> : <Navigate to="/login" />
+              } 
+            />
             <Route 
               path="/signup" 
               element={

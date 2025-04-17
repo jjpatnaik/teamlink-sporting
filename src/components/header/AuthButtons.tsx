@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Pencil } from 'lucide-react';
+import { LogOut, User, Pencil, UserPlus } from 'lucide-react';
 
 interface AuthButtonsProps {
   isAuthenticated: boolean;
@@ -98,6 +98,10 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
             <DropdownMenuItem onClick={() => navigate('/players')}>
               <User className="mr-2 h-4 w-4" />
               <span>My Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/connections')}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              <span>Connections</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleEditProfile}>
               <Pencil className="mr-2 h-4 w-4" />
