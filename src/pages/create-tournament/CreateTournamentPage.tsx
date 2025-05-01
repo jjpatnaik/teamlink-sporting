@@ -1,75 +1,76 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import { supabase } from '@/integrations/supabase/client';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { 
-  Form, FormControl, FormField, FormItem, 
-  FormLabel, FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select, SelectContent, SelectItem, 
-  SelectTrigger, SelectValue
-} from '@/components/ui/select';
-import { sports } from '@/pages/signup/constants';
-import { tournamentFormats } from '@/pages/signup/constants';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { sportOptions } from '@/constants/sportOptions';
 
-// Form schema
-const tournamentFormSchema = z.object({
-  name: z.string().min(3, { message: 'Tournament name is required' }),
+// Form schema for tournament creation
+const tournamentSchema = z.object({
+  name: z.string().min(3, { message: 'Tournament name must be at least 3 characters' }),
   description: z.string().optional(),
-  sport: z.string().min(1, { message: 'Sport is required' }),
-  teamsAllowed: z.number().min(2, { message: 'At least 2 teams are required' }),
-  format: z.string().min(1, { message: 'Format is required' }),
-  rules: z.string().optional(),
+  sport: z.string().min(1, { message: 'Please select a sport' }),
+  format: z.string().min(1, { message: 'Please select a tournament format' }),
+  teams_allowed: z.coerce.number().int().positive({ message: 'Must allow at least 1 team' }),
   location: z.string().optional(),
-  startDate: z.date().optional(),
-  endDate: z.date().optional()
+  rules: z.string().optional(),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof tournamentFormSchema>;
+type TournamentFormValues = z.infer<typeof tournamentSchema>;
 
 const CreateTournamentPage = () => {
+  const [loading, setLoading] = useState(false);
+  const [userLoggedIn, setUserLoggedIn] = useState<boolean | null>(null);
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [userTournaments, setUserTournaments] = useState([]);
   
-  // Initialize form
-  const form = useForm<FormValues>({
-    resolver: zodResolver(tournamentFormSchema),
+  const form = useForm<TournamentFormValues>({
+    resolver: zodResolver(tournamentSchema),
     defaultValues: {
       name: '',
       description: '',
       sport: '',
-      teamsAllowed: 8,
-      format: '',
-      rules: '',
+      format: 'knockout',
+      teams_allowed: 8,
       location: '',
-      startDate: undefined,
-      endDate: undefined
-    }
+      rules: '',
+      start_date: '',
+      end_date: '',
+    },
   });
-
-  const onSubmit = async (values: FormValues) => {
-    setIsLoading(true);
-    try {
-      // Get current user
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData?.session?.user?.id;
+  
+  // Check if user is logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      setUserLoggedIn(!!data.session);
       
-      if (!userId) {
-        toast.error("You must be logged in to create a tournament");
+      if (!data.session) {
+        toast.error('You must be logged in to create a tournament');
+        navigate('/login');
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
+  
+  const onSubmit = async (values: TournamentFormValues) => {
+    try {
+      setLoading(true);
+      
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        toast.error('You must be logged in to create a tournament');
         navigate('/login');
         return;
       }
@@ -79,172 +80,92 @@ const CreateTournamentPage = () => {
         .from('tournaments')
         .insert({
           name: values.name,
-          description: values.description || null,
+          description: values.description,
           sport: values.sport,
-          teams_allowed: values.teamsAllowed,
           format: values.format,
-          rules: values.rules || null,
-          location: values.location || null,
-          start_date: values.startDate || null,
-          end_date: values.endDate || null,
-          organizer_id: userId
+          teams_allowed: values.teams_allowed,
+          location: values.location,
+          rules: values.rules,
+          start_date: values.start_date,
+          end_date: values.end_date,
+          organizer_id: sessionData.session.user.id,
         })
         .select()
         .single();
       
       if (error) {
-        console.error('Error creating tournament:', error);
-        toast.error('Failed to create tournament');
-        return;
+        throw error;
       }
       
       toast.success('Tournament created successfully');
       navigate(`/tournaments/${tournament.id}`);
-    } catch (error) {
-      console.error('Error in tournament creation:', error);
-      toast.error('An unexpected error occurred');
+    } catch (error: any) {
+      console.error('Error creating tournament:', error);
+      toast.error(error.message || 'Failed to create tournament');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
   
-  // Fetch user's tournaments
-  useEffect(() => {
-    const fetchUserTournaments = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData?.session?.user?.id;
-      
-      if (userId) {
-        const { data, error } = await supabase
-          .from('tournaments')
-          .select('*')
-          .eq('organizer_id', userId)
-          .order('created_at', { ascending: false });
-          
-        if (error) {
-          console.error('Error fetching tournaments:', error);
-          return;
-        }
-        
-        if (data) {
-          setUserTournaments(data);
-        }
-      }
-    };
-    
-    fetchUserTournaments();
-  }, []);
-
+  // Show loading state while checking auth
+  if (userLoggedIn === null) {
+    return <div>Loading...</div>;
+  }
+  
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <Header />
-      <main className="flex-grow bg-gray-50 px-4 py-8">
-        <div className="container mx-auto">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold mb-6">Create Tournament</h1>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold mb-6">Create Tournament</h1>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tournament Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Summer Basketball Cup 2025" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Describe your tournament" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="sport"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tournament Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter tournament name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Enter tournament description" 
-                          {...field} 
-                          rows={3}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="sport"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sport</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select sport" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {sports.map((sport) => (
-                              <SelectItem key={sport} value={sport}>
-                                {sport}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="teamsAllowed"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Number of Teams</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={2} 
-                            {...field} 
-                            onChange={e => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="format"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tournament Format</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
+                      <FormLabel>Sport</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select format" />
+                            <SelectValue placeholder="Select a sport" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {tournamentFormats.map((format) => (
-                            <SelectItem key={format.value} value={format.value}>
-                              {format.label}
+                          {sportOptions.map((sport) => (
+                            <SelectItem key={sport.value} value={sport.value}>
+                              {sport.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -256,147 +177,112 @@ const CreateTournamentPage = () => {
                 
                 <FormField
                   control={form.control}
-                  name="location"
+                  name="format"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Location (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter location" {...field} />
-                      </FormControl>
+                      <FormLabel>Format</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select tournament format" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="knockout">Knockout</SelectItem>
+                          <SelectItem value="roundrobin">Round Robin</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Start Date (Optional)</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={`w-full text-left font-normal ${!field.value && "text-muted-foreground"}`}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>End Date (Optional)</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={`w-full text-left font-normal ${!field.value && "text-muted-foreground"}`}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="teams_allowed"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Number of Teams</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="2" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Maximum number of teams allowed to participate
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
                 <FormField
                   control={form.control}
-                  name="rules"
+                  name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Rules & Regulations (Optional)</FormLabel>
+                      <FormLabel>Location</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Enter tournament rules" 
-                          {...field} 
-                          rows={5}
-                        />
+                        <Input placeholder="e.g. City Sports Center" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="start_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 
-                <div className="flex justify-end">
-                  <Button type="submit" className="bg-sport-purple hover:bg-sport-purple/90" disabled={isLoading}>
-                    {isLoading ? 'Creating...' : 'Create Tournament'}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-            
-            {userTournaments.length > 0 && (
-              <div className="mt-12">
-                <h2 className="text-xl font-semibold mb-4">Your Tournaments</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {userTournaments.map((tournament: any) => (
-                    <div 
-                      key={tournament.id} 
-                      className="border rounded-md p-4 cursor-pointer hover:bg-gray-50"
-                      onClick={() => navigate(`/tournaments/${tournament.id}`)}
-                    >
-                      <h3 className="font-medium">{tournament.name}</h3>
-                      <p className="text-sm text-gray-500">{tournament.sport}</p>
-                      <div className="flex justify-between mt-2">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                          {tournament.format === 'round_robin' ? 'Round Robin' : 'Knockout'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(tournament.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <FormField
+                  control={form.control}
+                  name="end_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            )}
-          </div>
+              
+              <FormField
+                control={form.control}
+                name="rules"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rules & Regulations</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Enter tournament rules" className="min-h-[150px]" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <Button type="submit" className="w-full bg-sport-purple hover:bg-sport-purple/90" disabled={loading}>
+                {loading ? 'Creating Tournament...' : 'Create Tournament'}
+              </Button>
+            </form>
+          </Form>
         </div>
       </main>
-    </div>
+    </>
   );
 };
 
