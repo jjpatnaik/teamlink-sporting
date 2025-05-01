@@ -66,7 +66,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           ))}
           
           {searchType === "Tournament" && filteredResults.map((tournament) => (
-            <TournamentCard key={tournament.id} tournament={tournament} onClick={() => handleItemClick(tournament.id)} />
+            <TournamentCard 
+              key={tournament.id} 
+              tournament={tournament} 
+              onClick={() => {
+                console.log("Tournament clicked:", tournament.id);
+                handleItemClick(tournament.id);
+              }} 
+            />
           ))}
           
           {searchType === "Sponsorship" && filteredResults.map((sponsorship) => (

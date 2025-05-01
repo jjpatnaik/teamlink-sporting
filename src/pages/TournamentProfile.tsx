@@ -86,6 +86,8 @@ const TournamentProfile = () => {
           return;
         }
 
+        console.log("Fetching tournament with ID:", id);
+
         // Fetch tournament details
         const { data: tournamentData, error: tournamentError } = await supabase
           .from('tournaments')
@@ -94,14 +96,17 @@ const TournamentProfile = () => {
           .single();
           
         if (tournamentError) {
+          console.error("Error fetching tournament:", tournamentError);
           throw tournamentError;
         }
         
         if (!tournamentData) {
+          console.error("Tournament not found with ID:", id);
           toast.error("Tournament not found");
           return;
         }
         
+        console.log("Tournament data:", tournamentData);
         setTournament(tournamentData);
         
         // Check if current user is the organizer
@@ -116,9 +121,11 @@ const TournamentProfile = () => {
           .eq('tournament_id', id);
           
         if (teamsError) {
+          console.error("Error fetching teams:", teamsError);
           throw teamsError;
         }
         
+        console.log("Teams data:", teamsData);
         setTeams(teamsData || []);
       } catch (error: any) {
         console.error("Error fetching tournament data:", error.message);
@@ -128,7 +135,13 @@ const TournamentProfile = () => {
       }
     };
     
-    fetchTournamentData();
+    if (id && id !== ":id") {
+      fetchTournamentData();
+    } else {
+      console.error("Invalid tournament ID:", id);
+      toast.error("Invalid tournament ID");
+      setLoading(false);
+    }
   }, [id, navigate]);
   
   const handleAddTeam = async () => {
@@ -229,7 +242,7 @@ const TournamentProfile = () => {
             <p className="mt-2 text-gray-600">The tournament you're looking for doesn't exist or has been removed.</p>
             <Button 
               className="mt-4 bg-sport-purple hover:bg-sport-purple/90" 
-              onClick={() => navigate('/search')}
+              onClick={() => navigate('/search?type=Tournament')}
             >
               Browse Tournaments
             </Button>

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -89,7 +88,7 @@ const App = () => {
             <Route path="/players/:id" element={<PlayerProfile />} />
             <Route path="/teams" element={<TeamProfile />} />
             <Route path="/teams/:id" element={<TeamProfile />} />
-            <Route path="/tournaments" element={<TournamentProfile />} />
+            <Route path="/tournaments" element={<SearchPage />} /> 
             <Route path="/tournaments/:id" element={<TournamentProfile />} />
             <Route path="/sponsors" element={<SponsorProfile />} />
             <Route path="/sponsors/:id" element={<SponsorProfile />} />

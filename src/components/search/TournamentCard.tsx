@@ -32,11 +32,16 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onClick }) 
   const formattedStartDate = startDate ? new Date(startDate).toLocaleDateString() : null;
   const formattedEndDate = endDate ? new Date(endDate).toLocaleDateString() : null;
 
+  const handleClick = () => {
+    console.log("Tournament card clicked:", tournament.id);
+    onClick(tournament.id);
+  };
+
   return (
     <Card 
       key={tournament.id} 
       className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" 
-      onClick={() => onClick(tournament.id)}
+      onClick={handleClick}
     >
       <div className="h-48 overflow-hidden bg-sport-light-purple">
         {tournament.image ? (
