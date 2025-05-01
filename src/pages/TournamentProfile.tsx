@@ -7,7 +7,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Calendar, MapPin, Users, Clipboard, Trophy, CalendarDays } from "lucide-react";
+import { Calendar, MapPin, Users, Clipboard, Trophy, CalendarDays, Check } from "lucide-react";
+import { 
+  Dialog, DialogContent, DialogDescription, 
+  DialogHeader, DialogTitle, DialogTrigger, DialogFooter 
+} from "@/components/ui/dialog";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Tournament {
   id: string;
@@ -28,7 +37,16 @@ interface Team {
   team_name: string;
   contact_email: string;
   status: string;
+  player_names?: string[];
 }
+
+const registrationSchema = z.object({
+  teamName: z.string().min(2, { message: "Team name is required" }),
+  contactEmail: z.string().email({ message: "Valid email is required" }),
+  playerNames: z.string().optional()
+});
+
+type RegistrationValues = z.infer<typeof registrationSchema>;
 
 const TournamentProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +58,18 @@ const TournamentProfile = () => {
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamEmail, setNewTeamEmail] = useState('');
   const [addingTeam, setAddingTeam] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRegistrationLoading, setIsRegistrationLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const form = useForm<RegistrationValues>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      teamName: '',
+      contactEmail: '',
+      playerNames: ''
+    }
+  });
 
   useEffect(() => {
     const fetchTournamentData = async () => {
@@ -49,6 +79,7 @@ const TournamentProfile = () => {
         // Get current user
         const { data: sessionData } = await supabase.auth.getSession();
         const currentUserId = sessionData?.session?.user?.id;
+        setCurrentUserId(currentUserId || null);
         
         if (!id) {
           toast.error("No tournament ID provided");
@@ -132,6 +163,48 @@ const TournamentProfile = () => {
     }
   };
 
+  const handleRegistration = async (values: RegistrationValues) => {
+    if (!tournament) return;
+    
+    // Check if tournament is already full
+    if (teams.length >= tournament.teams_allowed) {
+      toast.error("Tournament is full. No more teams can be registered");
+      setIsDialogOpen(false);
+      return;
+    }
+    
+    setIsRegistrationLoading(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from('tournament_teams')
+        .insert({
+          tournament_id: id!,
+          team_name: values.teamName,
+          contact_email: values.contactEmail,
+          // Store player names as additional data if provided
+          status: 'registered'
+        })
+        .select();
+        
+      if (error) throw error;
+      
+      toast.success("Team registered successfully");
+      setIsDialogOpen(false);
+      
+      // Refresh team list
+      setTeams(prevTeams => [...prevTeams, ...(data || [])]);
+      
+      // Reset form
+      form.reset();
+    } catch (error: any) {
+      console.error("Error registering team:", error.message);
+      toast.error("Failed to register team");
+    } finally {
+      setIsRegistrationLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -166,6 +239,8 @@ const TournamentProfile = () => {
     );
   }
 
+  const isTournamentFull = teams.length >= tournament.teams_allowed;
+
   return (
     <>
       <Header />
@@ -193,7 +268,7 @@ const TournamentProfile = () => {
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <Users className="text-sport-purple h-5 w-5 mr-2" />
-                    <span>Teams: {tournament.teams_allowed}</span>
+                    <span>Teams: {teams.length}/{tournament.teams_allowed} {isTournamentFull && '(Full)'}</span>
                   </div>
                   
                   <div className="flex items-center">
@@ -219,6 +294,93 @@ const TournamentProfile = () => {
                     </div>
                   )}
                 </div>
+                
+                {/* Registration button for non-organizers */}
+                {!isOrganizer && currentUserId && (
+                  <div className="mt-6">
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="bg-sport-purple hover:bg-sport-purple/90"
+                          disabled={isTournamentFull}
+                        >
+                          {isTournamentFull ? 'Tournament Full' : 'Register Your Team'}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Register for {tournament.name}</DialogTitle>
+                          <DialogDescription>
+                            Enter your team information to participate in this tournament.
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <Form {...form}>
+                          <form onSubmit={form.handleSubmit(handleRegistration)} className="space-y-4">
+                            <FormField
+                              control={form.control}
+                              name="teamName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Team Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Enter your team name" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name="contactEmail"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Contact Email</FormLabel>
+                                  <FormControl>
+                                    <Input type="email" placeholder="contact@team.com" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name="playerNames"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Player Names (Optional)</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      placeholder="Enter player names, one per line" 
+                                      className="resize-y min-h-[100px]"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Enter one player name per line
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <DialogFooter>
+                              <Button 
+                                type="submit" 
+                                className="bg-sport-purple hover:bg-sport-purple/90"
+                                disabled={isRegistrationLoading}
+                              >
+                                {isRegistrationLoading ? 'Registering...' : 'Register Team'}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
               </div>
               
               {tournament.rules && (
@@ -283,7 +445,6 @@ const TournamentProfile = () => {
                           <div className="flex items-center">
                             <CalendarDays className="h-4 w-4 mr-1 text-gray-400" />
                             <span className="text-sm text-gray-500">
-                              {/* We'd normally display a date here if we had a created_at */}
                               Recently
                             </span>
                           </div>
