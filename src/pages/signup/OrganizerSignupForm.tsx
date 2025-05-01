@@ -23,11 +23,11 @@ const OrganizerSignupForm: React.FC<OrganizerSignupFormProps> = ({ setIsLoading,
     navigate("/create-tournament");
   };
   
-  const { form, onSubmit } = useSignupForm(setIsLoading, handleSignup, onSuccessfulSignup);
+  const { form, onSubmit } = useSignupForm(setIsLoading, handleSignup);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit((data) => onSubmit(data, onSuccessfulSignup))} className="space-y-6">
         {/* Email and Password fields */}
         <PersonalInfoSection form={form} />
 

@@ -74,7 +74,7 @@ const CreateTournamentPage = () => {
         return;
       }
       
-      // Insert tournament into database
+      // Insert tournament into database - Fix is here, we're now passing a single object instead of an array
       const { data: tournament, error } = await supabase
         .from('tournaments')
         .insert({

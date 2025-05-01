@@ -21,13 +21,13 @@ export const useSignupForm = (
     },
   });
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: FormValues, onSuccess?: () => void) => {
     try {
       setIsLoading(true);
       const success = await submitHandler(data);
       
-      if (success) {
-        // Authentication successful, redirect to profile page handled in SignupPage.tsx
+      if (success && onSuccess) {
+        onSuccess();
       }
     } catch (error: any) {
       console.error("Signup error:", error);
