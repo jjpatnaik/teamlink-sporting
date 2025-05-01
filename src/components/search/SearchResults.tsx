@@ -58,7 +58,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {searchType === "Player" && filteredResults.map((player) => (
-            <PlayerCard key={player.id} player={player} onClick={() => handleItemClick(player.id)} />
+            <PlayerCard 
+              key={player.id} 
+              player={player} 
+              onClick={() => {
+                console.log("Player clicked:", player.id);
+                handleItemClick(player.id);
+              }} 
+            />
           ))}
           
           {searchType === "Team" && filteredResults.map((team) => (

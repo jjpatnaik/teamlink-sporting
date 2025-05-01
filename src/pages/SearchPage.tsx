@@ -25,7 +25,7 @@ const SearchPage = () => {
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [userCity, setUserCity] = useState<string | null>(null);
   const [userPostcode, setUserPostcode] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [playerProfiles, setPlayerProfiles] = useState<any[]>([]);
   const [tournaments, setTournaments] = useState<any[]>([]);
 
@@ -61,91 +61,88 @@ const SearchPage = () => {
   }, []);
 
   // Fetch player profiles from the database
-  useEffect(() => {
-    const fetchPlayerProfiles = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('player_details')
-          .select('*');
+  const fetchPlayerProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('player_details')
+        .select('*');
 
-        if (error) {
-          console.error("Error fetching player profiles:", error);
-          toast({
-            title: "Error fetching profiles",
-            description: error.message,
-            variant: "destructive"
-          });
-          return;
-        }
-
-        if (data) {
-          console.log("Fetched player profiles:", data);
-          // Transform the data to match the expected format
-          const transformedData = data.map(player => ({
-            id: player.id,
-            name: player.full_name || "Unknown Name",
-            sport: player.sport || "Unknown Sport",
-            area: player.city || "Unknown Area",
-            image: player.profile_picture_url || "https://via.placeholder.com/300x200?text=No+Image"
-          }));
-          
-          setPlayerProfiles(transformedData);
-        }
-      } catch (error) {
-        console.error("Error in fetchPlayerProfiles:", error);
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error("Error fetching player profiles:", error);
+        toast({
+          title: "Error fetching profiles",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
       }
-    };
 
-    fetchPlayerProfiles();
-  }, []);
+      if (data) {
+        console.log("Fetched player profiles:", data);
+        // Transform the data to match the expected format
+        const transformedData = data.map(player => ({
+          id: player.id,
+          name: player.full_name || "Unknown Name",
+          sport: player.sport || "Unknown Sport",
+          area: player.city || "Unknown Area",
+          image: player.profile_picture_url || "https://via.placeholder.com/300x200?text=No+Image"
+        }));
+        
+        setPlayerProfiles(transformedData);
+      }
+    } catch (error) {
+      console.error("Error in fetchPlayerProfiles:", error);
+    }
+  };
 
   // Fetch tournaments from the database
-  useEffect(() => {
-    const fetchTournaments = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('tournaments')
-          .select('*');
+  const fetchTournaments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select('*');
 
-        if (error) {
-          console.error("Error fetching tournaments:", error);
-          toast({
-            title: "Error fetching tournaments",
-            description: error.message,
-            variant: "destructive"
-          });
-          return;
-        }
-
-        if (data) {
-          console.log("Fetched tournaments:", data);
-          // Transform the data to match the expected format
-          const transformedData = data.map(tournament => ({
-            id: tournament.id,
-            name: tournament.name || "Unknown Tournament",
-            sport: tournament.sport || "Unknown Sport",
-            area: tournament.location || "Unknown Location",
-            location: tournament.location,
-            start_date: tournament.start_date,
-            end_date: tournament.end_date,
-            teams_allowed: tournament.teams_allowed,
-            image: "https://via.placeholder.com/300x200?text=Tournament"
-          }));
-          
-          setTournaments(transformedData);
-        }
-      } catch (error) {
-        console.error("Error in fetchTournaments:", error);
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error("Error fetching tournaments:", error);
+        toast({
+          title: "Error fetching tournaments",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
       }
-    };
 
-    fetchTournaments();
+      if (data) {
+        console.log("Fetched tournaments:", data);
+        // Transform the data to match the expected format
+        const transformedData = data.map(tournament => ({
+          id: tournament.id,
+          name: tournament.name || "Unknown Tournament",
+          sport: tournament.sport || "Unknown Sport",
+          area: tournament.location || "Unknown Location",
+          location: tournament.location,
+          start_date: tournament.start_date,
+          end_date: tournament.end_date,
+          teams_allowed: tournament.teams_allowed,
+          image: "https://via.placeholder.com/300x200?text=Tournament"
+        }));
+        
+        setTournaments(transformedData);
+      }
+    } catch (error) {
+      console.error("Error in fetchTournaments:", error);
+    }
+  };
+
+  // Fetch all data when component mounts
+  useEffect(() => {
+    setLoading(true);
+    
+    // Use Promise.all to fetch both data types concurrently
+    Promise.all([fetchPlayerProfiles(), fetchTournaments()])
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   // Handle URL parameters
@@ -172,7 +169,7 @@ const SearchPage = () => {
     }
   }, [searchParams, userCity]);
 
-  // Update results whenever filters change
+  // Update results whenever filters or data change
   useEffect(() => {
     let results: any[] = [];
     console.log("Filtering results for searchType:", searchType);
@@ -233,6 +230,7 @@ const SearchPage = () => {
   }, [searchType]);
 
   const handleItemClick = (id: number | string) => {
+    console.log(`Navigating to ${searchType.toLowerCase()}/${id}`);
     switch (searchType) {
       case "Player":
         navigate(`/players/${id}`);
@@ -248,6 +246,14 @@ const SearchPage = () => {
         break;
     }
   };
+
+  // Debug
+  console.log("Current state:", {
+    playerProfiles: playerProfiles.length,
+    tournaments: tournaments.length,
+    filteredResults: filteredResults.length,
+    loading
+  });
 
   return (
     <div className="min-h-screen flex flex-col">
