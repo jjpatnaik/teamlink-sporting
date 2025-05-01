@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { sportOptions } from '@/constants/sportOptions';
+import { sportsOptions } from '@/constants/sportOptions';
 
 // Form schema for tournament creation
 const tournamentSchema = z.object({
@@ -75,7 +74,7 @@ const CreateTournamentPage = () => {
         return;
       }
       
-      // Insert tournament into database - Fix is here, we're now passing a single object instead of an array
+      // Insert tournament into database
       const { data: tournament, error } = await supabase
         .from('tournaments')
         .insert({
@@ -163,7 +162,7 @@ const CreateTournamentPage = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {sportOptions.map((sport) => (
+                          {sportsOptions.map((sport) => (
                             <SelectItem key={sport.value} value={sport.value}>
                               {sport.label}
                             </SelectItem>
