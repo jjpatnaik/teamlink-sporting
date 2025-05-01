@@ -9,10 +9,10 @@ import {
   MOCK_SPORTS, 
   MOCK_AREAS, 
   MOCK_TEAMS, 
-  MOCK_TOURNAMENTS, 
   MOCK_SPONSORSHIPS 
 } from '@/data/mockData';
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -27,6 +27,7 @@ const SearchPage = () => {
   const [userPostcode, setUserPostcode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [playerProfiles, setPlayerProfiles] = useState<any[]>([]);
+  const [tournaments, setTournaments] = useState<any[]>([]);
 
   // Get user location data if they're logged in
   useEffect(() => {
@@ -70,17 +71,22 @@ const SearchPage = () => {
 
         if (error) {
           console.error("Error fetching player profiles:", error);
+          toast({
+            title: "Error fetching profiles",
+            description: error.message,
+            variant: "destructive"
+          });
           return;
         }
 
         if (data) {
+          console.log("Fetched player profiles:", data);
           // Transform the data to match the expected format
-          const transformedData = data.map((player, index) => ({
-            id: index + 1,
-            userId: player.id,
-            name: player.full_name,
-            sport: player.sport,
-            area: player.city || "Unknown",
+          const transformedData = data.map(player => ({
+            id: player.id,
+            name: player.full_name || "Unknown Name",
+            sport: player.sport || "Unknown Sport",
+            area: player.city || "Unknown Area",
             image: player.profile_picture_url || "https://via.placeholder.com/300x200?text=No+Image"
           }));
           
@@ -96,11 +102,61 @@ const SearchPage = () => {
     fetchPlayerProfiles();
   }, []);
 
+  // Fetch tournaments from the database
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('tournaments')
+          .select('*');
+
+        if (error) {
+          console.error("Error fetching tournaments:", error);
+          toast({
+            title: "Error fetching tournaments",
+            description: error.message,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        if (data) {
+          console.log("Fetched tournaments:", data);
+          // Transform the data to match the expected format
+          const transformedData = data.map(tournament => ({
+            id: tournament.id,
+            name: tournament.name || "Unknown Tournament",
+            sport: tournament.sport || "Unknown Sport",
+            area: tournament.location || "Unknown Location",
+            location: tournament.location,
+            start_date: tournament.start_date,
+            end_date: tournament.end_date,
+            teams_allowed: tournament.teams_allowed,
+            image: "https://via.placeholder.com/300x200?text=Tournament"
+          }));
+          
+          setTournaments(transformedData);
+        }
+      } catch (error) {
+        console.error("Error in fetchTournaments:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTournaments();
+  }, []);
+
   // Handle URL parameters
   useEffect(() => {
+    const typeParam = searchParams.get('type');
     const sportParam = searchParams.get('sport');
     const areaParam = searchParams.get('area');
-    const typeParam = searchParams.get('type');
+    
+    if (typeParam) {
+      setSearchType(typeParam);
+    }
     
     if (sportParam) {
       setSelectedSport(sportParam);
@@ -114,15 +170,12 @@ const SearchPage = () => {
       }
       setNearMeOnly(true);
     }
-    
-    if (typeParam) {
-      setSearchType(typeParam);
-    }
   }, [searchParams, userCity]);
 
   // Update results whenever filters change
   useEffect(() => {
     let results: any[] = [];
+    console.log("Filtering results for searchType:", searchType);
     
     // Filter by search type
     switch (searchType) {
@@ -133,12 +186,14 @@ const SearchPage = () => {
         results = MOCK_TEAMS;
         break;
       case "Tournament":
-        results = MOCK_TOURNAMENTS;
+        results = tournaments;
         break;
       case "Sponsorship":
         results = MOCK_SPONSORSHIPS;
         break;
     }
+    
+    console.log("Initial results for type:", results.length);
     
     // Apply sport filter
     if (selectedSport !== "any_sport") {
@@ -147,13 +202,15 @@ const SearchPage = () => {
     
     // Apply area filter
     if (selectedArea !== "any_area") {
-      results = results.filter(item => item.area === selectedArea);
+      results = results.filter(item => 
+        item.area && item.area.toLowerCase().includes(selectedArea.toLowerCase())
+      );
     }
     
     // Apply name search filter
     if (nameSearch) {
       results = results.filter(item => 
-        item.name.toLowerCase().includes(nameSearch.toLowerCase())
+        item.name && item.name.toLowerCase().includes(nameSearch.toLowerCase())
       );
     }
     
@@ -162,29 +219,24 @@ const SearchPage = () => {
       results = results.filter(item => {
         // This is a simplification - in a real app, you'd use more sophisticated
         // location matching based on city/postcode proximity
-        return item.area.toLowerCase().includes(userCity.toLowerCase());
+        return item.area && item.area.toLowerCase().includes(userCity.toLowerCase());
       });
     }
     
+    console.log("Filtered results:", results.length);
     setFilteredResults(results);
-  }, [searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, userCity, playerProfiles]);
+  }, [searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, userCity, playerProfiles, tournaments]);
 
   // Reset certain filters when search type changes
   useEffect(() => {
     setNameSearch("");
   }, [searchType]);
 
-  const handleItemClick = (id: number) => {
+  const handleItemClick = (id: number | string) => {
     switch (searchType) {
-      case "Player": {
-        const player = playerProfiles.find(p => p.id === id);
-        if (player && player.userId) {
-          navigate(`/players/${player.userId}`);
-        } else {
-          navigate(`/players/${id}`);
-        }
+      case "Player":
+        navigate(`/players/${id}`);
         break;
-      }
       case "Team":
         navigate(`/teams/${id}`);
         break;

@@ -11,7 +11,7 @@ interface SearchResultsProps {
   filteredResults: any[];
   selectedSport: string;
   selectedArea: string;
-  handleItemClick: (id: number) => void;
+  handleItemClick: (id: number | string) => void;
   loading?: boolean;
 }
 
@@ -33,6 +33,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     );
   }
 
+  // Debug output to help identify issues
+  console.log("Search type:", searchType);
+  console.log("Results:", filteredResults);
+  console.log("Sport filter:", selectedSport);
+  console.log("Area filter:", selectedArea);
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-2">Results</h2>
@@ -52,19 +58,19 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {searchType === "Player" && filteredResults.map((player) => (
-            <PlayerCard key={player.id} player={player} onClick={handleItemClick} />
+            <PlayerCard key={player.id} player={player} onClick={() => handleItemClick(player.id)} />
           ))}
           
           {searchType === "Team" && filteredResults.map((team) => (
-            <TeamCard key={team.id} team={team} onClick={handleItemClick} />
+            <TeamCard key={team.id} team={team} onClick={() => handleItemClick(team.id)} />
           ))}
           
           {searchType === "Tournament" && filteredResults.map((tournament) => (
-            <TournamentCard key={tournament.id} tournament={tournament} onClick={handleItemClick} />
+            <TournamentCard key={tournament.id} tournament={tournament} onClick={() => handleItemClick(tournament.id)} />
           ))}
           
           {searchType === "Sponsorship" && filteredResults.map((sponsorship) => (
-            <SponsorshipCard key={sponsorship.id} sponsorship={sponsorship} onClick={handleItemClick} />
+            <SponsorshipCard key={sponsorship.id} sponsorship={sponsorship} onClick={() => handleItemClick(sponsorship.id)} />
           ))}
         </div>
       )}
