@@ -16,6 +16,7 @@ import SponsorProfile from "./pages/SponsorProfile";
 import SignupPage from "./pages/signup";
 import LoginPage from "./pages/login";
 import CreateProfilePage from "./pages/createprofile";
+import CreateTournamentPage from "./pages/create-tournament";
 import SearchPage from "./pages/SearchPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
 
@@ -96,6 +97,7 @@ const App = () => {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/createprofile" element={<CreateProfilePage />} />
+            <Route path="/create-tournament" element={<CreateTournamentPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

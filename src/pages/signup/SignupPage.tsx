@@ -11,6 +11,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import PlayerSignupForm from "./PlayerSignupForm";
+import OrganizerSignupForm from "./OrganizerSignupForm";
 import { userTypes } from "./constants";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -26,7 +27,11 @@ const SignupPage = () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         toast.info("You're already signed up! Let's complete your profile.");
-        navigate("/createprofile");
+        if (userType === "organizer") {
+          navigate("/create-tournament");
+        } else {
+          navigate("/createprofile");
+        }
       }
     };
     
@@ -35,15 +40,22 @@ const SignupPage = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        toast.success("Successfully signed up! Now let's create your profile.");
-        navigate("/createprofile");
+        toast.success("Successfully signed up!");
+        // Store the user type in localStorage to use on redirect
+        localStorage.setItem('userType', userType);
+        
+        if (userType === "organizer") {
+          navigate("/create-tournament");
+        } else {
+          navigate("/createprofile");
+        }
       }
     });
     
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, userType]);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -81,11 +93,12 @@ const SignupPage = () => {
 
             {userType === "player" ? (
               <PlayerSignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
+            ) : userType === "organizer" ? (
+              <OrganizerSignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
             ) : (
               <div className="py-8 text-center">
                 <p className="text-lg text-gray-600">
-                  {userType === "team" ? "Club/Team" : 
-                   userType === "organizer" ? "Tournament Organiser" : "Sponsor"} registration is coming soon!
+                  {userType === "team" ? "Club/Team" : "Sponsor"} registration is coming soon!
                 </p>
                 <p className="mt-2 text-gray-500">
                   We're currently working on making this available. Please check back later.

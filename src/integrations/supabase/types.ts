@@ -117,6 +117,89 @@ export type Database = {
         }
         Relationships: []
       }
+      tournament_teams: {
+        Row: {
+          contact_email: string | null
+          created_at: string
+          id: string
+          status: string
+          team_name: string
+          tournament_id: string
+        }
+        Insert: {
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          team_name: string
+          tournament_id: string
+        }
+        Update: {
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          team_name?: string
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_teams_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          format: string
+          id: string
+          location: string | null
+          name: string
+          organizer_id: string
+          rules: string | null
+          sport: string
+          start_date: string | null
+          teams_allowed: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          format: string
+          id?: string
+          location?: string | null
+          name: string
+          organizer_id: string
+          rules?: string | null
+          sport: string
+          start_date?: string | null
+          teams_allowed: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          format?: string
+          id?: string
+          location?: string | null
+          name?: string
+          organizer_id?: string
+          rules?: string | null
+          sport?: string
+          start_date?: string | null
+          teams_allowed?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
