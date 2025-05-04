@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 
-export const useSearchFilters = <T extends { name?: string; sport?: string; area?: string; }>(
+export const useSearchFilters = <T extends { name?: string; sport?: string; area?: string; id: string | number }>(
   items: T[],
   searchType: string,
   selectedSport: string,

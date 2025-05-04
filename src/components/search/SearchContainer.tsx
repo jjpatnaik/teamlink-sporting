@@ -77,9 +77,9 @@ const SearchContainer: React.FC = () => {
     }
   };
   
-  // Apply filters
+  // Apply filters with a more generic type
   const filteredResults = useSearchFilters(
-    getCurrentData(),
+    getCurrentData() as any[], // Use type assertion to any[] since we know it'll have the required properties
     searchType,
     selectedSport,
     selectedArea,
