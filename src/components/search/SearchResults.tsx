@@ -35,7 +35,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   // Debug output to help identify issues
   console.log("Search type:", searchType);
-  console.log("Results:", filteredResults);
+  console.log("Results count:", filteredResults.length);
+  console.log("First few results:", filteredResults.slice(0, 3));
   console.log("Sport filter:", selectedSport);
   console.log("Area filter:", selectedArea);
 
@@ -61,30 +62,24 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             <PlayerCard 
               key={player.id} 
               player={player} 
-              onClick={() => {
-                console.log("Player clicked:", player.id);
-                handleItemClick(player.id);
-              }} 
+              onClick={handleItemClick} 
             />
           ))}
           
           {searchType === "Team" && filteredResults.map((team) => (
-            <TeamCard key={team.id} team={team} onClick={() => handleItemClick(team.id)} />
+            <TeamCard key={team.id} team={team} onClick={handleItemClick} />
           ))}
           
           {searchType === "Tournament" && filteredResults.map((tournament) => (
             <TournamentCard 
               key={tournament.id} 
               tournament={tournament} 
-              onClick={() => {
-                console.log("Tournament clicked:", tournament.id);
-                handleItemClick(tournament.id);
-              }} 
+              onClick={handleItemClick} 
             />
           ))}
           
           {searchType === "Sponsorship" && filteredResults.map((sponsorship) => (
-            <SponsorshipCard key={sponsorship.id} sponsorship={sponsorship} onClick={() => handleItemClick(sponsorship.id)} />
+            <SponsorshipCard key={sponsorship.id} sponsorship={sponsorship} onClick={handleItemClick} />
           ))}
         </div>
       )}

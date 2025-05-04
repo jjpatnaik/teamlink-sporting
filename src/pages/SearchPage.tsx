@@ -74,11 +74,11 @@ const SearchPage = () => {
           description: error.message,
           variant: "destructive"
         });
-        return;
+        return [];
       }
 
       if (data) {
-        console.log("Fetched player profiles:", data);
+        console.log("Fetched player profiles:", data.length);
         // Transform the data to match the expected format
         const transformedData = data.map(player => ({
           id: player.id,
@@ -89,9 +89,12 @@ const SearchPage = () => {
         }));
         
         setPlayerProfiles(transformedData);
+        return transformedData;
       }
+      return [];
     } catch (error) {
       console.error("Error in fetchPlayerProfiles:", error);
+      return [];
     }
   };
 
@@ -109,11 +112,11 @@ const SearchPage = () => {
           description: error.message,
           variant: "destructive"
         });
-        return;
+        return [];
       }
 
       if (data) {
-        console.log("Fetched tournaments:", data);
+        console.log("Fetched tournaments:", data.length);
         // Transform the data to match the expected format
         const transformedData = data.map(tournament => ({
           id: tournament.id,
@@ -128,9 +131,12 @@ const SearchPage = () => {
         }));
         
         setTournaments(transformedData);
+        return transformedData;
       }
+      return [];
     } catch (error) {
       console.error("Error in fetchTournaments:", error);
+      return [];
     }
   };
 
@@ -140,6 +146,12 @@ const SearchPage = () => {
     
     // Use Promise.all to fetch both data types concurrently
     Promise.all([fetchPlayerProfiles(), fetchTournaments()])
+      .then(([players, tourneys]) => {
+        console.log("Fetched data counts:", {
+          players: players.length,
+          tournaments: tourneys.length
+        });
+      })
       .finally(() => {
         setLoading(false);
       });
@@ -246,14 +258,6 @@ const SearchPage = () => {
         break;
     }
   };
-
-  // Debug
-  console.log("Current state:", {
-    playerProfiles: playerProfiles.length,
-    tournaments: tournaments.length,
-    filteredResults: filteredResults.length,
-    loading
-  });
 
   return (
     <div className="min-h-screen flex flex-col">

@@ -30,7 +30,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick }) => {
     >
       <div className="h-48 overflow-hidden">
         <img 
-          src={player.image} 
+          src={player.image || "https://via.placeholder.com/300x200?text=Player"} 
           alt={player.name} 
           className="w-full h-full object-cover"
           onError={(e) => {
