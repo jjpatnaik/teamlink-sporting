@@ -1,51 +1,72 @@
 
-import React from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { usePlayerData } from "@/hooks/usePlayerData";
-import { useTournamentData } from "@/hooks/useTournamentData";
-import { useUserLocation } from "@/hooks/useUserLocation";
-import { useSearchFilters } from "@/hooks/useSearchFilters";
-import { MOCK_SPORTS, MOCK_AREAS, MOCK_TEAMS, MOCK_SPONSORSHIPS } from '@/data/mockData';
+import React, { useState, useEffect } from 'react';
+import { usePlayerData } from '@/hooks/usePlayerData';
+import { useTournamentData } from '@/hooks/useTournamentData';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { useSearchFilters } from '@/hooks/useSearchFilters';
 import SearchFilters from './SearchFilters';
 import SearchResults from './SearchResults';
-import { useState, useEffect } from 'react';
+
+type PlayerProfile = {
+  id: string;
+  name: string;
+  sport: string;
+  area?: string;
+  image?: string;
+  profile_picture_url?: string;
+};
+
+type TeamProfile = {
+  id: number;
+  name: string;
+  sport: string;
+  area: string;
+  logo: string;
+};
+
+type SponsorProfile = {
+  id: number;
+  name: string;
+  sport: string;
+  area: string;
+  amount: string;
+  image: string;
+};
 
 const SearchContainer: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [searchType, setSearchType] = useState<string>("Player");
-  const [selectedSport, setSelectedSport] = useState<string>("any_sport");
-  const [selectedArea, setSelectedArea] = useState<string>("any_area");
-  const [nameSearch, setNameSearch] = useState<string>("");
+  const [searchType, setSearchType] = useState<string>('tournaments');
+  const [selectedSport, setSelectedSport] = useState<string>('any_sport');
+  const [selectedArea, setSelectedArea] = useState<string>('any_area');
+  const [nameSearch, setNameSearch] = useState<string>('');
   const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
   
-  // Fetch data using custom hooks
-  const { userCity, userPostcode } = useUserLocation();
-  const { playerProfiles, loading: playersLoading } = usePlayerData();
+  const { players, loading: playersLoading } = usePlayerData();
   const { tournaments, loading: tournamentsLoading } = useTournamentData();
+  const { userCity, userPostcode } = useUserLocation();
+
+  // Mock data for teams and sponsors
+  const teams: TeamProfile[] = [];
+  const sponsors: SponsorProfile[] = [];
   
-  // Determine which data set to filter based on search type
-  const getDataToFilter = () => {
+  // Get the current data based on searchType
+  const getCurrentData = () => {
     switch (searchType) {
-      case "Player":
-        return playerProfiles;
-      case "Team":
-        return MOCK_TEAMS;
-      case "Tournament":
+      case 'players':
+        return players;
+      case 'tournaments':
         return tournaments;
-      case "Sponsorship":
-        return MOCK_SPONSORSHIPS;
+      case 'teams':
+        return teams;
+      case 'sponsors':
+        return sponsors;
       default:
         return [];
     }
   };
-
-  const dataToFilter = getDataToFilter();
-  const loading = playersLoading || tournamentsLoading;
   
-  // Use the filter hook
+  // Apply filters
   const filteredResults = useSearchFilters(
-    dataToFilter,
+    getCurrentData(),
     searchType,
     selectedSport,
     selectedArea,
@@ -54,84 +75,34 @@ const SearchContainer: React.FC = () => {
     userCity
   );
 
-  // Handle URL parameters
-  useEffect(() => {
-    const typeParam = searchParams.get('type');
-    const sportParam = searchParams.get('sport');
-    const areaParam = searchParams.get('area');
-    
-    if (typeParam) {
-      setSearchType(typeParam);
-    }
-    
-    if (sportParam) {
-      setSelectedSport(sportParam);
-    }
-    
-    if (areaParam === 'local' && userCity) {
-      // If we have the user's city, use it as the area
-      const cityArea = MOCK_AREAS.find(area => area.toLowerCase().includes(userCity.toLowerCase()));
-      if (cityArea) {
-        setSelectedArea(cityArea);
-      }
-      setNearMeOnly(true);
-    }
-  }, [searchParams, userCity]);
-
-  // Reset certain filters when search type changes
-  useEffect(() => {
-    setNameSearch("");
-  }, [searchType]);
-
-  const handleItemClick = (id: number | string) => {
-    console.log(`Navigating to ${searchType.toLowerCase()}/${id}`);
-    switch (searchType) {
-      case "Player":
-        navigate(`/players/${id}`);
-        break;
-      case "Team":
-        navigate(`/teams/${id}`);
-        break;
-      case "Tournament":
-        navigate(`/tournaments/${id}`);
-        break;
-      case "Sponsorship":
-        navigate(`/sponsors/${id}`);
-        break;
-    }
-  };
+  const isLoading = playersLoading || tournamentsLoading;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Find Your Sports Network</h1>
-        <p className="text-sport-gray">Search for players, teams, tournaments, and sponsorships across all levels</p>
-      </div>
+      <h1 className="text-3xl font-bold mb-6">Find {searchType}</h1>
       
-      <SearchFilters 
-        searchType={searchType}
-        setSearchType={setSearchType}
-        selectedSport={selectedSport}
-        setSelectedSport={setSelectedSport}
-        selectedArea={selectedArea}
-        setSelectedArea={setSelectedArea}
-        nameSearch={nameSearch}
-        setNameSearch={setNameSearch}
-        sports={MOCK_SPORTS}
-        areas={MOCK_AREAS}
-        nearMeOnly={nearMeOnly}
-        setNearMeOnly={setNearMeOnly}
-      />
-      
-      <div className="mb-4">
-        <SearchResults 
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <SearchFilters 
           searchType={searchType}
-          filteredResults={filteredResults}
+          setSearchType={setSearchType}
           selectedSport={selectedSport}
+          setSelectedSport={setSelectedSport}
           selectedArea={selectedArea}
-          handleItemClick={handleItemClick}
-          loading={loading}
+          setSelectedArea={setSelectedArea}
+          nameSearch={nameSearch}
+          setNameSearch={setNameSearch}
+          nearMeOnly={nearMeOnly}
+          setNearMeOnly={setNearMeOnly}
+          userCity={userCity}
         />
+        
+        <div className="lg:col-span-3">
+          <SearchResults 
+            searchType={searchType}
+            results={filteredResults as any}
+            isLoading={isLoading}
+          />
+        </div>
       </div>
     </div>
   );
