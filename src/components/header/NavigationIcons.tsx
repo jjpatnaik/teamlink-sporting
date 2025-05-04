@@ -18,18 +18,18 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
   const navigate = useNavigate();
 
   const navigateToSearch = (type: string) => {
-    navigate(`/search?type=${type}&area=local`);
+    navigate(`/search?type=${type}`);
   };
 
   return (
     <div className="flex items-center space-x-6 mr-6">
-      <Link 
-        to="/search?type=Player" 
+      <button 
+        onClick={() => navigateToSearch('Player')} 
         className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
       >
         <User className="w-5 h-5" />
         <span className="text-xs mt-1">Players</span>
-      </Link>
+      </button>
       <button 
         onClick={() => navigateToSearch('Team')} 
         className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
@@ -66,7 +66,7 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
               <span>{sport} near me</span>
             </DropdownMenuItem>
           ))}
-          <DropdownMenuItem onClick={() => handleQuickSearch("")}>
+          <DropdownMenuItem onClick={() => navigateToSearch('')}>
             <Search className="mr-2 h-4 w-4" />
             <span>Advanced Search</span>
           </DropdownMenuItem>

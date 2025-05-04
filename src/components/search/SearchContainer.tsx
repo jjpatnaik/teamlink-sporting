@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { usePlayerData } from '@/hooks/usePlayerData';
 import { useTournamentData } from '@/hooks/useTournamentData';
 import { useUserLocation } from '@/hooks/useUserLocation';
@@ -34,7 +35,11 @@ type SponsorProfile = {
 };
 
 const SearchContainer: React.FC = () => {
-  const [searchType, setSearchType] = useState<string>('tournaments');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const typeFromURL = searchParams.get('type');
+  
+  const [searchType, setSearchType] = useState<string>(typeFromURL || 'Tournament');
   const [selectedSport, setSelectedSport] = useState<string>('any_sport');
   const [selectedArea, setSelectedArea] = useState<string>('any_area');
   const [nameSearch, setNameSearch] = useState<string>('');
@@ -43,6 +48,13 @@ const SearchContainer: React.FC = () => {
   const { playerProfiles, loading: playersLoading } = usePlayerData(true); // Use fetchAll=true to get all players
   const { tournaments, loading: tournamentsLoading } = useTournamentData();
   const { userCity, userPostcode } = useUserLocation();
+
+  // Update search type when URL parameter changes
+  useEffect(() => {
+    if (typeFromURL) {
+      setSearchType(typeFromURL);
+    }
+  }, [typeFromURL]);
 
   // Define available sports and areas
   const sports = Array.from(new Set([
