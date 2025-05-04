@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,8 @@ interface TournamentCardProps {
 }
 
 const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onClick }) => {
+  const navigate = useNavigate();
+  
   // Support both API formats (camelCase and snake_case)
   const location = tournament.location || tournament.area || "Unknown location";
   const startDate = tournament.start_date || tournament.startDate;
@@ -35,6 +38,11 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onClick }) 
   const handleClick = () => {
     console.log("Tournament card clicked:", tournament.id);
     onClick(tournament.id);
+  };
+  
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card onClick
+    navigate(`/tournaments/${tournament.id}`);
   };
 
   return (
@@ -85,7 +93,12 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onClick }) 
         <Badge className="bg-sport-light-purple text-sport-purple flex items-center gap-1">
           <Check className="h-3 w-3" /> Active
         </Badge>
-        <Button variant="ghost" size="sm" className="text-sport-purple">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-sport-purple"
+          onClick={handleViewDetails}
+        >
           View Details <ArrowRight className="ml-1 h-4 w-4" />
         </Button>
       </CardFooter>
