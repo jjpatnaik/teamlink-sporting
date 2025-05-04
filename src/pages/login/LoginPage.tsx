@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -29,6 +30,7 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<LoginValues>({
@@ -102,7 +104,7 @@ const LoginPage: React.FC = () => {
         description: "Please check your email for the password reset link",
       });
       
-      setShowResetForm(false);
+      setResetSuccess(true);
     } catch (error) {
       console.error("Password reset error:", error);
       toast({
@@ -145,6 +147,12 @@ const LoginPage: React.FC = () => {
         // Auto-fill the form for convenience
         form.setValue("email", "jjpatnaik.12@gmail.com");
         form.setValue("password", "Abcde@12345");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Test account reset only",
+          description: "This button only resets the test account (jjpatnaik.12@gmail.com)",
+        });
       }
     } catch (error) {
       console.error("Dev password reset error:", error);
@@ -210,49 +218,94 @@ const LoginPage: React.FC = () => {
                   Forgot password?
                 </button>
                 
-                {/* Development only button to reset test account password */}
-                <button
-                  className="text-xs text-gray-400 hover:underline mt-4 block mx-auto"
-                  onClick={handleDevPasswordReset}
-                >
-                  Reset test account
-                </button>
+                <div className="border-t border-gray-200 mt-4 pt-4">
+                  <p className="text-xs text-gray-500 mb-2">Developer options</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-xs"
+                    onClick={handleDevPasswordReset}
+                  >
+                    Reset test account
+                  </Button>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Email: jjpatnaik.12@gmail.com<br />
+                    Password: Abcde@12345
+                  </p>
+                </div>
               </div>
             </>
           ) : (
             <>
-              <h1 className="text-2xl font-bold mb-6 text-center">Reset Password</h1>
-              
-              <Form {...resetForm}>
-                <form onSubmit={resetForm.handleSubmit(handleResetPassword)} className="space-y-4">
-                  <FormField
-                    control={resetForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter your email" type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button type="submit" className="w-full" disabled={resetLoading}>
-                    {resetLoading ? "Sending..." : "Send Reset Instructions"}
-                  </Button>
-                  
+              {resetSuccess ? (
+                <div className="text-center">
+                  <CheckCircle2 className="mx-auto h-12 w-12 text-green-500 mb-4" />
+                  <h1 className="text-2xl font-bold mb-2">Reset Email Sent</h1>
+                  <p className="text-gray-600 mb-6">
+                    We've sent password reset instructions to your email address.
+                    Please check your inbox and follow the instructions.
+                  </p>
                   <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="w-full" 
-                    onClick={() => setShowResetForm(false)}
+                    onClick={() => {
+                      setShowResetForm(false);
+                      setResetSuccess(false);
+                      resetForm.reset();
+                    }} 
+                    className="w-full"
                   >
                     Back to Login
                   </Button>
-                </form>
-              </Form>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-bold mb-2 text-center">Reset Password</h1>
+                  <p className="text-gray-600 mb-6 text-center">
+                    Enter your email address and we'll send you instructions to reset your password.
+                  </p>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 flex items-start">
+                    <AlertCircle className="h-5 w-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-700">
+                      You will receive an email with a link to reset your password. 
+                      The link will be valid for 24 hours.
+                    </p>
+                  </div>
+                  
+                  <Form {...resetForm}>
+                    <form onSubmit={resetForm.handleSubmit(handleResetPassword)} className="space-y-4">
+                      <FormField
+                        control={resetForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your email" type="email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="flex gap-2 flex-col">
+                        <Button type="submit" className="w-full" disabled={resetLoading}>
+                          {resetLoading ? "Sending..." : "Reset Password"}
+                        </Button>
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          className="w-full" 
+                          onClick={() => setShowResetForm(false)}
+                          disabled={resetLoading}
+                        >
+                          Back to Login
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </>
+              )}
             </>
           )}
         </div>
