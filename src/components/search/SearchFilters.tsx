@@ -50,8 +50,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   setNearMeOnly
 }) => {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-md mb-8 w-full lg:min-w-[280px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-1 gap-4 mb-6">
         <div>
           <label className="block text-sm font-medium mb-2">I'm looking for</label>
           <Select value={searchType} onValueChange={setSearchType}>

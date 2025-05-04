@@ -99,23 +99,25 @@ const SearchContainer: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Find {searchType}</h1>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <SearchFilters 
-          searchType={searchType}
-          setSearchType={setSearchType}
-          selectedSport={selectedSport}
-          setSelectedSport={setSelectedSport}
-          selectedArea={selectedArea}
-          setSelectedArea={setSelectedArea}
-          nameSearch={nameSearch}
-          setNameSearch={setNameSearch}
-          sports={sports}
-          areas={areas}
-          nearMeOnly={nearMeOnly}
-          setNearMeOnly={setNearMeOnly}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-3 w-full">
+          <SearchFilters 
+            searchType={searchType}
+            setSearchType={setSearchType}
+            selectedSport={selectedSport}
+            setSelectedSport={setSelectedSport}
+            selectedArea={selectedArea}
+            setSelectedArea={setSelectedArea}
+            nameSearch={nameSearch}
+            setNameSearch={setNameSearch}
+            sports={sports}
+            areas={areas}
+            nearMeOnly={nearMeOnly}
+            setNearMeOnly={setNearMeOnly}
+          />
+        </div>
         
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-9">
           <SearchResults 
             searchType={searchType}
             filteredResults={filteredResults}
