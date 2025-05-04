@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
+import { toast } from "@/components/ui/use-toast";
 
 export type CareerEntry = {
   club: string;
@@ -31,14 +32,68 @@ export type PlayerData = {
   careerHistory?: CareerEntry[];
 };
 
-export const usePlayerData = () => {
+export type PlayerProfile = {
+  id: string;
+  name: string;
+  sport: string;
+  area: string;
+  image: string;
+};
+
+export const usePlayerData = (fetchAll: boolean = false) => {
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
+  const [playerProfiles, setPlayerProfiles] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
 
+  // Fetch all player profiles
+  const fetchPlayerProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('player_details')
+        .select('*');
+
+      if (error) {
+        console.error("Error fetching player profiles:", error);
+        toast({
+          title: "Error fetching profiles",
+          description: error.message,
+          variant: "destructive"
+        });
+        return [];
+      }
+
+      if (data) {
+        console.log("Fetched player profiles:", data.length);
+        // Transform the data to match the expected format
+        const transformedData = data.map(player => ({
+          id: player.id,
+          name: player.full_name || "Unknown Name",
+          sport: player.sport || "Unknown Sport",
+          area: player.city || "Unknown Area",
+          image: player.profile_picture_url || "https://via.placeholder.com/300x200?text=No+Image"
+        }));
+        
+        setPlayerProfiles(transformedData);
+        return transformedData;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error in fetchPlayerProfiles:", error);
+      return [];
+    }
+  };
+
   useEffect(() => {
-    const fetchPlayerData = async () => {
+    const fetchData = async () => {
       try {
+        setLoading(true);
+        
+        // If fetchAll is true, fetch all player profiles
+        if (fetchAll) {
+          await fetchPlayerProfiles();
+        }
+        
         // If ID is provided in the URL, fetch that player's data
         if (id) {
           const { data, error } = await supabase
@@ -49,7 +104,7 @@ export const usePlayerData = () => {
             
           if (error) throw error;
           setPlayerData(data);
-        } else {
+        } else if (!fetchAll) {
           // Get current user
           const { data: { user } } = await supabase.auth.getUser();
           
@@ -72,8 +127,8 @@ export const usePlayerData = () => {
       }
     };
     
-    fetchPlayerData();
-  }, [id]);
+    fetchData();
+  }, [id, fetchAll]);
 
-  return { playerData, loading };
+  return { playerData, playerProfiles, loading, fetchPlayerProfiles };
 };
