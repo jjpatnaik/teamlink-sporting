@@ -40,10 +40,23 @@ const SearchContainer: React.FC = () => {
   const [nameSearch, setNameSearch] = useState<string>('');
   const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
   
-  const { players, loading: playersLoading } = usePlayerData();
+  const { playerProfiles, loading: playersLoading } = usePlayerData(true); // Use fetchAll=true to get all players
   const { tournaments, loading: tournamentsLoading } = useTournamentData();
   const { userCity, userPostcode } = useUserLocation();
 
+  // Define available sports and areas
+  const sports = Array.from(new Set([
+    'Football', 'Basketball', 'Tennis', 'Cricket',
+    ...(playerProfiles ? playerProfiles.map(p => p.sport) : []),
+    ...(tournaments ? tournaments.map(t => t.sport) : [])
+  ])).filter(Boolean);
+  
+  const areas = Array.from(new Set([
+    'London', 'Manchester', 'Birmingham', 'Glasgow',
+    ...(playerProfiles ? playerProfiles.map(p => p.area).filter(Boolean) : []),
+    ...(tournaments ? tournaments.map(t => t.area).filter(Boolean) : [])
+  ])).filter(Boolean);
+  
   // Mock data for teams and sponsors
   const teams: TeamProfile[] = [];
   const sponsors: SponsorProfile[] = [];
@@ -51,13 +64,13 @@ const SearchContainer: React.FC = () => {
   // Get the current data based on searchType
   const getCurrentData = () => {
     switch (searchType) {
-      case 'players':
-        return players;
-      case 'tournaments':
+      case 'Player':
+        return playerProfiles;
+      case 'Tournament':
         return tournaments;
-      case 'teams':
+      case 'Team':
         return teams;
-      case 'sponsors':
+      case 'Sponsorship':
         return sponsors;
       default:
         return [];
@@ -77,6 +90,11 @@ const SearchContainer: React.FC = () => {
 
   const isLoading = playersLoading || tournamentsLoading;
 
+  const handleItemClick = (id: number | string) => {
+    console.log(`Clicked item with id: ${id}, type: ${searchType}`);
+    // Navigation logic would go here
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Find {searchType}</h1>
@@ -91,16 +109,20 @@ const SearchContainer: React.FC = () => {
           setSelectedArea={setSelectedArea}
           nameSearch={nameSearch}
           setNameSearch={setNameSearch}
+          sports={sports}
+          areas={areas}
           nearMeOnly={nearMeOnly}
           setNearMeOnly={setNearMeOnly}
-          userCity={userCity}
         />
         
         <div className="lg:col-span-3">
           <SearchResults 
             searchType={searchType}
-            results={filteredResults as any}
-            isLoading={isLoading}
+            filteredResults={filteredResults}
+            selectedSport={selectedSport}
+            selectedArea={selectedArea}
+            handleItemClick={handleItemClick}
+            loading={isLoading}
           />
         </div>
       </div>
