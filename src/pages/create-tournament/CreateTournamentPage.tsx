@@ -41,7 +41,7 @@ const CreateTournamentPage = () => {
       name: '',
       description: '',
       sport: '',
-      format: 'round_robin', // Updated to match the database constraint
+      format: 'round_robin', // Ensuring this matches exactly with what the database expects
       teams_allowed: 8,
       location: '',
       rules: '',
@@ -81,7 +81,7 @@ const CreateTournamentPage = () => {
         name: values.name,
         description: values.description || null,
         sport: values.sport,
-        format: values.format, // Using the format value from the form
+        format: values.format, // Using the correct format value from the form
         teams_allowed: values.teams_allowed,
         location: values.location || null,
         rules: values.rules || null,
