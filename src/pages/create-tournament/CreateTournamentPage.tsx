@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { sportsOptions } from '@/constants/sportOptions';
+import { tournamentFormats } from '@/pages/signup/constants';
 
 // Form schema for tournament creation
 const tournamentSchema = z.object({
@@ -40,7 +41,7 @@ const CreateTournamentPage = () => {
       name: '',
       description: '',
       sport: '',
-      format: 'knockout',
+      format: 'round_robin', // Updated to match the database constraint
       teams_allowed: 8,
       location: '',
       rules: '',
@@ -80,7 +81,7 @@ const CreateTournamentPage = () => {
         name: values.name,
         description: values.description || null,
         sport: values.sport,
-        format: values.format,
+        format: values.format, // Using the format value from the form
         teams_allowed: values.teams_allowed,
         location: values.location || null,
         rules: values.rules || null,
@@ -88,6 +89,8 @@ const CreateTournamentPage = () => {
         end_date: values.end_date && values.end_date.trim() !== '' ? values.end_date : null,
         organizer_id: sessionData.session.user.id,
       };
+      
+      console.log('Submitting tournament data:', tournamentData);
       
       // Insert tournament into database
       const { data: tournament, error } = await supabase
@@ -191,8 +194,11 @@ const CreateTournamentPage = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="knockout">Knockout</SelectItem>
-                          <SelectItem value="roundrobin">Round Robin</SelectItem>
+                          {tournamentFormats.map((format) => (
+                            <SelectItem key={format.value} value={format.value}>
+                              {format.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
