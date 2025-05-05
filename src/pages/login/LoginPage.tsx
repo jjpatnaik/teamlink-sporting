@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
@@ -31,6 +30,7 @@ const LoginPage: React.FC = () => {
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
+  const [isTestAccountResetting, setIsTestAccountResetting] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<LoginValues>({
@@ -117,45 +117,31 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // For development purposes only - direct password reset
+  // For development purposes - directly set test account credentials
   const handleDevPasswordReset = async () => {
+    setIsTestAccountResetting(true);
     try {
-      // This is a special case for the test account
-      if (form.getValues().email === "jjpatnaik.12@gmail.com") {
-        // Use the admin API to update password
-        // Note: This should NOT be used in production
-        const { error } = await supabase.auth.admin.updateUserById(
-          "187527ca-dd65-4716-a70f-4e03cff5db34", // ID for jjpatnaik.12@gmail.com
-          { password: "Abcde@12345" }
-        );
-        
-        if (error) {
-          console.error("Dev password reset error:", error);
-          toast({
-            variant: "destructive",
-            title: "Password reset failed",
-            description: "Could not reset password for test account",
-          });
-          return;
-        }
-        
-        toast({
-          title: "Test account password reset",
-          description: "The test account password has been reset to 'Abcde@12345'",
-        });
-        
-        // Auto-fill the form for convenience
-        form.setValue("email", "jjpatnaik.12@gmail.com");
-        form.setValue("password", "Abcde@12345");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Test account reset only",
-          description: "This button only resets the test account (jjpatnaik.12@gmail.com)",
-        });
-      }
+      // Instead of trying to use the admin API, just auto-fill the form with test credentials
+      const testEmail = "jjpatnaik.12@gmail.com";
+      const testPassword = "Abcde@12345";
+      
+      // Auto-fill the form
+      form.setValue("email", testEmail);
+      form.setValue("password", testPassword);
+      
+      toast({
+        title: "Test account loaded",
+        description: "The test account credentials have been filled in. You can now log in.",
+      });
     } catch (error) {
-      console.error("Dev password reset error:", error);
+      console.error("Test account preparation error:", error);
+      toast({
+        variant: "destructive",
+        title: "Could not prepare test account",
+        description: "Failed to set up the test account credentials",
+      });
+    } finally {
+      setIsTestAccountResetting(false);
     }
   };
 
@@ -225,8 +211,9 @@ const LoginPage: React.FC = () => {
                     size="sm"
                     className="text-xs"
                     onClick={handleDevPasswordReset}
+                    disabled={isTestAccountResetting}
                   >
-                    Reset test account
+                    {isTestAccountResetting ? "Loading test account..." : "Load test account"}
                   </Button>
                   <p className="text-xs text-gray-400 mt-2">
                     Email: jjpatnaik.12@gmail.com<br />
