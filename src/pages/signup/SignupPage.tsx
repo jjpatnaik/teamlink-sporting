@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import PlayerSignupForm from "./PlayerSignupForm";
 import OrganizerSignupForm from "./OrganizerSignupForm";
+import TestOrganizerCreator from "@/components/TestOrganizerCreator";
 import { userTypes } from "./constants";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -66,6 +67,9 @@ const SignupPage = () => {
             <h1 className="text-3xl font-bold mb-2">Create Your Account</h1>
             <p className="text-gray-600">Join the Sportshive community today</p>
           </div>
+
+          {/* Test Organizer Creator */}
+          <TestOrganizerCreator />
 
           {/* User Type Selection */}
           <div className="bg-white p-8 rounded-lg shadow-md space-y-6">

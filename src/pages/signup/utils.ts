@@ -29,23 +29,10 @@ export const handleSignup = async (data: FormValues): Promise<boolean> => {
 };
 
 // Function to create a test user account
-export const createTestUser = async (): Promise<boolean> => {
+export const createTestUser = async (isOrganizer = false): Promise<boolean> => {
   try {
     const testEmail = "jjpatnaik.12@gmail.com";
-    const testPassword = "testprofile";
-    
-    // Check if user already exists
-    const { data: existingUser, error: checkError } = await supabase.auth.signInWithPassword({
-      email: testEmail,
-      password: testPassword,
-    });
-    
-    // If user exists and login successful, return true
-    if (existingUser.user) {
-      console.log("Test user already exists, logging in");
-      toast.success("Test user logged in successfully!");
-      return true;
-    }
+    const testPassword = "Abcde@12345";
     
     // Create new test user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -62,9 +49,15 @@ export const createTestUser = async (): Promise<boolean> => {
     }
     
     console.log("Test user created successfully", authData.user);
-    toast.success("Test user created successfully!");
     
-    // Create player profile for test user
+    if (isOrganizer) {
+      toast.success("Test organizer account created successfully! You can now log in.");
+      // Store the user type in localStorage for redirect after login
+      localStorage.setItem('userType', 'organizer');
+      return true;
+    }
+    
+    // Create player profile for test user if it's a player
     const testProfile = {
       id: authData.user.id,
       full_name: "Test Player",
@@ -92,7 +85,7 @@ export const createTestUser = async (): Promise<boolean> => {
       throw profileError;
     }
     
-    toast.success("Test profile created successfully!");
+    toast.success("Test player profile created successfully! You can now log in.");
     return true;
   } catch (error: any) {
     console.error("Test user creation error:", error);
