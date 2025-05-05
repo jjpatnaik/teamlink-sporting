@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from "@/components/Header";
@@ -151,7 +150,32 @@ const TournamentProfile = () => {
         return;
       }
       
+      if (!tournament) {
+        toast.error("Tournament data is missing");
+        return;
+      }
+      
+      // Check if user is logged in
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        toast.error("You must be logged in to add teams");
+        return;
+      }
+      
+      // Check if user is the organizer
+      if (tournament.organizer_id !== sessionData.session.user.id) {
+        toast.error("Only the tournament organizer can add teams");
+        return;
+      }
+      
       setAddingTeam(true);
+      
+      console.log("Adding team to tournament:", {
+        tournament_id: id,
+        team_name: newTeamName.trim(),
+        contact_email: newTeamEmail.trim() || null,
+        status: 'registered'
+      });
       
       const { data, error } = await supabase
         .from('tournament_teams')
@@ -159,18 +183,23 @@ const TournamentProfile = () => {
           tournament_id: id!,
           team_name: newTeamName.trim(),
           contact_email: newTeamEmail.trim() || null,
+          status: 'registered'
         })
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding team:", error);
+        throw error;
+      }
       
+      console.log("Team added:", data);
       toast.success("Team added successfully");
       setTeams([...(data || []), ...teams]);
       setNewTeamName('');
       setNewTeamEmail('');
     } catch (error: any) {
       console.error("Error adding team:", error.message);
-      toast.error("Failed to add team");
+      toast.error("Failed to add team: " + error.message);
     } finally {
       setAddingTeam(false);
     }
@@ -186,22 +215,39 @@ const TournamentProfile = () => {
       return;
     }
     
+    // Check if user is logged in
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      toast.error("You must be logged in to register a team");
+      return;
+    }
+    
     setIsRegistrationLoading(true);
     
     try {
+      console.log("Registering team:", {
+        tournament_id: id,
+        team_name: values.teamName,
+        contact_email: values.contactEmail,
+        status: 'registered'
+      });
+      
       const { data, error } = await supabase
         .from('tournament_teams')
         .insert({
           tournament_id: id!,
           team_name: values.teamName,
           contact_email: values.contactEmail,
-          // Store player names as additional data if provided
           status: 'registered'
         })
         .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Registration error:", error);
+        throw error;
+      }
       
+      console.log("Registration successful:", data);
       toast.success("Team registered successfully");
       setIsDialogOpen(false);
       
@@ -212,7 +258,7 @@ const TournamentProfile = () => {
       form.reset();
     } catch (error: any) {
       console.error("Error registering team:", error.message);
-      toast.error("Failed to register team");
+      toast.error("Failed to register team: " + error.message);
     } finally {
       setIsRegistrationLoading(false);
     }
@@ -425,7 +471,7 @@ const TournamentProfile = () => {
             <div>
               <h2 className="text-xl font-semibold flex items-center mb-4">
                 <Users className="h-5 w-5 mr-2" />
-                Participating Teams ({teams.length}/{tournament.teams_allowed})
+                Participating Teams ({teams.length}/{tournament?.teams_allowed || 0})
               </h2>
               
               {teams.length === 0 ? (
