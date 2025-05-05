@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -74,21 +75,24 @@ const CreateTournamentPage = () => {
         return;
       }
       
+      // Prepare tournament data, ensuring dates are not empty strings
+      const tournamentData = {
+        name: values.name,
+        description: values.description || null,
+        sport: values.sport,
+        format: values.format,
+        teams_allowed: values.teams_allowed,
+        location: values.location || null,
+        rules: values.rules || null,
+        start_date: values.start_date && values.start_date.trim() !== '' ? values.start_date : null,
+        end_date: values.end_date && values.end_date.trim() !== '' ? values.end_date : null,
+        organizer_id: sessionData.session.user.id,
+      };
+      
       // Insert tournament into database
       const { data: tournament, error } = await supabase
         .from('tournaments')
-        .insert({
-          name: values.name,
-          description: values.description,
-          sport: values.sport,
-          format: values.format,
-          teams_allowed: values.teams_allowed,
-          location: values.location,
-          rules: values.rules,
-          start_date: values.start_date,
-          end_date: values.end_date,
-          organizer_id: sessionData.session.user.id,
-        })
+        .insert(tournamentData)
         .select()
         .single();
       
