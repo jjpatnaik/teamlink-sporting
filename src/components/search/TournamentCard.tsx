@@ -42,6 +42,7 @@ const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onClick }) 
   
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the card onClick
+    console.log("View details clicked for tournament:", tournament.id);
     navigate(`/tournaments/${tournament.id}`);
   };
 
