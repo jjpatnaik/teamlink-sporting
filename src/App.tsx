@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +11,7 @@ import NotFound from "./pages/NotFound";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import PlayerProfile from "./pages/PlayerProfile";
 import TeamProfile from "./pages/TeamProfile";
-import TournamentProfile from "./pages/TournamentProfile";
+import TournamentProfile from "./pages/tournament-profile";
 import SponsorProfile from "./pages/SponsorProfile";
 import SignupPage from "./pages/signup";
 import LoginPage from "./pages/login";
