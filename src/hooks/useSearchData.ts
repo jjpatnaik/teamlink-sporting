@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { usePlayerData } from '@/hooks/usePlayerData';
-import { useTournamentData } from '@/hooks/useTournamentData';
+import { useTournamentData, Tournament } from '@/hooks/useTournamentData';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
 import { useUserLocation } from '@/hooks/useUserLocation';
 
