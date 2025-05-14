@@ -28,6 +28,14 @@ type FixtureGeneratorProps = {
   isOrganizer: boolean;
 };
 
+type AdditionalInfo = {
+  tournamentType: string;
+  venueDetails: string;
+  matchDuration: string;
+  restDays: string;
+  finalsFormat: string;
+};
+
 const initialMessages: Message[] = [
   {
     role: 'bot',
@@ -41,7 +49,7 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
   const [isLoading, setIsLoading] = useState(false);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [showFixtures, setShowFixtures] = useState(false);
-  const [additionalInfo, setAdditionalInfo] = useState({
+  const [additionalInfo, setAdditionalInfo] = useState<AdditionalInfo>({
     tournamentType: tournament.format || '',
     venueDetails: tournament.location || '',
     matchDuration: '',
@@ -119,43 +127,62 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
     }
   };
 
-  const processUserInput = (input: string, currentInfo: any) => {
+  const processUserInput = (input: string, currentInfo: AdditionalInfo): AdditionalInfo => {
     const updatedInfo = { ...currentInfo };
+    const lowerInput = input.toLowerCase();
     
     // Check for tournament type
-    if (input.toLowerCase().includes('knockout')) updatedInfo.tournamentType = 'Knockout';
-    else if (input.toLowerCase().includes('round robin')) updatedInfo.tournamentType = 'Round Robin';
-    else if (input.toLowerCase().includes('group')) updatedInfo.tournamentType = 'Group + Knockout';
+    if (lowerInput.includes('knockout')) updatedInfo.tournamentType = 'Knockout';
+    else if (lowerInput.includes('round robin')) updatedInfo.tournamentType = 'Round Robin';
+    else if (lowerInput.includes('group')) updatedInfo.tournamentType = 'Group + Knockout';
     
     // Check for venue details
-    if (input.toLowerCase().includes('venue') || input.toLowerCase().includes('location')) {
+    if (lowerInput.includes('venue') || lowerInput.includes('location')) {
       const venueMatch = input.match(/venue[s]?:?\s+([^.!?]+)/i);
       if (venueMatch) updatedInfo.venueDetails = venueMatch[1].trim();
     }
     
-    // Check for match duration
-    if (input.toLowerCase().includes('duration') || input.toLowerCase().includes('minutes')) {
-      const durationMatch = input.match(/(\d+)\s*minutes?/i);
-      if (durationMatch) updatedInfo.matchDuration = durationMatch[1] + ' minutes';
+    // Check for match duration - IMPROVED to catch more variations
+    if (lowerInput.includes('duration') || 
+        lowerInput.includes('match') || 
+        lowerInput.includes('hour') || 
+        lowerInput.includes('minute')) {
+      // Try to capture hours format (e.g., "1 hour", "2 hours")
+      const hourMatch = input.match(/(\d+)\s*hour[s]?/i);
+      if (hourMatch) {
+        updatedInfo.matchDuration = hourMatch[1] + ' hour' + (hourMatch[1] === '1' ? '' : 's');
+      } else {
+        // Try to capture minutes format
+        const minuteMatch = input.match(/(\d+)\s*minute[s]?/i);
+        if (minuteMatch) updatedInfo.matchDuration = minuteMatch[1] + ' minutes';
+      }
     }
     
-    // Check for rest days
-    if (input.toLowerCase().includes('rest') || input.toLowerCase().includes('gap')) {
-      const restMatch = input.match(/(\d+)\s*day[s]?\s*rest/i);
-      if (restMatch) updatedInfo.restDays = restMatch[1] + ' days';
+    // Check for rest days - IMPROVED to catch "no rest" scenarios
+    if (lowerInput.includes('rest') || lowerInput.includes('gap') || lowerInput.includes('day')) {
+      if (lowerInput.includes('no rest') || lowerInput.includes('without rest') || lowerInput.includes('0 day')) {
+        updatedInfo.restDays = 'No rest days';
+      } else {
+        const restMatch = input.match(/(\d+)\s*day[s]?\s*rest/i);
+        if (restMatch) updatedInfo.restDays = restMatch[1] + ' days';
+      }
     }
     
-    // Check for finals format
-    if (input.toLowerCase().includes('final')) {
-      if (input.toLowerCase().includes('top 2')) updatedInfo.finalsFormat = 'Top 2';
-      else if (input.toLowerCase().includes('top 4')) updatedInfo.finalsFormat = 'Top 4';
-      else if (input.toLowerCase().includes('league winner')) updatedInfo.finalsFormat = 'League Winner';
+    // Check for finals format - IMPROVED to catch more keywords
+    if (lowerInput.includes('final') || 
+        lowerInput.includes('knockout') || 
+        lowerInput.includes('league') || 
+        lowerInput.includes('top')) {
+      if (lowerInput.includes('knockout')) updatedInfo.finalsFormat = 'Knockout';
+      else if (lowerInput.includes('top 2')) updatedInfo.finalsFormat = 'Top 2';
+      else if (lowerInput.includes('top 4')) updatedInfo.finalsFormat = 'Top 4';
+      else if (lowerInput.includes('league winner')) updatedInfo.finalsFormat = 'League Winner';
     }
     
     return updatedInfo;
   };
 
-  const generateBotResponse = (info: any) => {
+  const generateBotResponse = (info: AdditionalInfo): string => {
     // Check what information is still missing
     const missingItems = [];
     
@@ -165,10 +192,21 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
     if (!info.restDays || info.restDays === '') missingItems.push('rest days between matches');
     if (!info.finalsFormat || info.finalsFormat === '') missingItems.push('finals format');
     
+    // Log current state for debugging
+    console.log("Current additional info:", info);
+    console.log("Missing items:", missingItems);
+    
     if (missingItems.length > 0) {
       return `Thank you for the information. I still need to know about: ${missingItems.join(', ')}. Can you provide these details?`;
     } else {
-      return `Great! I now have all the information I need. Would you like me to generate the fixtures now?`;
+      return `Great! I now have all the information I need:
+- Tournament type: ${info.tournamentType}
+- Venue: ${info.venueDetails}
+- Match duration: ${info.matchDuration}
+- Rest days: ${info.restDays}
+- Finals format: ${info.finalsFormat}
+
+Would you like me to generate the fixtures now?`;
     }
   };
 
