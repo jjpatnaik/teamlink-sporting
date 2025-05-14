@@ -55,18 +55,20 @@ const SearchContainer: React.FC = () => {
   const { tournaments, loading: tournamentsLoading } = useTournamentData();
   const { userCity, userPostcode } = useUserLocation();
 
-  // Handle search type changes from URL only
+  // Handle search type changes from URL only - preserve current search type if no type in URL
   useEffect(() => {
-    if (typeFromURL && typeFromURL !== searchType) {
+    if (typeFromURL) {
       console.log(`URL search type changed to: ${typeFromURL}`);
       setSearchType(typeFromURL);
     }
-  }, [typeFromURL, searchType]);
+    // Don't add searchType as a dependency to prevent cyclical updates
+  }, [typeFromURL]);
 
   // Update URL when search type changes from the UI
   const handleSearchTypeChange = (newType: string) => {
     if (newType && newType !== searchType) {
       setSearchType(newType);
+      
       // Update URL to reflect the new search type but preserve other params
       const params = new URLSearchParams(location.search);
       params.set('type', newType);
