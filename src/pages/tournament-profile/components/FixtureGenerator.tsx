@@ -234,7 +234,7 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
   };
 
   const regenerateFixtures = async () => {
-    const regenerateMessage = { role: 'user' as const, content: 'Please regenerate the fixtures with different timings.' };
+    const regenerateMessage: Message = { role: 'user', content: 'Please regenerate the fixtures with different timings.' };
     setMessages([...messages, regenerateMessage]);
     await generateFixtures([...messages, regenerateMessage]);
   };
