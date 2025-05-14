@@ -47,39 +47,40 @@ const FixtureBot = ({ tournament, teams, isOrganizer }: FixtureBotProps) => {
         <MessageSquare className="w-5 h-5" /> FixtureBot
       </h3>
       
-      {/* Chat area */}
-      <ScrollArea className="h-[300px] mb-4 border rounded-md p-4">
-        <div className="space-y-4">
-          {messages.map((message, index) => (
-            <div 
-              key={index} 
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div 
-                className={`px-4 py-2 rounded-lg max-w-[80%] ${
-                  message.role === 'user' 
-                    ? 'bg-sport-purple text-white' 
-                    : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {message.content}
-              </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg flex items-center">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
+      {/* Chat messages in table format */}
+      <div className="border rounded-md mb-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-1/4">Role</TableHead>
+              <TableHead className="w-3/4">Message</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {messages.map((message, index) => (
+              <TableRow key={index}>
+                <TableCell className={`font-medium ${message.role === 'user' ? 'text-sport-purple' : 'text-gray-600'}`}>
+                  {message.role === 'user' ? 'You' : 'FixtureBot'}
+                </TableCell>
+                <TableCell className="whitespace-pre-wrap">{message.content}</TableCell>
+              </TableRow>
+            ))}
+            {isLoading && (
+              <TableRow>
+                <TableCell className="font-medium text-gray-600">FixtureBot</TableCell>
+                <TableCell>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        <div ref={messagesEndRef} />
+      </div>
       
       {showFixtures && (
         <div className="mb-4">
