@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePlayerData } from '@/hooks/usePlayerData';
-import { useTournamentData } from '@/hooks/useTournamentData';
+import { useTournamentData, Tournament } from '@/hooks/useTournamentData';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
 import SearchFilters from './SearchFilters';
@@ -132,11 +132,12 @@ const SearchContainer: React.FC = () => {
     }
   };
   
-  // Apply filters with the correct generic type based on the search type
+  // Get the current data
   const currentData = getCurrentData();
   
-  // Use the generic type parameter to tell TypeScript what type we're using
-  const filteredResults = useSearchFilters(
+  // We need to cast the result to any[] to avoid TypeScript errors
+  // since different search types return different data structures
+  const filteredResults = useSearchFilters<any>(
     currentData,
     searchType,
     selectedSport,

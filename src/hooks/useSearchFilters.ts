@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 
-// Use a more flexible type definition that allows for different ID types
+// Use a more flexible generic type that accepts any array of objects with name, sport, area and id properties
 export const useSearchFilters = <T extends { name?: string; sport?: string; area?: string; id: string | number }>(
   items: T[],
   searchType: string,
