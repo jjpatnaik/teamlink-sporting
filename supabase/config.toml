@@ -1,1 +1,5 @@
+
 project_id = "nawpawkxvijcaccxrcuv"
+
+[functions.fixture-chat]
+verify_jwt = false

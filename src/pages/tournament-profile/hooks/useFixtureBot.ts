@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from "sonner";
 import { Tournament, Team } from './useTournamentData';
@@ -52,6 +51,16 @@ export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
     restDays: '',
     finalsFormat: '',
   });
+  
+  // For AI chat - convert our format to OpenAI format
+  const convertToOpenAIMessages = (messages: Message[]) => {
+    return messages
+      .filter(msg => msg.role !== 'system') // Filter out any system messages we might have
+      .map(msg => ({
+        role: msg.role === 'bot' ? 'assistant' : msg.role,
+        content: msg.content
+      }));
+  };
 
   // Get fixture repository functions
   const { saveFixtures, loadFixtures } = useFixtureRepository(tournament?.id);
@@ -85,26 +94,83 @@ export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
 
     setIsLoading(true);
     
-    // Wait a bit to simulate processing
-    setTimeout(() => {
-      let missingInfo = [];
-      let initialAnalysis = `I've analyzed your tournament "${tournament.name}" (${tournament.sport}). `;
-      
-      if (!tournament.format) missingInfo.push("tournament format");
-      if (!tournament.location || tournament.location.trim() === '') missingInfo.push("venue details");
-      if (teams.length === 0) missingInfo.push("participating teams");
-      if (!tournament.start_date || !tournament.end_date) missingInfo.push("tournament date range");
-      
-      if (missingInfo.length > 0) {
-        initialAnalysis += `I need some additional information: ${missingInfo.join(", ")}. Can you provide these details?`;
-      } else {
-        initialAnalysis += `You have ${teams.length} teams registered. The tournament is scheduled from ${new Date(tournament.start_date).toLocaleDateString()} to ${new Date(tournament.end_date).toLocaleDateString()}. Would you like me to generate fixtures now or do you need to specify any additional details like match duration or rest days between matches?`;
+    // Create the tournament info object for AI context
+    const tournamentInfo = {
+      name: tournament.name,
+      sport: tournament.sport,
+      format: tournament.format,
+      teams_allowed: tournament.teams_allowed,
+      location: tournament.location || '',
+      start_date: tournament.start_date,
+      end_date: tournament.end_date,
+    };
+    
+    // Use AI for initial analysis
+    const callAI = async () => {
+      try {
+        const initialPrompt = {
+          role: 'user',
+          content: `I need help creating fixtures for my tournament "${tournament.name}" (${tournament.sport}). 
+          ${teams.length > 0 ? `I have ${teams.length} teams registered so far.` : ''}
+          ${tournament.start_date ? `The tournament is scheduled from ${new Date(tournament.start_date).toLocaleDateString()} to ${new Date(tournament.end_date || '').toLocaleDateString()}.` : ''}
+          ${tournament.format ? `The format is ${tournament.format}.` : ''}
+          ${tournament.location ? `The venue is ${tournament.location}.` : ''}
+          Please analyze what information I have and what I still need to provide.`
+        };
+        
+        const aiMessages = [
+          {
+            role: 'assistant',
+            content: initialMessages[0].content
+          },
+          {
+            role: 'user',
+            content: initialPrompt.content
+          }
+        ];
+        
+        const { data, error } = await supabase.functions.invoke('fixture-chat', {
+          body: { 
+            messages: aiMessages,
+            tournamentInfo
+          }
+        });
+        
+        if (error) throw new Error(error.message);
+        
+        if (data && data.response) {
+          const botMessage: Message = { 
+            role: 'bot', 
+            content: data.response
+          };
+          setMessages([...initialMessages, botMessage]);
+        }
+      } catch (err: any) {
+        console.error("Error calling AI:", err);
+        
+        // Fallback to non-AI response if there's an error
+        let missingInfo = [];
+        let initialAnalysis = `I've analyzed your tournament "${tournament.name}" (${tournament.sport}). `;
+        
+        if (!tournament.format) missingInfo.push("tournament format");
+        if (!tournament.location || tournament.location.trim() === '') missingInfo.push("venue details");
+        if (teams.length === 0) missingInfo.push("participating teams");
+        if (!tournament.start_date || !tournament.end_date) missingInfo.push("tournament date range");
+        
+        if (missingInfo.length > 0) {
+          initialAnalysis += `I need some additional information: ${missingInfo.join(", ")}. Can you provide these details?`;
+        } else {
+          initialAnalysis += `You have ${teams.length} teams registered. The tournament is scheduled from ${new Date(tournament.start_date).toLocaleDateString()} to ${new Date(tournament.end_date).toLocaleDateString()}. Would you like me to generate fixtures now or do you need to specify any additional details like match duration or rest days between matches?`;
+        }
+        
+        const botMessage: Message = { role: 'bot', content: initialAnalysis };
+        setMessages([...initialMessages, botMessage]);
+      } finally {
+        setIsLoading(false);
       }
-      
-      const botMessage: Message = { role: 'bot', content: initialAnalysis };
-      setMessages([...initialMessages, botMessage]);
-      setIsLoading(false);
-    }, 1000);
+    };
+    
+    callAI();
   }, [tournament, teams]);
 
   // Process user input to extract additional information
@@ -161,7 +227,7 @@ export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
     return updatedInfo;
   };
 
-  // Generate bot response based on available information
+  // Generate bot response based on available information (fallback)
   const generateBotResponse = (info: AdditionalInfo): string => {
     const missingItems = [];
     
@@ -244,10 +310,40 @@ Would you like me to generate the fixtures now?`;
       
       setFixtures(processedFixtures);
       
-      const fixtureResponse = "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
+      // Use AI to generate a response about the fixtures
+      try {
+        const fixtureMessage = {
+          role: 'user',
+          content: `I've generated ${processedFixtures.length} fixtures for the tournament with ${teams.length} teams using ${format} format. The fixtures are spread across ${Math.max(...data.fixtures.map((f: any) => f.round))} rounds.`
+        };
+        
+        const aiMessages = convertToOpenAIMessages([...currentMessages, fixtureMessage]);
+        
+        const { data: aiData, error: aiError } = await supabase.functions.invoke('fixture-chat', {
+          body: { 
+            messages: aiMessages,
+            tournamentInfo: {
+              ...tournament,
+              fixtures: processedFixtures.length,
+              teams: teams.length,
+              format
+            }
+          }
+        });
+        
+        if (aiError) throw new Error(aiError.message);
+        
+        const fixtureResponse = aiData?.response || "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
+        
+        const responseMessage: Message = { role: 'bot', content: fixtureResponse };
+        setMessages([...currentMessages, responseMessage]);
+      } catch (aiErr) {
+        console.error("Error calling AI for fixture response:", aiErr);
+        const fixtureResponse = "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
+        const responseMessage: Message = { role: 'bot', content: fixtureResponse };
+        setMessages([...currentMessages, responseMessage]);
+      }
       
-      const responseMessage: Message = { role: 'bot', content: fixtureResponse };
-      setMessages([...currentMessages, responseMessage]);
       setShowFixtures(true);
     } catch (error) {
       console.error("Error generating fixtures:", error);
@@ -283,9 +379,36 @@ Would you like me to generate the fixtures now?`;
         const updatedInfo = processUserInput(userInput, additionalInfo);
         setAdditionalInfo(updatedInfo);
         
-        const botResponse = generateBotResponse(updatedInfo);
-        const botMessage: Message = { role: 'bot', content: botResponse };
-        setMessages([...newMessages, botMessage]);
+        // Use AI for response
+        try {
+          const aiMessages = convertToOpenAIMessages(newMessages);
+          
+          const { data, error } = await supabase.functions.invoke('fixture-chat', {
+            body: { 
+              messages: aiMessages,
+              tournamentInfo: tournament
+            }
+          });
+          
+          if (error) throw new Error(error.message);
+          
+          if (data && data.response) {
+            const botMessage: Message = { 
+              role: 'bot', 
+              content: data.response 
+            };
+            setMessages([...newMessages, botMessage]);
+          } else {
+            throw new Error("No response from AI");
+          }
+        } catch (err) {
+          console.error("Error calling AI:", err);
+          
+          // Fallback to non-AI response if there's an error
+          const botResponse = generateBotResponse(updatedInfo);
+          const botMessage: Message = { role: 'bot', content: botResponse };
+          setMessages([...newMessages, botMessage]);
+        }
       }
     } catch (error) {
       console.error("Error in chat:", error);
