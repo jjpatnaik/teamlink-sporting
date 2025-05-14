@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, MessageSquare, RefreshCw, FileDown } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tournament, Team } from '../hooks/useTournamentData';
 import { useFixtureBot, Fixture, Message } from '../hooks/useFixtureBot';
@@ -144,10 +143,6 @@ const FixtureBot = ({ tournament, teams, isOrganizer }: FixtureBotProps) => {
           <Send className="w-4 h-4" />
         </Button>
       </div>
-      
-      {!isOrganizer && (
-        <p className="text-sm text-gray-500 mt-2">Note: Only tournament organizers can approve fixtures.</p>
-      )}
     </div>
   );
 };
