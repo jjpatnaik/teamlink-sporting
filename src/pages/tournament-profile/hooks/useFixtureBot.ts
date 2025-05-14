@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from "sonner";
 import { Tournament, Team } from './useTournamentData';
@@ -8,6 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 // Define the message type
 export type Message = {
   role: 'user' | 'bot' | 'system';
+  content: string;
+};
+
+// Define OpenAI message type for proper type handling
+type OpenAIMessage = {
+  role: 'user' | 'assistant' | 'system';
   content: string;
 };
 
@@ -53,13 +60,19 @@ export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
   });
   
   // For AI chat - convert our format to OpenAI format
-  const convertToOpenAIMessages = (messages: Message[]) => {
+  const convertToOpenAIMessages = (messages: Message[]): OpenAIMessage[] => {
     return messages
       .filter(msg => msg.role !== 'system') // Filter out any system messages we might have
       .map(msg => ({
-        role: msg.role === 'bot' ? 'assistant' : msg.role,
+        role: msg.role === 'bot' ? 'assistant' as const : msg.role,
         content: msg.content
       }));
+  };
+
+  // Convert from OpenAI format to our format
+  const convertFromOpenAIFormat = (role: string): 'user' | 'bot' | 'system' => {
+    if (role === 'assistant') return 'bot';
+    return role as 'user' | 'system';
   };
 
   // Get fixture repository functions
