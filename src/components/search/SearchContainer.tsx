@@ -61,7 +61,7 @@ const SearchContainer: React.FC = () => {
       console.log(`URL search type changed to: ${typeFromURL}`);
       setSearchType(typeFromURL);
     }
-  }, [typeFromURL, searchType]);
+  }, [typeFromURL]);
 
   // Update URL when search type changes from the UI
   const handleSearchTypeChange = (newType: string) => {

@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 interface SearchFiltersProps {
   searchType: string;
@@ -59,7 +59,10 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     
     // Show toast notification to indicate search type change
     const suffix = searchType !== 'Sponsorship' ? 's' : '';
-    toast.success(`Now searching for ${searchType.toLowerCase()}${suffix}`);
+    toast({
+      title: `Search Type Changed`,
+      description: `Now searching for ${searchType.toLowerCase()}${suffix}`
+    });
     
     console.log(`Search type changed to: ${searchType}`);
   }, [searchType, setSelectedSport, setSelectedArea, setNameSearch]);

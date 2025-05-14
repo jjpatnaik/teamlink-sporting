@@ -11,6 +11,9 @@ const SearchPage: React.FC = () => {
   useEffect(() => {
     // Scroll to top when navigating to this page or when the URL parameters change
     window.scrollTo(0, 0);
+    
+    // Add console log to track page navigation
+    console.log("Navigated to search page with params:", location.search);
   }, [location.search]);
   
   return (
