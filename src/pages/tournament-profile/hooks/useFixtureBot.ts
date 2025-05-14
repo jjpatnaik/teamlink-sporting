@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Tournament, Team } from './useTournamentData';
 import { useFixtureRepository } from './useFixtureRepository';
 import { exportFixturesToPdf } from '../utils/pdfExport';
+import { supabase } from "@/integrations/supabase/client";
 
 // Define the message type
 export type Message = {
@@ -184,13 +185,64 @@ Would you like me to generate the fixtures now?`;
     }
   };
 
-  // Generate fixtures based on tournament data
+  // Generate fixtures based on tournament data using the Supabase Edge Function
   const generateFixtures = async (currentMessages: Message[]) => {
     setIsLoading(true);
+    
     try {
-      // Generate sample fixtures for demo - in a real implementation, this would call an API
-      const sampleFixtures = generateSampleFixtures();
-      setFixtures(sampleFixtures);
+      // Convert tournament format to API format
+      let format = "knockout";
+      if (additionalInfo.tournamentType.toLowerCase().includes("round robin")) {
+        format = "round_robin";
+      }
+
+      // Create request payload
+      const requestData = {
+        tournament_name: tournament?.name || "Tournament",
+        format: format,
+        teams: teams.map(team => team.team_name),
+        venue: additionalInfo.venueDetails,
+        finals: additionalInfo.finalsFormat.toLowerCase().replace(" ", "_"),
+        match_duration: parseInt(additionalInfo.matchDuration) || 60
+      };
+
+      // Call the Edge Function
+      const { data, error } = await supabase.functions.invoke('generate-fixture', {
+        body: requestData
+      });
+
+      if (error) {
+        throw new Error(`Error calling fixture generation API: ${error.message}`);
+      }
+
+      // Process the response
+      if (!data || !data.fixtures) {
+        throw new Error("Invalid response from fixture generator");
+      }
+
+      // Convert API fixtures to our Fixture format
+      const processedFixtures: Fixture[] = data.fixtures.map((fixture: any, index: number) => {
+        // Extract team names from "Team A vs Team B" format
+        const teams = fixture.match.split(" vs ");
+        
+        // Calculate date based on round (use tournament start date as base)
+        const matchDate = new Date(tournament?.start_date || new Date());
+        matchDate.setDate(matchDate.getDate() + (fixture.round - 1) * (additionalInfo.restDays === 'No rest days' ? 0 : 1));
+        
+        // Generate a time between 9 AM and 7 PM
+        const hour = 9 + (index % 11);
+        
+        return {
+          matchNumber: index + 1,
+          date: matchDate.toLocaleDateString(),
+          time: `${hour}:00`,
+          teamA: teams[0],
+          teamB: teams[1],
+          venue: fixture.venue,
+        };
+      });
+      
+      setFixtures(processedFixtures);
       
       const fixtureResponse = "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
       
@@ -208,35 +260,6 @@ Would you like me to generate the fixtures now?`;
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Generate sample fixtures
-  const generateSampleFixtures = (): Fixture[] => {
-    const fixtures: Fixture[] = [];
-    const startDate = tournament?.start_date ? new Date(tournament.start_date) : new Date();
-    
-    let matchNumber = 1;
-    
-    // Create matches between teams
-    for (let i = 0; i < teams.length; i += 2) {
-      if (i + 1 < teams.length) {
-        // Add a few days to the start date for each match
-        const matchDate = new Date(startDate);
-        matchDate.setDate(startDate.getDate() + Math.floor(matchNumber / 2));
-        
-        fixtures.push({
-          matchNumber,
-          date: matchDate.toLocaleDateString(),
-          time: `${12 + (matchNumber % 8)}:00`,
-          teamA: teams[i].team_name,
-          teamB: teams[i + 1].team_name,
-          venue: tournament?.location || 'Main Venue'
-        });
-      }
-      matchNumber++;
-    }
-    
-    return fixtures;
   };
 
   // Handle sending a message
