@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { Tournament, Team } from './useTournamentData';
 import { useFixtureRepository } from './useFixtureRepository';
 import { exportFixturesToPdf } from '../utils/pdfExport';
@@ -64,7 +64,7 @@ export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
     return messages
       .filter(msg => msg.role !== 'system') // Filter out any system messages we might have
       .map(msg => ({
-        role: msg.role === 'bot' ? 'assistant' as const : msg.role,
+        role: msg.role === 'bot' ? 'assistant' as const : msg.role as 'user' | 'system',
         content: msg.content
       }));
   };
@@ -72,7 +72,8 @@ export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
   // Convert from OpenAI format to our format
   const convertFromOpenAIFormat = (role: string): 'user' | 'bot' | 'system' => {
     if (role === 'assistant') return 'bot';
-    return role as 'user' | 'system';
+    if (role === 'user') return 'user';
+    return 'system';
   };
 
   // Get fixture repository functions
@@ -275,15 +276,24 @@ Would you like me to generate the fixtures now?`;
         format = "round_robin";
       }
 
+      // Extract numeric match duration if available
+      let matchDuration = 60; // Default to 60 minutes
+      const durationMatch = additionalInfo.matchDuration.match(/(\d+)/);
+      if (durationMatch) {
+        matchDuration = parseInt(durationMatch[1]);
+      }
+
       // Create request payload
       const requestData = {
         tournament_name: tournament?.name || "Tournament",
         format: format,
         teams: teams.map(team => team.team_name),
-        venue: additionalInfo.venueDetails,
-        finals: additionalInfo.finalsFormat.toLowerCase().replace(" ", "_"),
-        match_duration: parseInt(additionalInfo.matchDuration) || 60
+        venue: additionalInfo.venueDetails || tournament?.location || "Main Ground",
+        finals: additionalInfo.finalsFormat.toLowerCase().replace(" ", "_") || "knockout",
+        match_duration: matchDuration
       };
+
+      console.log("Sending fixture generation request:", requestData);
 
       // Call the Edge Function
       const { data, error } = await supabase.functions.invoke('generate-fixture', {
@@ -298,6 +308,8 @@ Would you like me to generate the fixtures now?`;
       if (!data || !data.fixtures) {
         throw new Error("Invalid response from fixture generator");
       }
+
+      console.log("Received fixture data:", data);
 
       // Convert API fixtures to our Fixture format
       const processedFixtures: Fixture[] = data.fixtures.map((fixture: any, index: number) => {
@@ -326,7 +338,7 @@ Would you like me to generate the fixtures now?`;
       // Use AI to generate a response about the fixtures
       try {
         const fixtureMessage = {
-          role: 'user',
+          role: 'user' as const,
           content: `I've generated ${processedFixtures.length} fixtures for the tournament with ${teams.length} teams using ${format} format. The fixtures are spread across ${Math.max(...data.fixtures.map((f: any) => f.round))} rounds.`
         };
         
@@ -360,7 +372,11 @@ Would you like me to generate the fixtures now?`;
       setShowFixtures(true);
     } catch (error) {
       console.error("Error generating fixtures:", error);
-      toast.error("Failed to generate fixtures");
+      toast({
+        title: "Error",
+        description: "Failed to generate fixtures",
+        variant: "destructive"
+      });
       const errorMessage: Message = { 
         role: 'bot',
         content: 'Sorry, I encountered an error while generating fixtures. Please try again.' 
@@ -425,7 +441,11 @@ Would you like me to generate the fixtures now?`;
       }
     } catch (error) {
       console.error("Error in chat:", error);
-      toast.error("Something went wrong with the chat processing");
+      toast({
+        title: "Error",
+        description: "Something went wrong with the chat processing",
+        variant: "destructive"
+      });
       const errorMessage: Message = { role: 'bot', content: 'Sorry, I encountered an error. Please try again.' };
       setMessages([...newMessages, errorMessage]);
     } finally {
@@ -437,7 +457,11 @@ Would you like me to generate the fixtures now?`;
   const approveFixtures = async () => {
     try {
       if (!tournament) {
-        toast.error("Tournament not found");
+        toast({
+          title: "Error",
+          description: "Tournament not found",
+          variant: "destructive"
+        });
         return;
       }
 
@@ -445,7 +469,10 @@ Would you like me to generate the fixtures now?`;
       const result = await saveFixtures(fixtures);
       
       if (result.success) {
-        toast.success("Fixtures approved and saved!");
+        toast({
+          title: "Success",
+          description: "Fixtures approved and saved!",
+        });
         
         // Add confirmation message in chat
         const confirmMessage: Message = { 
@@ -458,7 +485,11 @@ Would you like me to generate the fixtures now?`;
       }
     } catch (error) {
       console.error("Error approving fixtures:", error);
-      toast.error("Failed to save fixtures");
+      toast({
+        title: "Error",
+        description: "Failed to save fixtures",
+        variant: "destructive"
+      });
     }
   };
 
@@ -477,14 +508,21 @@ Would you like me to generate the fixtures now?`;
     const success = exportFixturesToPdf(fixtures, tournament);
     
     if (success) {
-      toast.success("Fixtures exported as PDF!");
+      toast({
+        title: "Success",
+        description: "Fixtures exported as PDF!",
+      });
       const exportMessage: Message = { 
         role: 'bot', 
         content: 'The fixtures have been exported as PDF and saved to your device.' 
       };
       setMessages([...messages, exportMessage]);
     } else {
-      toast.error("Failed to export fixtures as PDF");
+      toast({
+        title: "Error",
+        description: "Failed to export fixtures as PDF",
+        variant: "destructive"
+      });
     }
   };
 
