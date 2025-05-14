@@ -47,7 +47,7 @@ const SearchContainer: React.FC = () => {
   const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
   
   // Pass false to fetchAll to prevent authentication errors
-  const { playerProfiles, loading: playersLoading } = usePlayerData(false);
+  const { playerProfiles, loading: playersLoading } = usePlayerData(true);
   const { tournaments, loading: tournamentsLoading } = useTournamentData();
   const { userCity, userPostcode } = useUserLocation();
 
@@ -72,8 +72,41 @@ const SearchContainer: React.FC = () => {
   ])).filter(Boolean);
   
   // Mock data for teams and sponsors
-  const teams: TeamProfile[] = [];
-  const sponsors: SponsorProfile[] = [];
+  const teams: TeamProfile[] = [
+    {
+      id: 1,
+      name: "Manchester United FC",
+      sport: "Football",
+      area: "Manchester",
+      logo: "https://via.placeholder.com/300x200?text=Team+Logo"
+    },
+    {
+      id: 2,
+      name: "London Tigers",
+      sport: "Basketball",
+      area: "London",
+      logo: "https://via.placeholder.com/300x200?text=Team+Logo"
+    }
+  ];
+  
+  const sponsors: SponsorProfile[] = [
+    {
+      id: 1,
+      name: "Global Sports Brand",
+      sport: "Football",
+      area: "London",
+      amount: "£50,000",
+      image: "https://via.placeholder.com/300x200?text=Sponsor"
+    },
+    {
+      id: 2,
+      name: "Local Energy Drinks",
+      sport: "Basketball",
+      area: "Manchester",
+      amount: "£25,000",
+      image: "https://via.placeholder.com/300x200?text=Sponsor"
+    }
+  ];
   
   // Get the current data based on searchType
   const getCurrentData = () => {
@@ -81,10 +114,10 @@ const SearchContainer: React.FC = () => {
       switch (searchType) {
         case 'Player':
           return playerProfiles || [];
-        case 'Tournament':
-          return tournaments || [];
         case 'Team':
           return teams || [];
+        case 'Tournament':
+          return tournaments || [];
         case 'Sponsorship':
           return sponsors || [];
         default:
@@ -98,7 +131,7 @@ const SearchContainer: React.FC = () => {
   
   // Apply filters with a more generic type
   const filteredResults = useSearchFilters(
-    getCurrentData() as any[], // Use type assertion to any[] since we know it'll have the required properties
+    getCurrentData(),
     searchType,
     selectedSport,
     selectedArea,
@@ -107,7 +140,8 @@ const SearchContainer: React.FC = () => {
     userCity
   );
 
-  const isLoading = playersLoading || tournamentsLoading;
+  const isLoading = (searchType === 'Player' && playersLoading) || 
+                   (searchType === 'Tournament' && tournamentsLoading);
 
   const handleItemClick = (id: number | string) => {
     try {

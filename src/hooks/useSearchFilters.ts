@@ -13,12 +13,20 @@ export const useSearchFilters = <T extends { name?: string; sport?: string; area
   const [filteredResults, setFilteredResults] = useState<T[]>([]);
   
   useEffect(() => {
+    // Don't attempt to filter if items are empty
+    if (!items || items.length === 0) {
+      setFilteredResults([]);
+      return;
+    }
+
     // Start with the provided items
     let results = [...items];
     
     // Apply sport filter
     if (selectedSport !== "any_sport") {
-      results = results.filter(item => item.sport === selectedSport);
+      results = results.filter(item => 
+        item.sport && item.sport.toLowerCase() === selectedSport.toLowerCase()
+      );
     }
     
     // Apply area filter
@@ -42,7 +50,12 @@ export const useSearchFilters = <T extends { name?: string; sport?: string; area
       });
     }
     
-    console.log(`Filtered ${items.length} items to ${results.length} results`);
+    console.log(`Search type: ${searchType}`);
+    console.log(`Results count: ${results.length}`);
+    console.log(`First few results:`, results.slice(0, 3));
+    console.log(`Sport filter: ${selectedSport}`);
+    console.log(`Area filter: ${selectedArea}`);
+
     setFilteredResults(results);
   }, [items, searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, userCity]);
 
