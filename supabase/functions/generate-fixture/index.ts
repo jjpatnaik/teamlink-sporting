@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 interface FixtureInput {
@@ -107,9 +108,12 @@ serve(async (req: Request) => {
   }
   
   try {
+    console.log("Function invoked, processing request");
     const data: FixtureInput = await req.json();
+    console.log("Received data:", JSON.stringify(data));
     
-    if (!data.tournament_name || !data.format || !data.teams) {
+    if (!data.tournament_name || !data.format || !data.teams || !data.teams.length) {
+      console.error("Missing required fields", data);
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { 
@@ -125,10 +129,13 @@ serve(async (req: Request) => {
     let fixtures: FixtureMatch[];
     
     if (data.format === "round_robin") {
+      console.log("Generating round-robin fixtures for", data.teams.length, "teams");
       fixtures = generateRoundRobin(data.teams, data.venue || "Main Ground");
     } else if (data.format === "knockout") {
+      console.log("Generating knockout fixtures for", data.teams.length, "teams");
       fixtures = generateKnockout(data.teams, data.venue || "Main Ground");
     } else {
+      console.error("Unsupported format:", data.format);
       return new Response(
         JSON.stringify({ error: "Unsupported format" }),
         { 
@@ -141,6 +148,8 @@ serve(async (req: Request) => {
       );
     }
     
+    console.log("Generated", fixtures.length, "fixtures successfully");
+    
     return new Response(
       JSON.stringify({ fixtures }),
       { 
@@ -152,6 +161,7 @@ serve(async (req: Request) => {
       }
     );
   } catch (error) {
+    console.error("Error processing request:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

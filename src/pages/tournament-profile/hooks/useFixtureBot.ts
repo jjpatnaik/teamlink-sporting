@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Tournament, Team } from './useTournamentData';
 import { useFixtureRepository } from './useFixtureRepository';
 import { exportFixturesToPdf } from '../utils/pdfExport';
@@ -46,6 +46,7 @@ const initialMessages: Message[] = [
 ];
 
 export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -142,6 +143,8 @@ export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
             content: initialPrompt.content
           }
         ];
+        
+        console.log("Calling fixture-chat edge function with:", aiMessages);
         
         const { data, error } = await supabase.functions.invoke('fixture-chat', {
           body: { 
@@ -270,9 +273,18 @@ Would you like me to generate the fixtures now?`;
     setIsLoading(true);
     
     try {
+      if (!tournament) {
+        throw new Error("Tournament information is missing");
+      }
+      
+      if (teams.length === 0) {
+        throw new Error("No teams are registered for this tournament");
+      }
+      
       // Convert tournament format to API format
       let format = "knockout";
-      if (additionalInfo.tournamentType.toLowerCase().includes("round robin")) {
+      if (additionalInfo.tournamentType.toLowerCase().includes("round robin") || 
+          tournament.format?.toLowerCase().includes("round robin")) {
         format = "round_robin";
       }
 
@@ -293,7 +305,7 @@ Would you like me to generate the fixtures now?`;
         match_duration: matchDuration
       };
 
-      console.log("Sending fixture generation request:", requestData);
+      console.log("Sending fixture generation request:", JSON.stringify(requestData, null, 2));
 
       // Call the Edge Function
       const { data, error } = await supabase.functions.invoke('generate-fixture', {
@@ -301,11 +313,13 @@ Would you like me to generate the fixtures now?`;
       });
 
       if (error) {
+        console.error("Error from edge function:", error);
         throw new Error(`Error calling fixture generation API: ${error.message}`);
       }
 
       // Process the response
       if (!data || !data.fixtures) {
+        console.error("Invalid response:", data);
         throw new Error("Invalid response from fixture generator");
       }
 
@@ -370,11 +384,11 @@ Would you like me to generate the fixtures now?`;
       }
       
       setShowFixtures(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating fixtures:", error);
       toast({
         title: "Error",
-        description: "Failed to generate fixtures",
+        description: `Failed to generate fixtures: ${error.message}`,
         variant: "destructive"
       });
       const errorMessage: Message = { 
@@ -439,7 +453,7 @@ Would you like me to generate the fixtures now?`;
           setMessages([...newMessages, botMessage]);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in chat:", error);
       toast({
         title: "Error",
@@ -483,11 +497,11 @@ Would you like me to generate the fixtures now?`;
       } else {
         throw new Error(result.error || "Failed to save fixtures");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error approving fixtures:", error);
       toast({
         title: "Error",
-        description: "Failed to save fixtures",
+        description: `Failed to save fixtures: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -505,24 +519,40 @@ Would you like me to generate the fixtures now?`;
 
   // Export fixtures as PDF
   const exportAsPdf = () => {
-    const success = exportFixturesToPdf(fixtures, tournament);
-    
-    if (success) {
-      toast({
-        title: "Success",
-        description: "Fixtures exported as PDF!",
-      });
-      const exportMessage: Message = { 
-        role: 'bot', 
-        content: 'The fixtures have been exported as PDF and saved to your device.' 
-      };
-      setMessages([...messages, exportMessage]);
-    } else {
+    if (!tournament) {
       toast({
         title: "Error",
-        description: "Failed to export fixtures as PDF",
+        description: "Tournament information is missing",
         variant: "destructive"
       });
+      return false;
+    }
+    
+    try {
+      const success = exportFixturesToPdf(fixtures, tournament);
+      
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Fixtures exported as PDF!",
+        });
+        const exportMessage: Message = { 
+          role: 'bot', 
+          content: 'The fixtures have been exported as PDF and saved to your device.' 
+        };
+        setMessages([...messages, exportMessage]);
+        return true;
+      } else {
+        throw new Error("PDF export failed");
+      }
+    } catch (error: any) {
+      console.error("Error exporting PDF:", error);
+      toast({
+        title: "Error",
+        description: `Failed to export fixtures as PDF: ${error.message}`,
+        variant: "destructive"
+      });
+      return false;
     }
   };
 
