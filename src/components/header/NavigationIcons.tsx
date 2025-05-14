@@ -20,6 +20,13 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
   const navigateToSearch = (type: string) => {
     navigate(`/search?type=${type}`);
   };
+  
+  // Added new function to navigate to tournaments
+  const navigateToTeamTournaments = () => {
+    console.log("Navigating to team tournaments");
+    // Navigate to tournaments page with team filter
+    navigate('/search?type=Tournament');
+  };
 
   return (
     <div className="flex items-center space-x-6 mr-6">
@@ -31,7 +38,7 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
         <span className="text-xs mt-1">Players</span>
       </button>
       <button 
-        onClick={() => navigateToSearch('Team')} 
+        onClick={navigateToTeamTournaments} 
         className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
       >
         <Users className="w-5 h-5" />
