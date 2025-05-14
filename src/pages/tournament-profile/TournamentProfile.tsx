@@ -8,6 +8,7 @@ import { useTournamentData } from './hooks/useTournamentData';
 import TournamentHeader from './components/TournamentHeader';
 import TournamentDetails from './components/TournamentDetails';
 import TournamentTeamsSection from './components/TournamentTeamsSection';
+import FixtureGenerator from './components/FixtureGenerator';
 
 const TournamentProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -109,6 +110,13 @@ const TournamentProfile = () => {
               teams={teams}
               isOrganizer={isOrganizer}
               addTeam={addTeam}
+            />
+            
+            {/* Add the FixtureGenerator component */}
+            <FixtureGenerator 
+              tournament={tournament}
+              teams={teams}
+              isOrganizer={isOrganizer}
             />
           </div>
         </div>
