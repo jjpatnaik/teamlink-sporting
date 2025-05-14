@@ -50,7 +50,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   nearMeOnly,
   setNearMeOnly
 }) => {
-  // Reset filters when search type changes
+  // Reset filters and show toast when search type changes
   useEffect(() => {
     // Clear filters when search type changes
     setSelectedSport("any_sport");
@@ -58,17 +58,24 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     setNameSearch("");
     
     // Show toast notification to indicate search type change
-    toast.info(`Now searching for ${searchType.toLowerCase()}s`);
+    toast.info(`Now searching for ${searchType.toLowerCase()}${searchType !== 'Sponsorship' ? 's' : ''}`);
     
     console.log(`Search type changed to: ${searchType}`);
   }, [searchType, setSelectedSport, setSelectedArea, setNameSearch]);
+  
+  // Handle search type change
+  const handleSearchTypeChange = (value: string) => {
+    if (value !== searchType) {
+      setSearchType(value);
+    }
+  };
   
   return (
     <div className="bg-white p-6 rounded-xl shadow-md mb-8 w-full lg:min-w-[280px]">
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-1 gap-4 mb-6">
         <div>
           <label className="block text-sm font-medium mb-2">I'm looking for</label>
-          <Select value={searchType} onValueChange={setSearchType}>
+          <Select value={searchType} onValueChange={handleSearchTypeChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select type" />
             </SelectTrigger>

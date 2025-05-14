@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlayerData } from '@/hooks/usePlayerData';
 import { useTournamentData, Tournament } from '@/hooks/useTournamentData';
 import { useUserLocation } from '@/hooks/useUserLocation';
@@ -40,6 +40,7 @@ type SearchResult = PlayerProfile | TeamProfile | Tournament | SponsorProfile;
 
 const SearchContainer: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const typeFromURL = searchParams.get('type');
   
@@ -54,13 +55,20 @@ const SearchContainer: React.FC = () => {
   const { tournaments, loading: tournamentsLoading } = useTournamentData();
   const { userCity, userPostcode } = useUserLocation();
 
-  // Update search type when URL parameter changes
+  // Handle search type changes both from URL and from the UI
   useEffect(() => {
     if (typeFromURL && typeFromURL !== searchType) {
       console.log(`URL search type changed to: ${typeFromURL}`);
       setSearchType(typeFromURL);
     }
   }, [typeFromURL, searchType]);
+
+  // Update URL when search type changes from the UI
+  const handleSearchTypeChange = (newType: string) => {
+    setSearchType(newType);
+    // Update URL to reflect the new search type
+    navigate(`/search?type=${newType}`, { replace: true });
+  };
 
   // Define available sports and areas
   const sports = Array.from(new Set([
@@ -171,7 +179,7 @@ const SearchContainer: React.FC = () => {
         <div className="lg:col-span-3 w-full">
           <SearchFilters 
             searchType={searchType}
-            setSearchType={setSearchType}
+            setSearchType={handleSearchTypeChange}
             selectedSport={selectedSport}
             setSelectedSport={setSelectedSport}
             selectedArea={selectedArea}
