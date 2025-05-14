@@ -7,6 +7,7 @@ import { useUserLocation } from '@/hooks/useUserLocation';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
 import SearchFilters from './SearchFilters';
 import SearchResults from './SearchResults';
+import { toast } from "sonner";
 
 type PlayerProfile = {
   id: string;
@@ -45,7 +46,8 @@ const SearchContainer: React.FC = () => {
   const [nameSearch, setNameSearch] = useState<string>('');
   const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
   
-  const { playerProfiles, loading: playersLoading } = usePlayerData(true); // Use fetchAll=true to get all players
+  // Pass false to fetchAll to prevent authentication errors
+  const { playerProfiles, loading: playersLoading } = usePlayerData(false);
   const { tournaments, loading: tournamentsLoading } = useTournamentData();
   const { userCity, userPostcode } = useUserLocation();
 
@@ -75,17 +77,22 @@ const SearchContainer: React.FC = () => {
   
   // Get the current data based on searchType
   const getCurrentData = () => {
-    switch (searchType) {
-      case 'Player':
-        return playerProfiles;
-      case 'Tournament':
-        return tournaments;
-      case 'Team':
-        return teams;
-      case 'Sponsorship':
-        return sponsors;
-      default:
-        return [];
+    try {
+      switch (searchType) {
+        case 'Player':
+          return playerProfiles || [];
+        case 'Tournament':
+          return tournaments || [];
+        case 'Team':
+          return teams || [];
+        case 'Sponsorship':
+          return sponsors || [];
+        default:
+          return [];
+      }
+    } catch (error) {
+      console.error("Error getting search data:", error);
+      return [];
     }
   };
   
@@ -103,8 +110,15 @@ const SearchContainer: React.FC = () => {
   const isLoading = playersLoading || tournamentsLoading;
 
   const handleItemClick = (id: number | string) => {
-    console.log(`Clicked item with id: ${id}, type: ${searchType}`);
-    // Navigation logic would go here
+    try {
+      console.log(`Clicked item with id: ${id}, type: ${searchType}`);
+      // Navigation logic would go here
+      if (searchType === 'Tournament') {
+        console.log(`View details clicked for tournament: ${id}`);
+      }
+    } catch (error) {
+      console.error("Error handling item click:", error);
+    }
   };
 
   return (

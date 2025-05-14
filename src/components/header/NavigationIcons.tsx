@@ -18,6 +18,7 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
   const navigate = useNavigate();
 
   const navigateToSearch = (type: string) => {
+    // Navigate to search page with type parameter
     navigate(`/search?type=${type}`);
   };
 
@@ -26,6 +27,7 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
       <button 
         onClick={() => navigateToSearch('Player')} 
         className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+        type="button"
       >
         <User className="w-5 h-5" />
         <span className="text-xs mt-1">Players</span>
@@ -33,6 +35,7 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
       <button 
         onClick={() => navigateToSearch('Team')} 
         className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+        type="button"
       >
         <Users className="w-5 h-5" />
         <span className="text-xs mt-1">Teams</span>
@@ -40,6 +43,7 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
       <button 
         onClick={() => navigateToSearch('Tournament')} 
         className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+        type="button"
       >
         <Trophy className="w-5 h-5" />
         <span className="text-xs mt-1">Tournaments</span>
@@ -47,13 +51,17 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
       <button 
         onClick={() => navigateToSearch('Sponsorship')} 
         className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+        type="button"
       >
         <Award className="w-5 h-5" />
         <span className="text-xs mt-1">Sponsors</span>
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+          <button 
+            className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+            type="button"
+          >
             <Search className="w-5 h-5" />
             <span className="text-xs mt-1">Search</span>
           </button>
