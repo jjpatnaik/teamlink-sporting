@@ -131,35 +131,11 @@ const TournamentProfile = () => {
               />
             )}
             
-            {/* Show login prompt if user is not logged in */}
-            {!currentUserId && (
-              <div className="bg-white rounded-lg shadow-md p-4 mt-6">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5" /> FixtureBot
-                </h3>
-                <div className="bg-gray-50 p-6 rounded-lg text-center">
-                  <p className="mb-4">Log in to access FixtureBot and tournament management features</p>
-                  <button 
-                    className="bg-sport-purple hover:bg-sport-purple/90 text-white px-4 py-2 rounded"
-                    onClick={() => navigate('/login')}
-                  >
-                    Log In
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Remove login prompt for general users */}
+            {/* Previous login prompt code removed */}
             
-            {/* Show message if user is logged in but not the organizer */}
-            {currentUserId && !isOrganizer && (
-              <div className="bg-white rounded-lg shadow-md p-4 mt-6">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5" /> FixtureBot
-                </h3>
-                <div className="bg-gray-50 p-6 rounded-lg text-center">
-                  <p>Only tournament organizers have access to FixtureBot</p>
-                </div>
-              </div>
-            )}
+            {/* Remove message for non-organizer users */}
+            {/* Previous non-organizer message code removed */}
           </div>
         </div>
       </main>
