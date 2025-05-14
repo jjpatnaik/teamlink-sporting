@@ -56,10 +56,11 @@ const SearchContainer: React.FC = () => {
 
   // Update search type when URL parameter changes
   useEffect(() => {
-    if (typeFromURL) {
+    if (typeFromURL && typeFromURL !== searchType) {
+      console.log(`URL search type changed to: ${typeFromURL}`);
       setSearchType(typeFromURL);
     }
-  }, [typeFromURL]);
+  }, [typeFromURL, searchType]);
 
   // Define available sports and areas
   const sports = Array.from(new Set([

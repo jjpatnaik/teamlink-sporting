@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   Select, 
   SelectContent, 
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface SearchFiltersProps {
   searchType: string;
@@ -49,6 +50,19 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   nearMeOnly,
   setNearMeOnly
 }) => {
+  // Reset filters when search type changes
+  useEffect(() => {
+    // Clear filters when search type changes
+    setSelectedSport("any_sport");
+    setSelectedArea("any_area");
+    setNameSearch("");
+    
+    // Show toast notification to indicate search type change
+    toast.info(`Now searching for ${searchType.toLowerCase()}s`);
+    
+    console.log(`Search type changed to: ${searchType}`);
+  }, [searchType, setSelectedSport, setSelectedArea, setNameSearch]);
+  
   return (
     <div className="bg-white p-6 rounded-xl shadow-md mb-8 w-full lg:min-w-[280px]">
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-1 gap-4 mb-6">
