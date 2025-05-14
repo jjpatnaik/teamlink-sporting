@@ -8,7 +8,7 @@ import { useTournamentData } from './hooks/useTournamentData';
 import TournamentHeader from './components/TournamentHeader';
 import TournamentDetails from './components/TournamentDetails';
 import TournamentTeamsSection from './components/TournamentTeamsSection';
-import FixtureGenerator from './components/FixtureGenerator';
+import FixtureBot from './components/FixtureBot';
 
 const TournamentProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -112,8 +112,8 @@ const TournamentProfile = () => {
               addTeam={addTeam}
             />
             
-            {/* Add the FixtureGenerator component */}
-            <FixtureGenerator 
+            {/* Replace FixtureGenerator with FixtureBot */}
+            <FixtureBot 
               tournament={tournament}
               teams={teams}
               isOrganizer={isOrganizer}
