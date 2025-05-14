@@ -307,83 +307,88 @@ Would you like me to generate the fixtures now?`;
 
       console.log("Sending fixture generation request:", JSON.stringify(requestData, null, 2));
 
-      // Call the Edge Function
-      const { data, error } = await supabase.functions.invoke('generate-fixture', {
-        body: requestData
-      });
-
-      if (error) {
-        console.error("Error from edge function:", error);
-        throw new Error(`Error calling fixture generation API: ${error.message}`);
-      }
-
-      // Process the response
-      if (!data || !data.fixtures) {
-        console.error("Invalid response:", data);
-        throw new Error("Invalid response from fixture generator");
-      }
-
-      console.log("Received fixture data:", data);
-
-      // Convert API fixtures to our Fixture format
-      const processedFixtures: Fixture[] = data.fixtures.map((fixture: any, index: number) => {
-        // Extract team names from "Team A vs Team B" format
-        const teams = fixture.match.split(" vs ");
-        
-        // Calculate date based on round (use tournament start date as base)
-        const matchDate = new Date(tournament?.start_date || new Date());
-        matchDate.setDate(matchDate.getDate() + (fixture.round - 1) * (additionalInfo.restDays === 'No rest days' ? 0 : 1));
-        
-        // Generate a time between 9 AM and 7 PM
-        const hour = 9 + (index % 11);
-        
-        return {
-          matchNumber: index + 1,
-          date: matchDate.toLocaleDateString(),
-          time: `${hour}:00`,
-          teamA: teams[0],
-          teamB: teams[1],
-          venue: fixture.venue,
-        };
-      });
-      
-      setFixtures(processedFixtures);
-      
-      // Use AI to generate a response about the fixtures
       try {
-        const fixtureMessage = {
-          role: 'user' as const,
-          content: `I've generated ${processedFixtures.length} fixtures for the tournament with ${teams.length} teams using ${format} format. The fixtures are spread across ${Math.max(...data.fixtures.map((f: any) => f.round))} rounds.`
-        };
-        
-        const aiMessages = convertToOpenAIMessages([...currentMessages, fixtureMessage]);
-        
-        const { data: aiData, error: aiError } = await supabase.functions.invoke('fixture-chat', {
-          body: { 
-            messages: aiMessages,
-            tournamentInfo: {
-              ...tournament,
-              fixtures: processedFixtures.length,
-              teams: teams.length,
-              format
-            }
-          }
+        // Call the Edge Function
+        const { data, error } = await supabase.functions.invoke('generate-fixture', {
+          body: requestData
+        });
+
+        if (error) {
+          console.error("Error from edge function:", error);
+          throw new Error(`Error calling fixture generation API: ${error.message}`);
+        }
+
+        // Process the response
+        if (!data || !data.fixtures) {
+          console.error("Invalid response:", data);
+          throw new Error("Invalid response from fixture generator");
+        }
+
+        console.log("Received fixture data:", data);
+
+        // Convert API fixtures to our Fixture format
+        const processedFixtures: Fixture[] = data.fixtures.map((fixture: any, index: number) => {
+          // Extract team names from "Team A vs Team B" format
+          const teams = fixture.match.split(" vs ");
+          
+          // Calculate date based on round (use tournament start date as base)
+          const matchDate = new Date(tournament?.start_date || new Date());
+          matchDate.setDate(matchDate.getDate() + (fixture.round - 1) * (additionalInfo.restDays === 'No rest days' ? 0 : 1));
+          
+          // Generate a time between 9 AM and 7 PM
+          const hour = 9 + (index % 11);
+          
+          return {
+            matchNumber: index + 1,
+            date: matchDate.toLocaleDateString(),
+            time: `${hour}:00`,
+            teamA: teams[0],
+            teamB: teams[1],
+            venue: fixture.venue,
+          };
         });
         
-        if (aiError) throw new Error(aiError.message);
+        setFixtures(processedFixtures);
         
-        const fixtureResponse = aiData?.response || "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
+        // Use AI to generate a response about the fixtures
+        try {
+          const fixtureMessage = {
+            role: 'user' as const,
+            content: `I've generated ${processedFixtures.length} fixtures for the tournament with ${teams.length} teams using ${format} format. The fixtures are spread across ${Math.max(...data.fixtures.map((f: any) => f.round))} rounds.`
+          };
+          
+          const aiMessages = convertToOpenAIMessages([...currentMessages, fixtureMessage]);
+          
+          const { data: aiData, error: aiError } = await supabase.functions.invoke('fixture-chat', {
+            body: { 
+              messages: aiMessages,
+              tournamentInfo: {
+                ...tournament,
+                fixtures: processedFixtures.length,
+                teams: teams.length,
+                format
+              }
+            }
+          });
+          
+          if (aiError) throw new Error(aiError.message);
+          
+          const fixtureResponse = aiData?.response || "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
+          
+          const responseMessage: Message = { role: 'bot', content: fixtureResponse };
+          setMessages([...currentMessages, responseMessage]);
+        } catch (aiErr) {
+          console.error("Error calling AI for fixture response:", aiErr);
+          const fixtureResponse = "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
+          const responseMessage: Message = { role: 'bot', content: fixtureResponse };
+          setMessages([...currentMessages, responseMessage]);
+        }
         
-        const responseMessage: Message = { role: 'bot', content: fixtureResponse };
-        setMessages([...currentMessages, responseMessage]);
-      } catch (aiErr) {
-        console.error("Error calling AI for fixture response:", aiErr);
-        const fixtureResponse = "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
-        const responseMessage: Message = { role: 'bot', content: fixtureResponse };
-        setMessages([...currentMessages, responseMessage]);
+        setShowFixtures(true);
+      } catch (funcError: any) {
+        console.error("Edge function error:", funcError);
+        throw new Error(`Failed to generate fixtures: ${funcError.message}`);
       }
-      
-      setShowFixtures(true);
     } catch (error: any) {
       console.error("Error generating fixtures:", error);
       toast({

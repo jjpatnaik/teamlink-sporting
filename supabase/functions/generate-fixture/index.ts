@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 interface FixtureInput {
@@ -16,6 +15,13 @@ interface FixtureMatch {
   venue: string;
   round: number;
 }
+
+// CORS headers for browser access
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+};
 
 function generateRoundRobin(teams: string[], venue: string): FixtureMatch[] {
   let teamsToUse = [...teams];
@@ -96,38 +102,33 @@ function generateKnockout(teams: string[], venue: string): FixtureMatch[] {
 }
 
 serve(async (req: Request) => {
-  // Handle CORS
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
-    });
+    return new Response('ok', { headers: corsHeaders });
   }
   
   try {
     console.log("Function invoked, processing request");
+    
+    // Parse the request body
     const data: FixtureInput = await req.json();
     console.log("Received data:", JSON.stringify(data));
     
+    // Validate required fields
     if (!data.tournament_name || !data.format || !data.teams || !data.teams.length) {
       console.error("Missing required fields", data);
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { 
           status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
     
     let fixtures: FixtureMatch[];
     
+    // Generate fixtures based on format
     if (data.format === "round_robin") {
       console.log("Generating round-robin fixtures for", data.teams.length, "teams");
       fixtures = generateRoundRobin(data.teams, data.venue || "Main Ground");
@@ -140,24 +141,19 @@ serve(async (req: Request) => {
         JSON.stringify({ error: "Unsupported format" }),
         { 
           status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
     
     console.log("Generated", fixtures.length, "fixtures successfully");
     
+    // Return successful response with fixtures
     return new Response(
       JSON.stringify({ fixtures }),
       { 
         status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   } catch (error) {
@@ -166,10 +162,7 @@ serve(async (req: Request) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }

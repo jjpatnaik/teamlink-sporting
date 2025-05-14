@@ -112,7 +112,6 @@ const TournamentProfile = () => {
               addTeam={addTeam}
             />
             
-            {/* Replace FixtureGenerator with FixtureBot */}
             <FixtureBot 
               tournament={tournament}
               teams={teams}
