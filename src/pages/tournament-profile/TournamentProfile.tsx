@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MessageSquare } from 'lucide-react';
 import { useTournamentData } from './hooks/useTournamentData';
 import TournamentHeader from './components/TournamentHeader';
 import TournamentDetails from './components/TournamentDetails';
