@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +9,7 @@ import { toast } from "sonner";
 import { Tournament, Team } from '../hooks/useTournamentData';
 
 type Message = {
-  role: 'user' | 'bot';
+  role: 'user' | 'bot';  // This defines the union type explicitly
   content: string;
 };
 
@@ -77,7 +76,9 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
         initialAnalysis += `You have ${teams.length} teams registered. The tournament is scheduled from ${new Date(tournament.start_date).toLocaleDateString()} to ${new Date(tournament.end_date).toLocaleDateString()}. Would you like me to generate fixtures now or do you need to specify any additional details like match duration or rest days between matches?`;
       }
       
-      setMessages([...initialMessages, { role: 'bot', content: initialAnalysis }]);
+      // Fixed: Explicitly type the message object
+      const botMessage: Message = { role: 'bot', content: initialAnalysis };
+      setMessages([...initialMessages, botMessage]);
     };
     
     analyzeData();
@@ -86,8 +87,9 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
     
-    // Add user message
-    const newMessages = [...messages, { role: 'user', content: userInput }];
+    // Add user message - Fixed: Explicitly type the message object
+    const userMessage: Message = { role: 'user', content: userInput };
+    const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setUserInput('');
     setIsLoading(true);
@@ -101,17 +103,17 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
         const updatedInfo = processUserInput(userInput, additionalInfo);
         setAdditionalInfo(updatedInfo);
         
-        // Add bot response
+        // Add bot response - Fixed: Explicitly type the message object
         const botResponse = generateBotResponse(updatedInfo);
-        setMessages([...newMessages, { role: 'bot', content: botResponse }]);
+        const botMessage: Message = { role: 'bot', content: botResponse };
+        setMessages([...newMessages, botMessage]);
       }
     } catch (error) {
       console.error("Error in chat:", error);
       toast.error("Something went wrong with the chat processing");
-      setMessages([...newMessages, { 
-        role: 'bot', 
-        content: 'Sorry, I encountered an error. Please try again.' 
-      }]);
+      // Fixed: Explicitly type the message object
+      const errorMessage: Message = { role: 'bot', content: 'Sorry, I encountered an error. Please try again.' };
+      setMessages([...newMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -182,15 +184,19 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
       
       const fixtureResponse = "I've generated the fixtures based on your tournament details. You can view them in the table below. Please let me know if you'd like to make any adjustments or if you want to approve these fixtures.";
       
-      setMessages([...currentMessages, { role: 'bot', content: fixtureResponse }]);
+      // Fixed: Explicitly type the message object
+      const responseMessage: Message = { role: 'bot', content: fixtureResponse };
+      setMessages([...currentMessages, responseMessage]);
       setShowFixtures(true);
     } catch (error) {
       console.error("Error generating fixtures:", error);
       toast.error("Failed to generate fixtures");
-      setMessages([...currentMessages, { 
-        role: 'bot', 
+      // Fixed: Explicitly type the message object
+      const errorMessage: Message = { 
+        role: 'bot',
         content: 'Sorry, I encountered an error while generating fixtures. Please try again.' 
-      }]);
+      };
+      setMessages([...currentMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -234,6 +240,7 @@ const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorPr
   };
 
   const regenerateFixtures = async () => {
+    // Fixed: Explicitly type the message object
     const regenerateMessage: Message = { role: 'user', content: 'Please regenerate the fixtures with different timings.' };
     setMessages([...messages, regenerateMessage]);
     await generateFixtures([...messages, regenerateMessage]);
