@@ -10,11 +10,11 @@ export const useFeaturedTournaments = (limit = 3) => {
   
   const fetchFeaturedTournaments = async () => {
     try {
-      // Fetch the most recent tournaments that have a start date in the future
+      setLoading(true);
+      // Fetch tournaments with better error handling
       const { data, error } = await supabase
         .from('tournaments')
         .select('*')
-        .order('start_date', { ascending: true })
         .limit(limit);
 
       if (error) {
@@ -24,6 +24,7 @@ export const useFeaturedTournaments = (limit = 3) => {
           description: error.message,
           variant: "destructive"
         });
+        setTournaments([]);
         return [];
       }
 
@@ -40,7 +41,7 @@ export const useFeaturedTournaments = (limit = 3) => {
           endDate: tournament.end_date,
           start_date: tournament.start_date,
           end_date: tournament.end_date,
-          teams_allowed: tournament.teams_allowed,
+          teams_allowed: tournament.teams_allowed || 0,
           image: "https://via.placeholder.com/300x200?text=Tournament"
         }));
         
@@ -50,6 +51,7 @@ export const useFeaturedTournaments = (limit = 3) => {
       return [];
     } catch (error) {
       console.error("Error in fetchFeaturedTournaments:", error);
+      setTournaments([]);
       return [];
     } finally {
       setLoading(false);

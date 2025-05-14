@@ -1,145 +1,94 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import Header from "@/components/Header";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTournamentData } from './hooks/useTournamentData';
 import TournamentHeader from './components/TournamentHeader';
 import TournamentDetails from './components/TournamentDetails';
 import TournamentTeamsSection from './components/TournamentTeamsSection';
-import FixtureBot from './components/FixtureBot';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const TournamentProfile = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [isOrganizer, setIsOrganizer] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { tournament, teams, fetchData } = useTournamentData(id);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [fixturesApproved, setFixturesApproved] = useState(false);
-  const { tournament, teams, fetchData, addTeam } = useTournamentData(id);
+  const [isOrganizer, setIsOrganizer] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
+  // Fetch current user and tournament data
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchCurrentUser = async () => {
       try {
-        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || null;
+        setCurrentUserId(userId);
         
-        // Get current user
-        const { data: sessionData } = await supabase.auth.getSession();
-        const currentUserId = sessionData?.session?.user?.id;
-        setCurrentUserId(currentUserId || null);
-        
-        if (!id) {
-          toast.error("No tournament ID provided");
-          return;
-        }
-
-        await fetchData();
-        
-        // Check if current user is the organizer
-        if (currentUserId && tournament?.organizer_id === currentUserId) {
-          setIsOrganizer(true);
+        if (userId && tournament?.organizer_id) {
+          setIsOrganizer(userId === tournament.organizer_id);
         }
         
-        // Check if fixtures have been approved
-        // This would typically come from the database
-        // For now, we'll just set it to false
-        // In a real app, you would fetch this information from a fixtures table
-        setFixturesApproved(false);
-      } catch (error: any) {
-        console.error("Error fetching tournament data:", error.message);
-        toast.error("Failed to load tournament details");
-      } finally {
+        setLoading(false);
+      } catch (error) {
+        console.error("Error getting current user:", error);
         setLoading(false);
       }
     };
-    
-    if (id && id !== ":id") {
-      checkAuth();
-    } else {
-      console.error("Invalid tournament ID:", id);
-      toast.error("Invalid tournament ID");
+
+    fetchData().then(() => {
+      fetchCurrentUser();
+    }).catch(error => {
+      toast.error("Failed to load tournament data");
+      console.error("Error loading tournament:", error);
       setLoading(false);
-    }
-  }, [id, navigate, fetchData, tournament?.organizer_id]);
-  
+    });
+  }, [id, tournament?.organizer_id, fetchData]);
+
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sport-purple mx-auto mb-4"></div>
-            <p className="text-sport-gray">Loading tournament details...</p>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <Skeleton className="h-64 w-full mb-6" />
+        <Skeleton className="h-10 w-1/2 mb-4" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
         </div>
-      </>
+        <Skeleton className="h-96" />
+      </div>
     );
   }
 
   if (!tournament) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800">Tournament not found</h2>
-            <p className="mt-2 text-gray-600">The tournament you're looking for doesn't exist or has been removed.</p>
-            <button 
-              className="mt-4 bg-sport-purple hover:bg-sport-purple/90 text-white px-4 py-2 rounded"
-              onClick={() => navigate('/search?type=Tournament')}
-            >
-              Browse Tournaments
-            </button>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center p-12 bg-gray-50 rounded-xl">
+          <h2 className="text-2xl font-bold mb-2">Tournament Not Found</h2>
+          <p className="text-gray-600">The tournament you're looking for doesn't exist or has been removed.</p>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-          <TournamentHeader tournament={tournament} />
-          
-          <div className="p-6">
-            <TournamentDetails 
-              tournament={tournament} 
-              teams={teams} 
-              isOrganizer={isOrganizer} 
-              currentUserId={currentUserId}
-            />
-            
-            <TournamentTeamsSection
-              tournament={tournament}
-              teams={teams}
-              isOrganizer={isOrganizer}
-              currentUserId={currentUserId}
-              addTeam={addTeam}
-              fixturesApproved={fixturesApproved}
-            />
-            
-            {/* Only show FixtureBot if user is logged in and is the organizer */}
-            {currentUserId && isOrganizer && (
-              <FixtureBot 
-                tournament={tournament}
-                teams={teams}
-                isOrganizer={isOrganizer}
-              />
-            )}
-            
-            {/* Remove login prompt for general users */}
-            {/* Previous login prompt code removed */}
-            
-            {/* Remove message for non-organizer users */}
-            {/* Previous non-organizer message code removed */}
-          </div>
-        </div>
-      </main>
-    </>
+    <div className="container mx-auto px-4 py-8">
+      <TournamentHeader 
+        tournament={tournament} 
+        teamsCount={teams.length}
+      />
+      
+      <TournamentDetails 
+        tournament={tournament} 
+        teams={teams}
+        isOrganizer={isOrganizer}
+        currentUserId={currentUserId}
+      />
+      
+      <TournamentTeamsSection 
+        teams={teams} 
+        isOrganizer={isOrganizer}
+        isTournamentFull={teams.length >= tournament.teams_allowed}
+      />
+    </div>
   );
 };
 
