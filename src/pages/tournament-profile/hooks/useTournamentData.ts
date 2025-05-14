@@ -15,6 +15,7 @@ export interface Tournament {
   start_date: string;
   end_date: string;
   organizer_id: string;
+  registration_deadline?: string;
 }
 
 export interface Team {

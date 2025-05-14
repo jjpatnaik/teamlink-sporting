@@ -17,6 +17,7 @@ const TournamentProfile = () => {
   const [isOrganizer, setIsOrganizer] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [fixturesApproved, setFixturesApproved] = useState(false);
   const { tournament, teams, fetchData, addTeam } = useTournamentData(id);
 
   useEffect(() => {
@@ -40,6 +41,12 @@ const TournamentProfile = () => {
         if (currentUserId && tournament?.organizer_id === currentUserId) {
           setIsOrganizer(true);
         }
+        
+        // Check if fixtures have been approved
+        // This would typically come from the database
+        // For now, we'll just set it to false
+        // In a real app, you would fetch this information from a fixtures table
+        setFixturesApproved(false);
       } catch (error: any) {
         console.error("Error fetching tournament data:", error.message);
         toast.error("Failed to load tournament details");
@@ -110,7 +117,9 @@ const TournamentProfile = () => {
               tournament={tournament}
               teams={teams}
               isOrganizer={isOrganizer}
+              currentUserId={currentUserId}
               addTeam={addTeam}
+              fixturesApproved={fixturesApproved}
             />
             
             {/* Only show FixtureBot if user is logged in and is the organizer */}
