@@ -7,7 +7,6 @@ import { useUserLocation } from '@/hooks/useUserLocation';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
 import SearchFilters from './SearchFilters';
 import SearchResults from './SearchResults';
-import { toast } from "sonner";
 
 type PlayerProfile = {
   id: string;
@@ -44,6 +43,7 @@ const SearchContainer: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const typeFromURL = searchParams.get('type');
   
+  // Default to Tournament if no type specified
   const [searchType, setSearchType] = useState<string>(typeFromURL || 'Tournament');
   const [selectedSport, setSelectedSport] = useState<string>('any_sport');
   const [selectedArea, setSelectedArea] = useState<string>('any_area');
@@ -65,9 +65,11 @@ const SearchContainer: React.FC = () => {
 
   // Update URL when search type changes from the UI
   const handleSearchTypeChange = (newType: string) => {
-    setSearchType(newType);
-    // Update URL to reflect the new search type
-    navigate(`/search?type=${newType}`, { replace: true });
+    if (newType && newType !== searchType) {
+      setSearchType(newType);
+      // Update URL to reflect the new search type
+      navigate(`/search?type=${newType}`, { replace: true });
+    }
   };
 
   // Define available sports and areas
@@ -120,7 +122,7 @@ const SearchContainer: React.FC = () => {
     }
   ];
   
-  // Get the current data based on searchType
+  // Get the current data based on searchType - handle error cases
   const getCurrentData = () => {
     try {
       switch (searchType) {

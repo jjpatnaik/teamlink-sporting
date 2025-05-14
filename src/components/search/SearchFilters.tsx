@@ -50,7 +50,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   nearMeOnly,
   setNearMeOnly
 }) => {
-  // Reset filters and show toast when search type changes
+  // Only reset filters when search type changes
   useEffect(() => {
     // Clear filters when search type changes
     setSelectedSport("any_sport");
@@ -58,14 +58,15 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     setNameSearch("");
     
     // Show toast notification to indicate search type change
-    toast.info(`Now searching for ${searchType.toLowerCase()}${searchType !== 'Sponsorship' ? 's' : ''}`);
+    const suffix = searchType !== 'Sponsorship' ? 's' : '';
+    toast.success(`Now searching for ${searchType.toLowerCase()}${suffix}`);
     
     console.log(`Search type changed to: ${searchType}`);
   }, [searchType, setSelectedSport, setSelectedArea, setNameSearch]);
   
-  // Handle search type change
+  // Handle search type change - only trigger if actually different
   const handleSearchTypeChange = (value: string) => {
-    if (value !== searchType) {
+    if (value && value !== searchType) {
       setSearchType(value);
     }
   };
