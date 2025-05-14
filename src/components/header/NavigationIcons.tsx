@@ -19,8 +19,14 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
 
   const navigateToSearch = (type: string) => {
     // Reset any existing search parameters and set the new type
-    navigate(`/search?type=${type}`);
-    console.log(`Navigating to search with type: ${type}`);
+    if (type) {
+      navigate(`/search?type=${type}`);
+      console.log(`Navigating to search with type: ${type}`);
+    } else {
+      // If no type specified, just go to search page without parameters
+      navigate('/search');
+      console.log('Navigating to search with no type specified');
+    }
   };
 
   return (
