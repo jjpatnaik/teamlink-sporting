@@ -8,7 +8,7 @@ import SponsorshipCard from './SponsorshipCard';
 
 interface SearchResultsProps {
   searchType: string;
-  filteredResults: any[];
+  filteredResults: any[]; // Using any[] since it could be different types based on searchType
   selectedSport: string;
   selectedArea: string;
   handleItemClick: (id: number | string) => void;

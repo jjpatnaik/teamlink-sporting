@@ -35,6 +35,9 @@ type SponsorProfile = {
   image: string;
 };
 
+// Define a union type for all possible result types
+type SearchResult = PlayerProfile | TeamProfile | Tournament | SponsorProfile;
+
 const SearchContainer: React.FC = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -129,9 +132,12 @@ const SearchContainer: React.FC = () => {
     }
   };
   
-  // Apply filters with a more generic type
+  // Apply filters with the correct generic type based on the search type
+  const currentData = getCurrentData();
+  
+  // Use the generic type parameter to tell TypeScript what type we're using
   const filteredResults = useSearchFilters(
-    getCurrentData(),
+    currentData,
     searchType,
     selectedSport,
     selectedArea,
