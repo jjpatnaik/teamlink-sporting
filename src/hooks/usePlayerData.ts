@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabaseUrl, supabaseAnonKey } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast";
 
@@ -101,11 +102,11 @@ export const usePlayerData = (fetchAll: boolean = false) => {
       
       // Test network connectivity with raw fetch
       try {
-        const testResponse = await fetch(`${supabase.supabaseUrl}/rest/v1/player_details?select=count`, {
+        const testResponse = await fetch(`${supabaseUrl}/rest/v1/player_details?select=count`, {
           method: 'HEAD',
           headers: {
-            'apikey': supabase.supabaseKey,
-            'Authorization': `Bearer ${supabase.supabaseKey}`
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`
           }
         });
         console.log("Player API network test:", testResponse.status, testResponse.statusText);

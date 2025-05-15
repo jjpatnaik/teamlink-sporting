@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase, checkSupabaseClientStatus, testSupabaseManualFetch } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseClientStatus, testSupabaseManualFetch, supabaseUrl, supabaseAnonKey } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -112,7 +112,7 @@ const SupabaseDebugPanel = () => {
             </div>
             <div>
               <h3 className="text-sm font-medium mb-1">Supabase URL</h3>
-              <p className="text-sm text-gray-500 truncate">{supabase.supabaseUrl}</p>
+              <p className="text-sm text-gray-500 truncate">{supabaseUrl}</p>
             </div>
           </div>
           

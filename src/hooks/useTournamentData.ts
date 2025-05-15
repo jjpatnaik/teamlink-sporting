@@ -1,247 +1,141 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
 
-export type Tournament = {
-  id: string | number;
+import { useState, useCallback } from 'react';
+import { supabase, supabaseUrl, supabaseAnonKey } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+export interface Tournament {
+  id: string;
   name: string;
+  description: string;
   sport: string;
-  area?: string;
-  location?: string;
-  startDate?: string;
-  endDate?: string;
-  start_date?: string;
-  end_date?: string;
   teams_allowed: number;
-  image?: string;
-};
+  format: string;
+  rules: string;
+  location: string;
+  start_date: string;
+  end_date: string;
+  organizer_id: string;
+  registration_deadline?: string;
+}
 
-// Enhanced retry function with exponential backoff and more detailed logging
-const fetchWithRetry = async (fetchFunction: () => Promise<any>, retries = 3, initialDelay = 1000) => {
-  let lastError;
-  let delay = initialDelay;
-  
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      console.log(`Tournament fetch attempt ${attempt + 1} starting`);
-      const result = await fetchFunction();
-      console.log(`Tournament fetch attempt ${attempt + 1} succeeded`);
-      return result;
-    } catch (error) {
-      console.error(`Tournament fetch attempt ${attempt + 1} failed:`, error);
-      // Log more details about the error
-      if (error instanceof Error) {
-        console.error(`Error name: ${error.name}, message: ${error.message}, stack: ${error.stack}`);
-      } else {
-        console.error(`Non-Error object thrown:`, error);
-      }
-      lastError = error;
-      
-      if (attempt < retries - 1) {
-        console.log(`Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        // Increase delay for next attempt with exponential backoff
-        delay = delay * 1.5;
-      }
-    }
-  }
-  
-  throw lastError;
-};
+export interface Team {
+  id: string;
+  team_name: string;
+  contact_email: string;
+  status: string;
+  player_names?: string[];
+}
 
-// Hook for fetching all tournaments
-export const useTournamentData = () => {
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [connectionError, setConnectionError] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
-  
-  const fetchTournaments = useCallback(async () => {
-    try {
-      setLoading(true);
-      setConnectionError(false);
-      setError(null);
-      
-      // Ensure we have a session before fetching
-      const { data: sessionData } = await supabase.auth.getSession();
-      console.log("Current session status before fetch:", sessionData?.session ? "Active" : "No session");
-      
-      const fetchData = async () => {
-        console.log("Attempting to fetch tournaments...");
-        console.log("Supabase client state:", !!supabase);
-        
-        // Perform a raw fetch to see if there are any CORS or network issues
-        try {
-          const testResponse = await fetch(`${supabase.supabaseUrl}/rest/v1/tournaments?select=count`, {
-            method: 'HEAD',
-            headers: {
-              'apikey': supabase.supabaseKey,
-              'Authorization': `Bearer ${supabase.supabaseKey}`
-            }
-          });
-          console.log("Network test status:", testResponse.status, testResponse.statusText);
-        } catch (networkError) {
-          console.error("Raw fetch network error:", networkError);
-        }
-        
-        const { data, error } = await supabase
-          .from('tournaments')
-          .select('*');
-
-        if (error) {
-          console.error("Error fetching tournaments:", error);
-          console.error("Error details:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
-          throw error;
-        }
-
-        return data;
-      };
-      
-      // Use retry logic for fetching tournaments
-      const data = await fetchWithRetry(fetchData);
-
-      if (data) {
-        console.log(`Fetched ${data.length} tournaments`);
-        // Transform the data to match the expected format
-        const transformedData = data.map(tournament => ({
-          id: tournament.id,
-          name: tournament.name || "Unknown Tournament",
-          sport: tournament.sport || "Unknown Sport",
-          area: tournament.location || "Unknown Location",
-          location: tournament.location,
-          start_date: tournament.start_date,
-          end_date: tournament.end_date,
-          teams_allowed: tournament.teams_allowed,
-          image: "https://via.placeholder.com/300x200?text=Tournament"
-        }));
-        
-        setTournaments(transformedData);
-        return transformedData;
-      }
-      
-      console.log("No tournaments found");
-      return [];
-    } catch (error) {
-      console.error("Error in fetchTournaments:", error);
-      
-      // Enhanced error logging
-      if (error instanceof Error) {
-        console.error("Error type:", error.constructor.name);
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-      } else {
-        console.error("Non-Error object thrown:", JSON.stringify(error, null, 2));
-      }
-      
-      // Check for network issues specifically
-      if (error instanceof TypeError && error.message.includes('failed to fetch')) {
-        console.error("Network error detected - likely CORS or connectivity issue");
-      }
-      
-      // Check for auth issues
-      if (typeof error === 'object' && error !== null && 'code' in error) {
-        const errorCode = (error as any).code;
-        if (errorCode === 'PGRST301' || errorCode === 'JWT expired') {
-          console.error("Authentication error detected. Session may be invalid.");
-          // Could trigger a session refresh here
-        }
-      }
-      
-      setConnectionError(true);
-      setError(error instanceof Error ? error : new Error('Unknown error fetching tournaments'));
-      toast({
-        title: "Error fetching tournaments",
-        description: "Please try again later",
-        variant: "destructive"
-      });
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTournaments();
-  }, [fetchTournaments]);
-
-  return { tournaments, loading, connectionError, error, fetchTournaments };
-};
-
-// Hook for fetching a single tournament by ID
-export const useTournamentFetch = (tournamentId?: string) => {
+export const useTournamentData = (tournamentId: string | undefined) => {
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | string | null>(null);
-
-  useEffect(() => {
-    const fetchSingleTournament = async () => {
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true); // Added loading state
+  
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true); // Set loading to true when fetching
+      
       if (!tournamentId) {
+        toast.error("No tournament ID provided");
         setLoading(false);
         return;
       }
 
-      try {
-        setLoading(true);
-        setError(null);
+      // Fetch tournament details
+      const { data: tournamentData, error: tournamentError } = await supabase
+        .from('tournaments')
+        .select('*')
+        .eq('id', tournamentId)
+        .single();
         
-        console.log(`Fetching tournament with ID: ${tournamentId}`);
-        console.log("Supabase client state:", !!supabase);
-        
-        const { data, error } = await supabase
-          .from('tournaments')
-          .select('*')
-          .eq('id', tournamentId)
-          .maybeSingle();
-        
-        if (error) {
-          console.error("Error fetching tournament:", error);
-          console.error("Error details:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
-          throw error;
-        }
-        
-        console.log("Tournament data received:", data);
-        
-        if (data) {
-          setTournament({
-            id: data.id,
-            name: data.name || "Unknown Tournament",
-            sport: data.sport || "Unknown Sport",
-            area: data.location || "Unknown Location",
-            location: data.location,
-            start_date: data.start_date,
-            end_date: data.end_date,
-            teams_allowed: data.teams_allowed,
-            image: "https://via.placeholder.com/300x200?text=Tournament"
-          });
-        } else {
-          console.log(`No tournament found with ID: ${tournamentId}`);
-          setTournament(null);
-        }
-      } catch (err) {
-        console.error("Error in useTournamentFetch:", err);
-        setError(err instanceof Error ? err : `Failed to fetch tournament (ID: ${tournamentId})`);
-        toast({
-          title: "Error fetching tournament details",
-          description: "Please try again later",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
+      if (tournamentError) {
+        console.error("Error fetching tournament:", tournamentError);
+        throw tournamentError;
       }
-    };
-
-    fetchSingleTournament();
+      
+      if (!tournamentData) {
+        console.error("Tournament not found with ID:", tournamentId);
+        setLoading(false);
+        return;
+      }
+      
+      setTournament(tournamentData);
+      
+      // Test network connectivity with raw fetch to see if there are any CORS or network issues
+      try {
+        const testResponse = await fetch(`${supabaseUrl}/rest/v1/tournaments?select=count`, {
+          method: 'HEAD',
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`
+          }
+        });
+        console.log("Network test status:", testResponse.status, testResponse.statusText);
+      } catch (networkError) {
+        console.error("Raw fetch network error:", networkError);
+      }
+      
+      // Fetch teams for this tournament
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('tournament_teams')
+        .select('*')
+        .eq('tournament_id', tournamentId);
+        
+      if (teamsError) {
+        console.error("Error fetching teams:", teamsError);
+        throw teamsError;
+      }
+      
+      setTeams(teamsData || []);
+    } catch (error: any) {
+      console.error("Error in fetchData:", error.message);
+      toast.error("Failed to load tournament data");
+    } finally {
+      setLoading(false); // Set loading to false when done
+    }
   }, [tournamentId]);
+  
+  const addTeam = async (teamName: string, contactEmail: string | null = null) => {
+    try {
+      if (!tournamentId || !teamName.trim()) {
+        toast.error("Missing required information");
+        return null;
+      }
+      
+      // Check if user is logged in
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        toast.error("You must be logged in to add teams");
+        return null;
+      }
+      
+      const { data, error } = await supabase
+        .from('tournament_teams')
+        .insert({
+          tournament_id: tournamentId,
+          team_name: teamName.trim(),
+          contact_email: contactEmail?.trim() || null,
+          status: 'registered'
+        })
+        .select();
+      
+      if (error) {
+        console.error("Error adding team:", error);
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        setTeams(prevTeams => [...prevTeams, ...data]);
+        return data[0];
+      }
+      
+      return null;
+    } catch (error: any) {
+      console.error("Error adding team:", error.message);
+      toast.error("Failed to add team: " + error.message);
+      return null;
+    }
+  };
 
-  return { tournament, loading, error };
+  return { tournament, teams, loading, fetchData, addTeam };
 };

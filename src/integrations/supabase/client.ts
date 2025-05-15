@@ -15,6 +15,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
+// Export the URL and key for use in other files
+export { supabaseUrl, supabaseAnonKey };
+
 // Debug function with improved error logging
 export const checkSupabaseClientStatus = () => {
   console.log("Supabase Client Status Check:");
