@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
@@ -21,61 +21,111 @@ import SearchPage from "./pages/SearchPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
 
 const App = () => {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 2,
+        staleTime: 30000, // 30 seconds
+        refetchOnWindowFocus: false, // Disable auto refetch on window focus for debugging
+      },
+    },
+  });
+  
   const [session, setSession] = useState<any>(null);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [authInitialized, setAuthInitialized] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check if user is logged in
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      
-      // If user is logged in, check if they have a profile
-      if (data.session?.user) {
-        const { data: profileData, error } = await supabase
-          .from('player_details')
-          .select('id')
-          .eq('id', data.session.user.id)
-          .maybeSingle();
-          
-        setHasProfile(!!profileData);
-      } else {
-        setHasProfile(null);
-      }
-      
-      setLoading(false);
-    };
+    console.log("App initialization started");
     
-    checkSession();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
+    // First set up auth state listener to catch any changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log("Auth state change:", event);
+      setSession(newSession);
       
-      if (session?.user) {
-        const { data: profileData } = await supabase
-          .from('player_details')
-          .select('id')
-          .eq('id', session.user.id)
-          .maybeSingle();
-          
-        setHasProfile(!!profileData);
+      if (newSession?.user) {
+        try {
+          const { data: profileData } = await supabase
+            .from('player_details')
+            .select('id')
+            .eq('id', newSession.user.id)
+            .maybeSingle();
+            
+          setHasProfile(!!profileData);
+          console.log("Profile check after auth change:", !!profileData);
+        } catch (error) {
+          console.error("Error checking profile after auth change:", error);
+          setHasProfile(null);
+        }
       } else {
         setHasProfile(null);
       }
     });
+    
+    // Then check if user is logged in
+    const checkSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error getting session:", error);
+        }
+        
+        console.log("Initial session check:", data?.session ? "Active session" : "No session");
+        setSession(data.session);
+        
+        // If user is logged in, check if they have a profile
+        if (data.session?.user) {
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('player_details')
+              .select('id')
+              .eq('id', data.session.user.id)
+              .maybeSingle();
+              
+            if (profileError) {
+              console.error("Error checking user profile:", profileError);
+            }
+              
+            setHasProfile(!!profileData);
+            console.log("Initial profile check:", !!profileData);
+          } catch (profileCheckError) {
+            console.error("Exception checking profile:", profileCheckError);
+            setHasProfile(null);
+          }
+        } else {
+          setHasProfile(null);
+        }
+        
+      } catch (e) {
+        console.error("Exception during session check:", e);
+      } finally {
+        setLoading(false);
+        setAuthInitialized(true);
+      }
+    };
+    
+    checkSession();
     
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
+  // Show loading state while checking auth
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen w-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="text-lg">Initializing application...</div>
+        </div>
+      </div>
+    );
   }
 
+  // Once auth is initialized, render the app
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -17,7 +16,7 @@ export type Tournament = {
   image?: string;
 };
 
-// Enhanced retry function with exponential backoff
+// Enhanced retry function with exponential backoff and more detailed logging
 const fetchWithRetry = async (fetchFunction: () => Promise<any>, retries = 3, initialDelay = 1000) => {
   let lastError;
   let delay = initialDelay;
@@ -33,6 +32,8 @@ const fetchWithRetry = async (fetchFunction: () => Promise<any>, retries = 3, in
       // Log more details about the error
       if (error instanceof Error) {
         console.error(`Error name: ${error.name}, message: ${error.message}, stack: ${error.stack}`);
+      } else {
+        console.error(`Non-Error object thrown:`, error);
       }
       lastError = error;
       
@@ -61,9 +62,27 @@ export const useTournamentData = () => {
       setConnectionError(false);
       setError(null);
       
+      // Ensure we have a session before fetching
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Current session status before fetch:", sessionData?.session ? "Active" : "No session");
+      
       const fetchData = async () => {
         console.log("Attempting to fetch tournaments...");
         console.log("Supabase client state:", !!supabase);
+        
+        // Perform a raw fetch to see if there are any CORS or network issues
+        try {
+          const testResponse = await fetch(`${supabase.supabaseUrl}/rest/v1/tournaments?select=count`, {
+            method: 'HEAD',
+            headers: {
+              'apikey': supabase.supabaseKey,
+              'Authorization': `Bearer ${supabase.supabaseKey}`
+            }
+          });
+          console.log("Network test status:", testResponse.status, testResponse.statusText);
+        } catch (networkError) {
+          console.error("Raw fetch network error:", networkError);
+        }
         
         const { data, error } = await supabase
           .from('tournaments')
@@ -71,6 +90,12 @@ export const useTournamentData = () => {
 
         if (error) {
           console.error("Error fetching tournaments:", error);
+          console.error("Error details:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
           throw error;
         }
 
@@ -103,6 +128,30 @@ export const useTournamentData = () => {
       return [];
     } catch (error) {
       console.error("Error in fetchTournaments:", error);
+      
+      // Enhanced error logging
+      if (error instanceof Error) {
+        console.error("Error type:", error.constructor.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      } else {
+        console.error("Non-Error object thrown:", JSON.stringify(error, null, 2));
+      }
+      
+      // Check for network issues specifically
+      if (error instanceof TypeError && error.message.includes('failed to fetch')) {
+        console.error("Network error detected - likely CORS or connectivity issue");
+      }
+      
+      // Check for auth issues
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        const errorCode = (error as any).code;
+        if (errorCode === 'PGRST301' || errorCode === 'JWT expired') {
+          console.error("Authentication error detected. Session may be invalid.");
+          // Could trigger a session refresh here
+        }
+      }
+      
       setConnectionError(true);
       setError(error instanceof Error ? error : new Error('Unknown error fetching tournaments'));
       toast({

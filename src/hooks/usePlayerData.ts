@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
@@ -55,7 +54,15 @@ const fetchWithRetry = async (fetchFunction: () => Promise<any>, retries = 3, de
       // Log more details about the error
       if (error instanceof Error) {
         console.error(`Error name: ${error.name}, message: ${error.message}, stack: ${error.stack}`);
+        
+        // Network error detection
+        if (error instanceof TypeError && error.message.includes('failed to fetch')) {
+          console.error("Network error detected - Check CORS or connectivity");
+        }
+      } else {
+        console.error(`Non-Error object thrown:`, JSON.stringify(error, null, 2));
       }
+      
       lastError = error;
       
       // If we still have retries left, wait before trying again
@@ -84,8 +91,27 @@ export const usePlayerData = (fetchAll: boolean = false) => {
       setLoading(true);
       setConnectionError(false);
       setError(null);
+      
       console.log("Fetching all player profiles...");
       console.log("Supabase client state:", !!supabase);
+      
+      // Ensure we have a session before fetching
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Current session status before player fetch:", sessionData?.session ? "Active" : "No session");
+      
+      // Test network connectivity with raw fetch
+      try {
+        const testResponse = await fetch(`${supabase.supabaseUrl}/rest/v1/player_details?select=count`, {
+          method: 'HEAD',
+          headers: {
+            'apikey': supabase.supabaseKey,
+            'Authorization': `Bearer ${supabase.supabaseKey}`
+          }
+        });
+        console.log("Player API network test:", testResponse.status, testResponse.statusText);
+      } catch (networkError) {
+        console.error("Player API raw fetch error:", networkError);
+      }
       
       const fetchProfiles = async () => {
         const { data, error } = await supabase
@@ -130,6 +156,16 @@ export const usePlayerData = (fetchAll: boolean = false) => {
       return [];
     } catch (error) {
       console.error("Error in fetchPlayerProfiles:", error);
+      
+      // Enhanced error logging
+      if (error instanceof Error) {
+        console.error("Error type:", error.constructor.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      } else {
+        console.error("Non-Error object thrown:", JSON.stringify(error, null, 2));
+      }
+      
       setConnectionError(true);
       setError(error instanceof Error ? error : new Error('Unknown error fetching player profiles'));
       // Show a non-blocking toast for the user
