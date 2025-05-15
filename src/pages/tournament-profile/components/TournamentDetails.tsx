@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Users, Trophy, MapPin, Calendar, Clipboard } from 'lucide-react';
+import { Users, Trophy, MapPin, Calendar, Clipboard, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Tournament, Team } from '../hooks/useTournamentData';
 import RegistrationDialog from './RegistrationDialog';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface TournamentDetailsProps {
   tournament: Tournament;
@@ -21,6 +23,17 @@ const TournamentDetails: React.FC<TournamentDetailsProps> = ({
 }) => {
   const navigate = useNavigate();
   const isTournamentFull = teams.length >= tournament.teams_allowed;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+  }, []);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -61,12 +74,25 @@ const TournamentDetails: React.FC<TournamentDetailsProps> = ({
           )}
         </div>
         
-        {!isOrganizer && currentUserId && (
+        {!isOrganizer && (
           <div className="mt-6">
-            <RegistrationDialog 
-              tournament={tournament} 
-              isTournamentFull={isTournamentFull}
-            />
+            {isAuthenticated ? (
+              <RegistrationDialog 
+                tournament={tournament} 
+                isTournamentFull={isTournamentFull}
+              />
+            ) : (
+              <Button 
+                className="bg-sport-purple hover:bg-sport-purple/90"
+                onClick={() => {
+                  toast.info("You need to log in to register for tournaments");
+                  navigate("/login");
+                }}
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Login to Register
+              </Button>
+            )}
           </div>
         )}
       </div>

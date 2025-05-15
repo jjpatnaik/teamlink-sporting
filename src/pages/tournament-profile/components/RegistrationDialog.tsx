@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog, DialogContent, DialogDescription,
   DialogHeader, DialogTitle, DialogTrigger, DialogFooter
@@ -32,8 +33,10 @@ interface RegistrationDialogProps {
 }
 
 const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ tournament, isTournamentFull }) => {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRegistrationLoading, setIsRegistrationLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const form = useForm<RegistrationValues>({
     resolver: zodResolver(registrationSchema),
@@ -43,6 +46,16 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ tournament, isT
       playerNames: ''
     }
   });
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+  }, []);
 
   const handleRegistration = async (values: RegistrationValues) => {
     if (!tournament) return;
@@ -55,9 +68,19 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ tournament, isT
     }
     
     // Check if user is logged in
+    if (!isAuthenticated) {
+      toast.error("You must be logged in to register a team");
+      setIsDialogOpen(false);
+      navigate("/login");
+      return;
+    }
+    
+    // Check if user is logged in
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session) {
       toast.error("You must be logged in to register a team");
+      setIsDialogOpen(false);
+      navigate("/login");
       return;
     }
     
@@ -109,6 +132,14 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ tournament, isT
         <Button 
           className="bg-sport-purple hover:bg-sport-purple/90"
           disabled={isTournamentFull}
+          onClick={(e) => {
+            // If not authenticated, show login prompt
+            if (!isAuthenticated) {
+              e.preventDefault(); // Prevent dialog from opening
+              toast.error("You must be logged in to register a team");
+              navigate("/login");
+            }
+          }}
         >
           {isTournamentFull ? 'Tournament Full' : 'Register Your Team'}
         </Button>
