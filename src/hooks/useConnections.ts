@@ -97,20 +97,23 @@ export const useConnections = () => {
 
         if (pendingError) throw pendingError;
 
-        // Manually validate and cast the data
+        // Fix: Map the data to ensure user property is properly formatted
         const typedSentConnections = sentConnections?.map(conn => ({
           ...conn,
-          status: conn.status as 'pending' | 'accepted' | 'rejected'
+          status: conn.status as 'pending' | 'accepted' | 'rejected',
+          user: conn.user as ConnectionType['user'] // Ensure user is treated as a single object, not array
         })) || [];
         
         const typedReceivedConnections = receivedConnections?.map(conn => ({
           ...conn,
-          status: conn.status as 'pending' | 'accepted' | 'rejected'
+          status: conn.status as 'pending' | 'accepted' | 'rejected',
+          user: conn.user as ConnectionType['user'] // Ensure user is treated as a single object, not array
         })) || [];
         
         const typedPendingRequests = pendingReqs?.map(req => ({
           ...req,
-          status: req.status as 'pending' | 'accepted' | 'rejected'
+          status: req.status as 'pending' | 'accepted' | 'rejected',
+          user: req.user as ConnectionType['user'] // Ensure user is treated as a single object, not array
         })) || [];
 
         // Combine accepted connections

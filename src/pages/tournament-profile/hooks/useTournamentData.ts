@@ -29,11 +29,15 @@ export interface Team {
 export const useTournamentData = (tournamentId: string | undefined) => {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true); // Added loading state
   
   const fetchData = useCallback(async () => {
     try {
+      setLoading(true); // Set loading to true when fetching
+      
       if (!tournamentId) {
         toast.error("No tournament ID provided");
+        setLoading(false);
         return;
       }
 
@@ -51,6 +55,7 @@ export const useTournamentData = (tournamentId: string | undefined) => {
       
       if (!tournamentData) {
         console.error("Tournament not found with ID:", tournamentId);
+        setLoading(false);
         return;
       }
       
@@ -71,6 +76,8 @@ export const useTournamentData = (tournamentId: string | undefined) => {
     } catch (error: any) {
       console.error("Error in fetchData:", error.message);
       toast.error("Failed to load tournament data");
+    } finally {
+      setLoading(false); // Set loading to false when done
     }
   }, [tournamentId]);
   
@@ -116,5 +123,5 @@ export const useTournamentData = (tournamentId: string | undefined) => {
     }
   };
 
-  return { tournament, teams, fetchData, addTeam };
+  return { tournament, teams, loading, fetchData, addTeam };
 };
