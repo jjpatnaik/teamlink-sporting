@@ -1,11 +1,24 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { Tournament } from "@/hooks/useTournamentData";
+import { Tournament } from "@/integrations/supabase/types";
 import { toast } from "@/components/ui/use-toast";
 
+// Extended Tournament type with image field for featured tournaments
+export interface FeaturedTournament extends Partial<Tournament> {
+  id: string;
+  name: string;
+  sport: string;
+  location?: string;
+  area?: string;
+  start_date?: string;
+  end_date?: string;
+  teams_allowed: number;
+  image: string;
+}
+
 export const useFeaturedTournaments = (limit = 3) => {
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [tournaments, setTournaments] = useState<FeaturedTournament[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   
   const fetchFeaturedTournaments = async () => {
@@ -31,7 +44,7 @@ export const useFeaturedTournaments = (limit = 3) => {
       if (data) {
         console.log("Fetched featured tournaments:", data.length);
         // Transform the data to match the expected format
-        const transformedData = data.map(tournament => ({
+        const transformedData: FeaturedTournament[] = data.map(tournament => ({
           id: tournament.id,
           name: tournament.name || "Unknown Tournament",
           sport: tournament.sport || "Unknown Sport",

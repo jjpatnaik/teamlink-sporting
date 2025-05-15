@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { usePlayerData } from '@/hooks/usePlayerData';
-import { useTournamentData, Tournament } from '@/hooks/useTournamentData';
+import { useAllTournamentsData } from '@/hooks/useAllTournamentsData';
+import { Tournament } from '@/hooks/useTournamentData';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { toast } from "@/components/ui/use-toast";
@@ -76,7 +77,7 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
   
   // Fetch data sources with more robust error handling
   const { playerProfiles, loading: playersLoading, fetchPlayerProfiles } = usePlayerData(true);
-  const { tournaments, loading: tournamentsLoading, fetchTournaments } = useTournamentData();
+  const { tournaments, loading: tournamentsLoading, fetchTournaments } = useAllTournamentsData();
 
   // Mock data for teams and sponsors
   const teams: TeamProfile[] = [

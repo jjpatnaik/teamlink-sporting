@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useFeaturedTournaments } from '@/hooks/useFeaturedTournaments';
+import { useFeaturedTournaments, FeaturedTournament } from '@/hooks/useFeaturedTournaments';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Users } from 'lucide-react';
@@ -40,7 +40,7 @@ const FeaturedTournaments = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {tournaments.map((tournament) => (
+            {tournaments.map((tournament: FeaturedTournament) => (
               <Card key={tournament.id} className="hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                 <div className="h-48 overflow-hidden bg-sport-soft-blue">
                   <img
