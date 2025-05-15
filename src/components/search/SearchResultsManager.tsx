@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchFilters from './SearchFilters';
 import SearchResults from './SearchResults';
 import { useSearchData } from '@/hooks/useSearchData';
 import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface SearchResultsManagerProps {
   searchType: string;
@@ -32,13 +34,18 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
   setNearMeOnly,
 }) => {
   const navigate = useNavigate();
-  const { filteredResults, isLoading, sports, areas } = useSearchData({
+  const { filteredResults, isLoading, sports, areas, refreshData } = useSearchData({
     searchType,
     selectedSport,
     selectedArea,
     nameSearch,
     nearMeOnly
   });
+
+  // Add use effect to refresh data when search type changes
+  useEffect(() => {
+    refreshData();
+  }, [searchType, refreshData]);
 
   const handleItemClick = (id: number | string) => {
     try {
@@ -76,6 +83,14 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
     }
   };
 
+  const handleRefresh = () => {
+    refreshData();
+    toast({
+      title: "Refreshing results",
+      description: `Updating ${searchType.toLowerCase()} data`
+    });
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div className="lg:col-span-3 w-full">
@@ -96,6 +111,20 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
       </div>
       
       <div className="lg:col-span-9">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">{searchType} Results</h2>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            className="flex items-center gap-1"
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
+        
         <SearchResults 
           searchType={searchType}
           filteredResults={filteredResults}

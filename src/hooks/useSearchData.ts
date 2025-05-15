@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePlayerData } from '@/hooks/usePlayerData';
 import { useTournamentData, Tournament } from '@/hooks/useTournamentData';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
 import { useUserLocation } from '@/hooks/useUserLocation';
+import { toast } from "@/components/ui/use-toast";
 
 // Define type interfaces for each search result type
 export type PlayerProfile = {
@@ -50,8 +51,8 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
   const { userCity } = useUserLocation();
   
   // Fetch data sources - pass true to fetchAll to get all player profiles
-  const { playerProfiles, loading: playersLoading } = usePlayerData(true);
-  const { tournaments, loading: tournamentsLoading } = useTournamentData();
+  const { playerProfiles, loading: playersLoading, fetchPlayerProfiles } = usePlayerData(true);
+  const { tournaments, loading: tournamentsLoading, fetchTournaments } = useTournamentData();
 
   // Mock data for teams and sponsors
   const teams: TeamProfile[] = [
@@ -89,6 +90,36 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
       image: "https://via.placeholder.com/300x200?text=Sponsor"
     }
   ];
+
+  // Refresh data when search type changes
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    
+    try {
+      switch (searchType) {
+        case 'Player':
+          // Refresh player data
+          await fetchPlayerProfiles();
+          break;
+        case 'Tournament':
+          // Refresh tournament data
+          await fetchTournaments();
+          break;
+        default:
+          // No need to refresh mock data
+          break;
+      }
+    } catch (error) {
+      console.error(`Error refreshing ${searchType} data:`, error);
+      toast({
+        title: `Error loading ${searchType.toLowerCase()} data`,
+        description: "Please try refreshing the page",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchType, fetchPlayerProfiles, fetchTournaments]);
 
   // Get the appropriate data based on search type
   useEffect(() => {
@@ -156,6 +187,7 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
     filteredResults,
     isLoading: isLoading || (searchType === 'Player' && playersLoading) || (searchType === 'Tournament' && tournamentsLoading),
     sports,
-    areas
+    areas,
+    refreshData
   };
 };

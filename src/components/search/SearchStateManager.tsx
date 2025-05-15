@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 interface SearchStateManagerProps {
@@ -29,6 +29,17 @@ const SearchStateManager: React.FC<SearchStateManagerProps> = ({ children }) => 
   const nameFromURL = searchParams.get('name');
   const nearMeFromURL = searchParams.get('nearMe');
   
+  // Log URL parameters for debugging
+  useEffect(() => {
+    console.log("Search URL parameters:", {
+      type: typeFromURL,
+      sport: sportFromURL,
+      area: areaFromURL,
+      name: nameFromURL,
+      nearMe: nearMeFromURL
+    });
+  }, [typeFromURL, sportFromURL, areaFromURL, nameFromURL, nearMeFromURL]);
+  
   // Initialize state with URL parameters or defaults
   const [searchType, setSearchType] = useState<string>(typeFromURL || 'Tournament');
   const [selectedSport, setSelectedSport] = useState<string>(sportFromURL || 'any_sport');
@@ -37,8 +48,11 @@ const SearchStateManager: React.FC<SearchStateManagerProps> = ({ children }) => 
   const [nearMeOnly, setNearMeOnly] = useState<boolean>(nearMeFromURL === 'true');
 
   // Update URL when search parameters change
-  const updateURLParams = (params: {[key: string]: string | null}) => {
+  const updateURLParams = useCallback((params: {[key: string]: string | null}) => {
     const currentParams = new URLSearchParams(location.search);
+    
+    // Preserve forceHideBadge parameter if it exists
+    const preserveHideBadge = currentParams.get('forceHideBadge');
     
     // Update each parameter
     Object.entries(params).forEach(([key, value]) => {
@@ -54,10 +68,15 @@ const SearchStateManager: React.FC<SearchStateManagerProps> = ({ children }) => 
       currentParams.set('type', searchType);
     }
     
+    // Preserve forceHideBadge if it existed
+    if (preserveHideBadge) {
+      currentParams.set('forceHideBadge', preserveHideBadge);
+    }
+    
     // Replace current URL with updated parameters
     navigate(`/search?${currentParams.toString()}`, { replace: true });
     console.log('Updated URL parameters:', currentParams.toString());
-  };
+  }, [location.search, navigate, searchType]);
 
   // Handle search type changes from URL
   useEffect(() => {
@@ -65,7 +84,7 @@ const SearchStateManager: React.FC<SearchStateManagerProps> = ({ children }) => 
       console.log(`URL search type changed to: ${typeFromURL}`);
       setSearchType(typeFromURL);
     }
-  }, [typeFromURL]);
+  }, [typeFromURL, searchType]);
 
   // Update URL when filters change
   useEffect(() => {
@@ -76,7 +95,7 @@ const SearchStateManager: React.FC<SearchStateManagerProps> = ({ children }) => 
       'name': nameSearch || null,
       'nearMe': nearMeOnly ? 'true' : null
     });
-  }, [selectedSport, selectedArea, nameSearch, nearMeOnly]);
+  }, [searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, updateURLParams]);
 
   // Handle search type change from the UI
   const handleSearchTypeChange = (newType: string) => {

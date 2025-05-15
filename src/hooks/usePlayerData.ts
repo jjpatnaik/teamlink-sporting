@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast";
@@ -39,6 +40,25 @@ export type PlayerProfile = {
   image: string;
 };
 
+// Helper function to retry failed requests
+const fetchWithRetry = async (fetchFunction: () => Promise<any>, retries = 3, delay = 500) => {
+  let lastError;
+  
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fetchFunction();
+    } catch (error) {
+      console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`, error);
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      // Increase delay for next attempt
+      delay *= 1.5;
+    }
+  }
+  
+  throw lastError;
+};
+
 export const usePlayerData = (fetchAll: boolean = false) => {
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [playerProfiles, setPlayerProfiles] = useState<PlayerProfile[]>([]);
@@ -46,26 +66,28 @@ export const usePlayerData = (fetchAll: boolean = false) => {
   const { id } = useParams();
 
   // Fetch all player profiles
-  const fetchPlayerProfiles = async () => {
+  const fetchPlayerProfiles = useCallback(async () => {
     try {
       setLoading(true);
       console.log("Fetching all player profiles...");
       
-      const { data, error } = await supabase
-        .from('player_details')
-        .select('*');
+      const fetchProfiles = async () => {
+        const { data, error } = await supabase
+          .from('player_details')
+          .select('*');
 
-      if (error) {
-        console.error("Error fetching player profiles:", error);
-        toast({
-          title: "Error fetching profiles",
-          description: error.message,
-          variant: "destructive"
-        });
-        return [];
-      }
-
-      if (data) {
+        if (error) {
+          console.error("Error fetching player profiles:", error);
+          throw error;
+        }
+        
+        return data;
+      };
+      
+      // Use retry logic for fetching profiles
+      const data = await fetchWithRetry(fetchProfiles);
+      
+      if (data && data.length > 0) {
         console.log(`Fetched ${data.length} player profiles`);
         
         // Transform the data to match the expected format
@@ -80,30 +102,44 @@ export const usePlayerData = (fetchAll: boolean = false) => {
         setPlayerProfiles(transformedData);
         return transformedData;
       }
+      
+      console.log("No player profiles found");
       return [];
     } catch (error) {
       console.error("Error in fetchPlayerProfiles:", error);
+      // Show a non-blocking toast for the user
+      toast({
+        title: "Could not load player profiles",
+        description: "Please try again later",
+        variant: "destructive"
+      });
       return [];
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch single player data by ID
   const fetchSinglePlayer = async (playerId: string) => {
     try {
       console.log(`Fetching single player data for ID: ${playerId}`);
       
-      const { data, error } = await supabase
-        .from('player_details')
-        .select('*')
-        .eq('id', playerId)
-        .maybeSingle();
+      const fetchPlayer = async () => {
+        const { data, error } = await supabase
+          .from('player_details')
+          .select('*')
+          .eq('id', playerId)
+          .maybeSingle();
+            
+        if (error) {
+          console.error("Error fetching player data:", error);
+          throw error;
+        }
         
-      if (error) {
-        console.error("Error fetching player data:", error);
-        throw error;
-      }
+        return data;
+      };
+      
+      const data = await fetchWithRetry(fetchPlayer);
       
       if (data) {
         console.log("Player data fetched successfully");
@@ -115,6 +151,11 @@ export const usePlayerData = (fetchAll: boolean = false) => {
       }
     } catch (error) {
       console.error("Error in fetchSinglePlayer:", error);
+      toast({
+        title: "Error fetching player data",
+        description: "Unable to load player profile",
+        variant: "destructive"
+      });
       throw error;
     }
   };
@@ -129,13 +170,18 @@ export const usePlayerData = (fetchAll: boolean = false) => {
       if (user) {
         console.log("Current user found, fetching player details");
         
-        const { data, error } = await supabase
-          .from('player_details')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (error) throw error;
+        const fetchUserData = async () => {
+          const { data, error } = await supabase
+            .from('player_details')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+              
+          if (error) throw error;
+          return data;
+        };
+        
+        const data = await fetchWithRetry(fetchUserData);
         
         if (data) {
           console.log("Current user's player data found");
@@ -185,7 +231,7 @@ export const usePlayerData = (fetchAll: boolean = false) => {
     };
     
     fetchData();
-  }, [id, fetchAll]);
+  }, [id, fetchAll, fetchPlayerProfiles]);
 
   return { 
     playerData, 

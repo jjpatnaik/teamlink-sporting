@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -17,28 +17,50 @@ export type Tournament = {
   image?: string;
 };
 
+// Helper function to retry failed requests
+const fetchWithRetry = async (fetchFunction: () => Promise<any>, retries = 3, delay = 500) => {
+  let lastError;
+  
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fetchFunction();
+    } catch (error) {
+      console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`, error);
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      // Increase delay for next attempt
+      delay *= 1.5;
+    }
+  }
+  
+  throw lastError;
+};
+
 export const useTournamentData = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   
-  const fetchTournaments = async () => {
+  const fetchTournaments = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('tournaments')
-        .select('*');
+      const fetchData = async () => {
+        console.log("Attempting to fetch tournaments...");
+        const { data, error } = await supabase
+          .from('tournaments')
+          .select('*');
 
-      if (error) {
-        console.error("Error fetching tournaments:", error);
-        toast({
-          title: "Error fetching tournaments",
-          description: error.message,
-          variant: "destructive"
-        });
-        return [];
-      }
+        if (error) {
+          console.error("Error fetching tournaments:", error);
+          throw error;
+        }
+
+        return data;
+      };
+      
+      // Use retry logic for fetching tournaments
+      const data = await fetchWithRetry(fetchData);
 
       if (data) {
-        console.log("Fetched tournaments:", data.length);
+        console.log(`Fetched ${data.length} tournaments`);
         // Transform the data to match the expected format
         const transformedData = data.map(tournament => ({
           id: tournament.id,
@@ -55,18 +77,25 @@ export const useTournamentData = () => {
         setTournaments(transformedData);
         return transformedData;
       }
+      
+      console.log("No tournaments found");
       return [];
     } catch (error) {
       console.error("Error in fetchTournaments:", error);
+      toast({
+        title: "Error fetching tournaments",
+        description: "Please try again later",
+        variant: "destructive"
+      });
       return [];
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTournaments();
-  }, []);
+  }, [fetchTournaments]);
 
   return { tournaments, loading, fetchTournaments };
 };
