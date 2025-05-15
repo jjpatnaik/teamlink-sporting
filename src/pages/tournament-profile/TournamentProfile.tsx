@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 
 const TournamentProfile = () => {
   const { id } = useParams<{ id: string }>();
-  const { tournament, teams, fetchData } = useTournamentData(id);
+  const { tournament, teams, fetchData, addTeam } = useTournamentData(id);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isOrganizer, setIsOrganizer] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -84,8 +84,11 @@ const TournamentProfile = () => {
       />
       
       <TournamentTeamsSection 
+        tournament={tournament}
         teams={teams} 
         isOrganizer={isOrganizer}
+        currentUserId={currentUserId}
+        addTeam={addTeam}
         isTournamentFull={teams.length >= tournament.teams_allowed}
       />
     </div>

@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Tournament, Team } from '../hooks/useTournamentData';
 
 interface TournamentTeamsSectionProps {
-  tournament: Tournament;
+  tournament?: Tournament;
   teams: Team[];
   isOrganizer: boolean;
-  currentUserId: string | null;
-  addTeam: (teamName: string, contactEmail: string | null) => Promise<any>;
+  currentUserId?: string | null;
+  addTeam?: (teamName: string, contactEmail: string | null) => Promise<any>;
   fixturesApproved?: boolean;
+  isTournamentFull?: boolean;
 }
 
 const TournamentTeamsSection: React.FC<TournamentTeamsSectionProps> = ({ 
@@ -21,22 +22,23 @@ const TournamentTeamsSection: React.FC<TournamentTeamsSectionProps> = ({
   isOrganizer, 
   currentUserId,
   addTeam,
-  fixturesApproved = false
+  fixturesApproved = false,
+  isTournamentFull = false
 }) => {
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamEmail, setNewTeamEmail] = useState('');
   const [addingTeam, setAddingTeam] = useState(false);
   
-  const registrationDeadline = tournament.registration_deadline ? 
+  const registrationDeadline = tournament?.registration_deadline ? 
     new Date(tournament.registration_deadline).toLocaleDateString() : 
-    tournament.end_date ? new Date(tournament.end_date).toLocaleDateString() : 'Not specified';
+    tournament?.end_date ? new Date(tournament.end_date).toLocaleDateString() : 'Not specified';
   
-  const isRegistrationClosed = tournament.registration_deadline ? 
+  const isRegistrationClosed = tournament?.registration_deadline ? 
     new Date(tournament.registration_deadline) < new Date() : false;
 
   const handleAddTeam = async () => {
     try {
-      if (!newTeamName.trim()) {
+      if (!newTeamName.trim() || !addTeam) {
         return;
       }
       
@@ -128,7 +130,7 @@ const TournamentTeamsSection: React.FC<TournamentTeamsSectionProps> = ({
       )}
       
       {/* Add team form - only for organizer and logged in users */}
-      {isOrganizer && currentUserId && !isRegistrationClosed && teams.length < tournament.teams_allowed && (
+      {isOrganizer && currentUserId && !isRegistrationClosed && teams.length < (tournament?.teams_allowed || 0) && (
         <div className="mt-6 p-4 border border-dashed border-gray-300 rounded-md">
           <h3 className="text-lg font-medium mb-3">Add Team</h3>
           <div className="flex flex-wrap gap-2">
