@@ -78,9 +78,7 @@ export const usePlayerData = (fetchAll: boolean = false) => {
       console.log("Fetching all player profiles...");
       
       const fetchProfiles = async () => {
-        // Check for user session to ensure we're authenticated when needed
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log("Session check for player profiles:", session ? "Active" : "None");
+        // Removed session check since we want to allow public access
         
         const { data, error } = await supabase
           .from('player_details')

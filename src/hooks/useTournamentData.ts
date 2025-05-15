@@ -54,9 +54,7 @@ export const useTournamentData = () => {
       const fetchData = async () => {
         console.log("Attempting to fetch tournaments...");
         
-        // Check for user session to ensure we're authenticated when needed
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log("Session check for tournaments:", session ? "Active" : "None");
+        // Removed the session check since we want to allow public access
         
         const { data, error } = await supabase
           .from('tournaments')
