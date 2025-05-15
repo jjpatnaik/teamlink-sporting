@@ -208,7 +208,7 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
   const areas = Array.from(new Set([
     'London', 'Manchester', 'Birmingham', 'Glasgow',
     ...(playerProfiles ? playerProfiles.map(p => p.area).filter(Boolean) : []),
-    ...(tournaments ? tournaments.map(t => t.area).filter(Boolean) : [])
+    ...(tournaments ? tournaments.map(t => t.location).filter(Boolean) : [])
   ])).filter(Boolean);
 
   return {

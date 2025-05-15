@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { Tournament } from "@/integrations/supabase/types";
 import { toast } from "@/components/ui/use-toast";
 
 // Extended Tournament type with image field for featured tournaments
-export interface FeaturedTournament extends Partial<Tournament> {
+export interface FeaturedTournament {
   id: string;
   name: string;
   sport: string;
@@ -50,8 +49,6 @@ export const useFeaturedTournaments = (limit = 3) => {
           sport: tournament.sport || "Unknown Sport",
           area: tournament.location || "Unknown Location",
           location: tournament.location,
-          startDate: tournament.start_date,
-          endDate: tournament.end_date,
           start_date: tournament.start_date,
           end_date: tournament.end_date,
           teams_allowed: tournament.teams_allowed || 0,
