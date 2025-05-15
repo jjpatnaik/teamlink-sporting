@@ -1,11 +1,14 @@
 
-// This file is read-only, but I'll add a debug function to check its status without modifying it
+import { createClient } from '@supabase/supabase-js';
+
+// Create a Supabase client for your project
+export const supabase = createClient(
+  'https://nawpawkxvijcaccxrcuv.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hd3Bhd2t4dmlqY2FjY3hyY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyNjU2MDEsImV4cCI6MjA1OTg0MTYwMX0._wPnSTMG8vxsKYAVm76X7V2STVMSPbAiAC6AnlurXUc'
+);
 
 // Debug function to check Supabase client status
 export const checkSupabaseClientStatus = () => {
-  // Import the actual client from the file
-  const { supabase } = require('./client');
-  
   console.log("Supabase Client Status Check:");
   console.log("- Client exists:", !!supabase);
   console.log("- Client functions:", Object.keys(supabase || {}).join(', '));
