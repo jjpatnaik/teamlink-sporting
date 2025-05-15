@@ -60,6 +60,8 @@ export const useFixtureBot = (tournament: Tournament | null, teams: Team[]) => {
     finalsFormat: '',
   });
   
+  // Commenting out all chatbot functionality
+  /*
   // For AI chat - convert our format to OpenAI format
   const convertToOpenAIMessages = (messages: Message[]): OpenAIMessage[] => {
     return messages
@@ -559,6 +561,34 @@ Would you like me to generate the fixtures now?`;
       });
       return false;
     }
+  };
+  */
+
+  // Create simple placeholder functions
+  const initializeBot = useCallback(() => {
+    // This function is intentionally empty as chatbot is disabled
+    console.log("Chatbot is disabled");
+  }, []);
+
+  const handleSendMessage = () => {
+    // This function is intentionally empty as chatbot is disabled
+    console.log("Chatbot message sending is disabled");
+  };
+
+  const approveFixtures = () => {
+    // This function is intentionally empty as chatbot is disabled 
+    console.log("Fixture approval is disabled");
+  };
+
+  const regenerateFixtures = () => {
+    // This function is intentionally empty as chatbot is disabled
+    console.log("Fixture regeneration is disabled");
+  };
+
+  const exportAsPdf = () => {
+    // This function is intentionally empty as chatbot is disabled
+    console.log("PDF export is disabled");
+    return false;
   };
 
   return {

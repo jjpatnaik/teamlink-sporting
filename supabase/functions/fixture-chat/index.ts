@@ -15,6 +15,8 @@ serve(async (req: Request) => {
     });
   }
   
+  // Commented out chatbot functionality
+  /*
   try {
     const { messages, tournamentInfo } = await req.json();
     
@@ -79,4 +81,16 @@ serve(async (req: Request) => {
       }
     );
   }
+  */
+  
+  // Return a default response indicating the service is disabled
+  return new Response(
+    JSON.stringify({ 
+      response: "FixtureBot service is currently disabled.",
+      status: "disabled"
+    }),
+    { 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    }
+  );
 });

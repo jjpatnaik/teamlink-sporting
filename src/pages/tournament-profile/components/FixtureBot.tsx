@@ -14,6 +14,8 @@ type FixtureBotProps = {
 };
 
 const FixtureBot = ({ tournament, teams, isOrganizer }: FixtureBotProps) => {
+  // Commenting out chatbot functionality
+  /*
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -39,6 +41,7 @@ const FixtureBot = ({ tournament, teams, isOrganizer }: FixtureBotProps) => {
   useEffect(() => {
     initializeBot();
   }, [initializeBot]);
+  */
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mt-6">
@@ -46,7 +49,7 @@ const FixtureBot = ({ tournament, teams, isOrganizer }: FixtureBotProps) => {
         <MessageSquare className="w-5 h-5" /> FixtureBot
       </h3>
       
-      {/* Chat messages in table format */}
+      {/* Commented out chatbot UI 
       <div className="border rounded-md mb-4">
         <Table>
           <TableHeader>
@@ -125,7 +128,6 @@ const FixtureBot = ({ tournament, teams, isOrganizer }: FixtureBotProps) => {
         </div>
       )}
       
-      {/* Chat input */}
       <div className="flex gap-2">
         <Textarea
           value={userInput}
@@ -142,6 +144,11 @@ const FixtureBot = ({ tournament, teams, isOrganizer }: FixtureBotProps) => {
         <Button onClick={handleSendMessage} disabled={isLoading}>
           <Send className="w-4 h-4" />
         </Button>
+      </div>
+      */}
+      
+      <div className="p-6 text-center">
+        <p className="text-gray-500">Chatbot functionality is currently disabled.</p>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tournament, Team } from '../hooks/useTournamentData';
 
+// Commenting out type definitions but keeping them for reference
+/*
 type Message = {
   role: 'user' | 'bot';  // This defines the union type explicitly
   content: string;
@@ -22,6 +23,7 @@ type Fixture = {
   teamB: string;
   venue: string;
 };
+*/
 
 type FixtureGeneratorProps = {
   tournament: Tournament;
@@ -29,6 +31,7 @@ type FixtureGeneratorProps = {
   isOrganizer: boolean;
 };
 
+/*
 type AdditionalInfo = {
   tournamentType: string;
   venueDetails: string;
@@ -43,8 +46,11 @@ const initialMessages: Message[] = [
     content: 'Hello! I can help you generate fixtures for your tournament. Let me review the current tournament details...'
   }
 ];
+*/
 
 const FixtureGenerator = ({ tournament, teams, isOrganizer }: FixtureGeneratorProps) => {
+  // Commenting out all chatbot state and logic
+  /*
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -284,6 +290,7 @@ Would you like me to generate the fixtures now?`;
     setMessages([...messages, regenerateMessage]);
     await generateFixtures([...messages, regenerateMessage]);
   };
+  */
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mt-6">
@@ -291,7 +298,7 @@ Would you like me to generate the fixtures now?`;
         <MessageSquare className="w-5 h-5" /> Tournament Fixture Generator
       </h3>
       
-      {/* Chat area */}
+      {/* Commented out chat area 
       <ScrollArea className="h-[300px] mb-4 border rounded-md p-4">
         <div className="space-y-4">
           {messages.map((message, index) => (
@@ -366,7 +373,6 @@ Would you like me to generate the fixtures now?`;
         </div>
       )}
       
-      {/* Chat input */}
       <div className="flex gap-2">
         <Textarea
           value={userInput}
@@ -384,10 +390,14 @@ Would you like me to generate the fixtures now?`;
           <Send className="w-4 h-4" />
         </Button>
       </div>
+      */}
       
-      {!isOrganizer && (
-        <p className="text-sm text-gray-500 mt-2">Note: Only tournament organizers can approve fixtures.</p>
-      )}
+      <div className="p-6 text-center">
+        <p className="text-gray-500">Fixture Generator is currently disabled.</p>
+        <p className="text-gray-400 text-sm mt-2">Tournament: {tournament.name} ({teams.length} teams)</p>
+      </div>
+      
+      {/* Removed note about organizers */}
     </div>
   );
 };

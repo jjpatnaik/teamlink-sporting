@@ -1,3 +1,4 @@
+
 // This is a mock implementation of the OpenAI service
 // In a production environment, you would replace this with actual API calls
 
@@ -23,6 +24,8 @@ type Match = {
 };
 
 export const generateFixtures = async (request: FixtureRequest): Promise<Match[]> => {
+  // Commented out fixture generation logic
+  /*
   // In a real implementation, this would make an API call to OpenAI
   // For now, let's simulate a fixture generation with a delay
   
@@ -87,12 +90,18 @@ export const generateFixtures = async (request: FixtureRequest): Promise<Match[]
   }
   
   return matches;
+  */
+  
+  console.log("Fixture generation is disabled");
+  return []; // Return empty array as service is disabled
 };
 
 export const callOpenAI = async (
   systemPrompt: string, 
   userPrompt: string
 ): Promise<string> => {
+  // Commented out OpenAI API call
+  /*
   // This would be replaced with a real OpenAI API call
   console.log("System prompt:", systemPrompt);
   console.log("User prompt:", userPrompt);
@@ -102,4 +111,8 @@ export const callOpenAI = async (
   
   // Return a mock response
   return "I've analyzed your tournament requirements and created a fixture that optimally balances team rest periods and venue availability.";
+  */
+  
+  console.log("OpenAI service is disabled");
+  return "OpenAI service is currently disabled.";
 };
