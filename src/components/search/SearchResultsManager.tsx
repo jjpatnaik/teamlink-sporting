@@ -7,6 +7,7 @@ import { useSearchData } from '@/hooks/useSearchData';
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { checkSupabaseClientStatus } from '@/integrations/supabase/client';
 
 interface SearchResultsManagerProps {
   searchType: string;
@@ -42,9 +43,19 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
     nearMeOnly
   });
 
-  // Add use effect to refresh data when search type changes
+  // Add use effect to refresh data when search type changes and debug Supabase client
   useEffect(() => {
+    console.log("SearchResultsManager - Refreshing data for searchType:", searchType);
     refreshData();
+    
+    // Check Supabase client status on first render
+    if (searchType === "Tournament") {
+      try {
+        checkSupabaseClientStatus();
+      } catch (error) {
+        console.error("Error checking Supabase client status:", error);
+      }
+    }
   }, [searchType, refreshData]);
 
   const handleItemClick = (id: number | string) => {
@@ -84,6 +95,7 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
   };
 
   const handleRefresh = () => {
+    console.log(`Manually refreshing ${searchType} data...`);
     refreshData();
     toast({
       title: "Refreshing results",

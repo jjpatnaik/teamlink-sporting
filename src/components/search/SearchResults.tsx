@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, AlertCircle, RefreshCcw } from "lucide-react";
+import { Search, AlertCircle } from "lucide-react";
 import PlayerCard from './PlayerCard';
 import TeamCard from './TeamCard';
 import TournamentCard from './TournamentCard';
@@ -37,14 +37,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     );
   }
 
-  // Connection error state
+  // Connection error state with more detailed information
   if (connectionError) {
     return (
       <Alert variant="destructive" className="mb-4">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Connection issues detected</AlertTitle>
-        <AlertDescription>
-          We're having trouble connecting to our database. Please try refreshing the page or try again later.
+        <AlertDescription className="space-y-2">
+          <p>We're having trouble connecting to our database. This could be due to:</p>
+          <ul className="list-disc pl-5">
+            <li>Network connectivity issues</li>
+            <li>Server maintenance</li>
+            <li>Temporary service outage</li>
+          </ul>
+          <p className="pt-2">Please try refreshing the page or try again later.</p>
         </AlertDescription>
       </Alert>
     );
@@ -52,7 +58,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   
   // Debug output to help identify issues
   console.log(`SearchResults - Type: ${searchType}, Count: ${filteredResults?.length || 0}`);
-  console.log("Results data:", filteredResults?.slice(0, 2));
+  console.log("Results data sample:", filteredResults?.slice(0, 2));
 
   // No results state (but connection is good)
   if (!filteredResults || filteredResults.length === 0) {
