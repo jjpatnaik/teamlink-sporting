@@ -44,13 +44,37 @@ export interface SearchDataParams {
   nearMeOnly: boolean;
 }
 
+// Enhanced retry function with better error handling
+const fetchWithRetry = async (fetchFunction: () => Promise<any>, retries = 3, delay = 1000) => {
+  let lastError;
+  
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const result = await fetchFunction();
+      console.log(`Data fetch successful on attempt ${attempt + 1}`);
+      return result;
+    } catch (error) {
+      console.error(`Attempt ${attempt + 1} failed:`, error);
+      lastError = error;
+      
+      // If we still have retries left, wait before trying again
+      if (attempt < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay * (attempt + 1))); // Exponential backoff
+      }
+    }
+  }
+  
+  throw lastError;
+};
+
 export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSearch, nearMeOnly }: SearchDataParams) => {
   // Data state to track what we're showing
   const [currentData, setCurrentData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [connectionError, setConnectionError] = useState<boolean>(false);
   const { userCity } = useUserLocation();
   
-  // Fetch data sources - pass true to fetchAll to get all player profiles
+  // Fetch data sources with more robust error handling
   const { playerProfiles, loading: playersLoading, fetchPlayerProfiles } = usePlayerData(true);
   const { tournaments, loading: tournamentsLoading, fetchTournaments } = useTournamentData();
 
@@ -91,26 +115,27 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
     }
   ];
 
-  // Refresh data when search type changes
+  // Refresh data with enhanced error handling
   const refreshData = useCallback(async () => {
     setIsLoading(true);
+    setConnectionError(false);
     
     try {
       switch (searchType) {
         case 'Player':
-          // Refresh player data
           await fetchPlayerProfiles();
           break;
         case 'Tournament':
-          // Refresh tournament data
           await fetchTournaments();
           break;
         default:
-          // No need to refresh mock data
+          // For mock data types, just simulate a delay
+          await new Promise(resolve => setTimeout(resolve, 500));
           break;
       }
     } catch (error) {
       console.error(`Error refreshing ${searchType} data:`, error);
+      setConnectionError(true);
       toast({
         title: `Error loading ${searchType.toLowerCase()} data`,
         description: "Please try refreshing the page",
@@ -124,6 +149,7 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
   // Get the appropriate data based on search type
   useEffect(() => {
     setIsLoading(true);
+    setConnectionError(false);
     
     try {
       let data: any[] = [];
@@ -153,6 +179,7 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
       setCurrentData(data);
     } catch (error) {
       console.error("Error getting search data:", error);
+      setConnectionError(true);
       setCurrentData([]);
     } finally {
       setIsLoading(false);
@@ -186,6 +213,7 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
   return {
     filteredResults,
     isLoading: isLoading || (searchType === 'Player' && playersLoading) || (searchType === 'Tournament' && tournamentsLoading),
+    connectionError,
     sports,
     areas,
     refreshData

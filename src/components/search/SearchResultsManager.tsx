@@ -34,7 +34,7 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
   setNearMeOnly,
 }) => {
   const navigate = useNavigate();
-  const { filteredResults, isLoading, sports, areas, refreshData } = useSearchData({
+  const { filteredResults, isLoading, connectionError, sports, areas, refreshData } = useSearchData({
     searchType,
     selectedSport,
     selectedArea,
@@ -132,6 +132,7 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
           selectedArea={selectedArea}
           handleItemClick={handleItemClick}
           loading={isLoading}
+          connectionError={connectionError}
         />
       </div>
     </div>

@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SearchContainer from '@/components/search/SearchContainer';
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const SearchPage: React.FC = () => {
   const location = useLocation();
@@ -15,6 +16,18 @@ const SearchPage: React.FC = () => {
     
     // Add console log to track page navigation
     console.log("Navigated to search page with params:", location.search);
+
+    // Check for authentication status to help debug RLS issues
+    const checkAuthStatus = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error checking auth status:", error);
+      } else {
+        console.log("Auth status:", data.session ? "Authenticated" : "Not authenticated");
+      }
+    };
+    
+    checkAuthStatus();
     
     // Show search page toast except when navigating with forceHideBadge parameter 
     // (used by internal navigation)
