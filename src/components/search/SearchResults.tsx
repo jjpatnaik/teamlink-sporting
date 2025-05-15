@@ -66,8 +66,23 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         
         <div className="text-center py-12 bg-white rounded-xl shadow-sm">
           <Search className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-          <h3 className="text-lg font-medium">No results found</h3>
-          <p className="text-gray-500">Try adjusting your search filters or refreshing the page</p>
+          <h3 className="text-lg font-medium">No {searchType.toLowerCase()}s found</h3>
+          
+          {searchType === "Player" && (
+            <p className="text-gray-500">No players registered yet. Check back later or try different search filters.</p>
+          )}
+          
+          {searchType === "Team" && (
+            <p className="text-gray-500">No teams registered yet. Check back later or try different search filters.</p>
+          )}
+          
+          {searchType === "Tournament" && (
+            <p className="text-gray-500">No tournaments registered yet. Check back later or try different search filters.</p>
+          )}
+          
+          {searchType === "Sponsorship" && (
+            <p className="text-gray-500">No sponsorships registered yet. Check back later or try different search filters.</p>
+          )}
         </div>
       </div>
     );
