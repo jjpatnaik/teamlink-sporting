@@ -34,23 +34,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   }
 
   // Debug output to help identify issues
-  console.log("Search type:", searchType);
-  console.log("Results count:", filteredResults.length);
-  console.log("First few results:", filteredResults.slice(0, 3));
-  console.log("Sport filter:", selectedSport);
-  console.log("Area filter:", selectedArea);
+  console.log(`SearchResults - Type: ${searchType}, Count: ${filteredResults?.length || 0}`);
+  console.log("Results data:", filteredResults?.slice(0, 2));
 
   return (
     <div>
       <h2 className="text-xl font-semibold mb-2">Results</h2>
       <p className="text-sport-gray mb-4">
-        {filteredResults.length} {searchType.toLowerCase()}
-        {filteredResults.length !== 1 ? 's' : ''} found
+        {filteredResults?.length || 0} {searchType.toLowerCase()}
+        {filteredResults?.length !== 1 ? 's' : ''} found
         {selectedSport && selectedSport !== "any_sport" ? ` for ${selectedSport}` : ''}
         {selectedArea && selectedArea !== "any_area" ? ` in ${selectedArea}` : ''}
       </p>
       
-      {filteredResults.length === 0 ? (
+      {(!filteredResults || filteredResults.length === 0) ? (
         <div className="text-center py-12 bg-white rounded-xl shadow-sm">
           <Search className="h-12 w-12 text-gray-300 mx-auto mb-2" />
           <h3 className="text-lg font-medium">No results found</h3>
@@ -62,24 +59,32 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             <PlayerCard 
               key={player.id} 
               player={player} 
-              onClick={handleItemClick} 
+              onClick={() => handleItemClick(player.id)} 
             />
           ))}
           
           {searchType === "Team" && filteredResults.map((team) => (
-            <TeamCard key={team.id} team={team} onClick={handleItemClick} />
+            <TeamCard 
+              key={team.id} 
+              team={team} 
+              onClick={() => handleItemClick(team.id)} 
+            />
           ))}
           
           {searchType === "Tournament" && filteredResults.map((tournament) => (
             <TournamentCard 
               key={tournament.id} 
               tournament={tournament} 
-              onClick={handleItemClick} 
+              onClick={() => handleItemClick(tournament.id)} 
             />
           ))}
           
           {searchType === "Sponsorship" && filteredResults.map((sponsorship) => (
-            <SponsorshipCard key={sponsorship.id} sponsorship={sponsorship} onClick={handleItemClick} />
+            <SponsorshipCard 
+              key={sponsorship.id} 
+              sponsorship={sponsorship} 
+              onClick={() => handleItemClick(sponsorship.id)} 
+            />
           ))}
         </div>
       )}

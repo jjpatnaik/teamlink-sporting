@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
@@ -12,7 +11,7 @@ export type CareerEntry = {
 };
 
 export type PlayerData = {
-  id: string; // Added id property
+  id: string; 
   full_name: string;
   sport: string;
   position: string;
@@ -49,6 +48,9 @@ export const usePlayerData = (fetchAll: boolean = false) => {
   // Fetch all player profiles
   const fetchPlayerProfiles = async () => {
     try {
+      setLoading(true);
+      console.log("Fetching all player profiles...");
+      
       const { data, error } = await supabase
         .from('player_details')
         .select('*');
@@ -64,7 +66,8 @@ export const usePlayerData = (fetchAll: boolean = false) => {
       }
 
       if (data) {
-        console.log("Fetched player profiles:", data.length);
+        console.log(`Fetched ${data.length} player profiles`);
+        
         // Transform the data to match the expected format
         const transformedData = data.map(player => ({
           id: player.id,
@@ -81,6 +84,74 @@ export const usePlayerData = (fetchAll: boolean = false) => {
     } catch (error) {
       console.error("Error in fetchPlayerProfiles:", error);
       return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch single player data by ID
+  const fetchSinglePlayer = async (playerId: string) => {
+    try {
+      console.log(`Fetching single player data for ID: ${playerId}`);
+      
+      const { data, error } = await supabase
+        .from('player_details')
+        .select('*')
+        .eq('id', playerId)
+        .maybeSingle();
+        
+      if (error) {
+        console.error("Error fetching player data:", error);
+        throw error;
+      }
+      
+      if (data) {
+        console.log("Player data fetched successfully");
+        setPlayerData(data);
+        return data;
+      } else {
+        console.log("No player found with ID:", playerId);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error in fetchSinglePlayer:", error);
+      throw error;
+    }
+  };
+
+  // Fetch current user's player data
+  const fetchCurrentUserData = async () => {
+    try {
+      console.log("Fetching current user's player data");
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        console.log("Current user found, fetching player details");
+        
+        const { data, error } = await supabase
+          .from('player_details')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (error) throw error;
+        
+        if (data) {
+          console.log("Current user's player data found");
+          setPlayerData(data);
+          return data;
+        } else {
+          console.log("No player data found for current user");
+          return null;
+        }
+      } else {
+        console.log("No authenticated user found");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching current user data:", error);
+      throw error;
     }
   };
 
@@ -96,32 +167,18 @@ export const usePlayerData = (fetchAll: boolean = false) => {
         
         // If ID is provided in the URL, fetch that player's data
         if (id) {
-          const { data, error } = await supabase
-            .from('player_details')
-            .select('*')
-            .eq('id', id)
-            .maybeSingle();
-            
-          if (error) throw error;
-          setPlayerData(data);
+          await fetchSinglePlayer(id);
         } else if (!fetchAll) {
-          // Get current user
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          if (user) {
-            // Fetch player details for the current user
-            const { data, error } = await supabase
-              .from('player_details')
-              .select('*')
-              .eq('id', user.id)
-              .maybeSingle();
-              
-            if (error) throw error;
-            setPlayerData(data);
-          }
+          // Otherwise try to get current user's data
+          await fetchCurrentUserData();
         }
       } catch (error) {
-        console.error("Error fetching player data:", error);
+        console.error("Error in usePlayerData hook:", error);
+        toast({
+          title: "Error loading player data",
+          description: "Please try again later",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -130,5 +187,10 @@ export const usePlayerData = (fetchAll: boolean = false) => {
     fetchData();
   }, [id, fetchAll]);
 
-  return { playerData, playerProfiles, loading, fetchPlayerProfiles };
+  return { 
+    playerData, 
+    playerProfiles, 
+    loading,
+    fetchPlayerProfiles 
+  };
 };

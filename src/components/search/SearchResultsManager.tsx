@@ -1,8 +1,10 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import SearchFilters from './SearchFilters';
 import SearchResults from './SearchResults';
 import { useSearchData } from '@/hooks/useSearchData';
+import { toast } from "@/components/ui/use-toast";
 
 interface SearchResultsManagerProps {
   searchType: string;
@@ -29,6 +31,7 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
   nearMeOnly,
   setNearMeOnly,
 }) => {
+  const navigate = useNavigate();
   const { filteredResults, isLoading, sports, areas } = useSearchData({
     searchType,
     selectedSport,
@@ -40,12 +43,36 @@ const SearchResultsManager: React.FC<SearchResultsManagerProps> = ({
   const handleItemClick = (id: number | string) => {
     try {
       console.log(`Clicked item with id: ${id}, type: ${searchType}`);
-      // Navigation logic would go here
-      if (searchType === 'Tournament') {
-        console.log(`View details clicked for tournament: ${id}`);
+      
+      // Navigation logic based on search type
+      switch (searchType) {
+        case 'Player':
+          navigate(`/player/${id}`);
+          break;
+        case 'Team':
+          navigate(`/team/${id}`);
+          break;
+        case 'Tournament':
+          navigate(`/tournament-profile/${id}`);
+          break;
+        case 'Sponsorship':
+          navigate(`/sponsor/${id}`);
+          break;
+        default:
+          console.log(`No navigation defined for type: ${searchType}`);
       }
+      
+      toast({
+        title: `Viewing ${searchType} Details`,
+        description: `Loading details for selected ${searchType.toLowerCase()}`
+      });
     } catch (error) {
       console.error("Error handling item click:", error);
+      toast({
+        title: "Navigation Error",
+        description: `Unable to view ${searchType.toLowerCase()} details.`,
+        variant: "destructive"
+      });
     }
   };
 

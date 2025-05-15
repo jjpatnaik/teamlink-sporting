@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 
-// Use a more flexible generic type that accepts any array of objects with name, sport, area and id properties
+// Generic type that accepts any object with optional name, sport, and area properties
 export const useSearchFilters = <T extends { name?: string; sport?: string; area?: string; id: string | number }>(
   items: T[],
   searchType: string,
@@ -16,21 +16,29 @@ export const useSearchFilters = <T extends { name?: string; sport?: string; area
   useEffect(() => {
     // Don't attempt to filter if items are empty
     if (!items || items.length === 0) {
+      console.log(`No items to filter for ${searchType}`);
       setFilteredResults([]);
       return;
     }
 
+    console.log(`Filtering ${items.length} ${searchType} items with:`, {
+      sport: selectedSport,
+      area: selectedArea,
+      nameSearch,
+      nearMeOnly
+    });
+
     // Start with the provided items
     let results = [...items];
     
-    // Apply sport filter
+    // Apply sport filter if set to something other than "any_sport"
     if (selectedSport !== "any_sport") {
       results = results.filter(item => 
         item.sport && item.sport.toLowerCase() === selectedSport.toLowerCase()
       );
     }
     
-    // Apply area filter
+    // Apply area filter if set to something other than "any_area"
     if (selectedArea !== "any_area") {
       results = results.filter(item => 
         item.area && item.area.toLowerCase().includes(selectedArea.toLowerCase())
@@ -38,7 +46,7 @@ export const useSearchFilters = <T extends { name?: string; sport?: string; area
     }
     
     // Apply name search filter
-    if (nameSearch) {
+    if (nameSearch && nameSearch.trim() !== '') {
       results = results.filter(item => 
         item.name && item.name.toLowerCase().includes(nameSearch.toLowerCase())
       );
@@ -51,11 +59,10 @@ export const useSearchFilters = <T extends { name?: string; sport?: string; area
       });
     }
     
-    console.log(`Search type: ${searchType}`);
-    console.log(`Results count: ${results.length}`);
-    console.log(`First few results:`, results.slice(0, 3));
-    console.log(`Sport filter: ${selectedSport}`);
-    console.log(`Area filter: ${selectedArea}`);
+    console.log(`Filtered results for ${searchType}:`, {
+      before: items.length,
+      after: results.length
+    });
 
     setFilteredResults(results);
   }, [items, searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, userCity]);

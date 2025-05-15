@@ -21,35 +21,68 @@ const SearchStateManager: React.FC<SearchStateManagerProps> = ({ children }) => 
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
-  const typeFromURL = searchParams.get('type');
   
-  // Default to Tournament if no type specified
+  // Get parameters from URL or use defaults
+  const typeFromURL = searchParams.get('type');
+  const sportFromURL = searchParams.get('sport');
+  const areaFromURL = searchParams.get('area');
+  const nameFromURL = searchParams.get('name');
+  const nearMeFromURL = searchParams.get('nearMe');
+  
+  // Initialize state with URL parameters or defaults
   const [searchType, setSearchType] = useState<string>(typeFromURL || 'Tournament');
-  const [selectedSport, setSelectedSport] = useState<string>('any_sport');
-  const [selectedArea, setSelectedArea] = useState<string>('any_area');
-  const [nameSearch, setNameSearch] = useState<string>('');
-  const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
+  const [selectedSport, setSelectedSport] = useState<string>(sportFromURL || 'any_sport');
+  const [selectedArea, setSelectedArea] = useState<string>(areaFromURL || 'any_area');
+  const [nameSearch, setNameSearch] = useState<string>(nameFromURL || '');
+  const [nearMeOnly, setNearMeOnly] = useState<boolean>(nearMeFromURL === 'true');
 
-  // Handle search type changes from URL only - preserve current search type if no type in URL
+  // Update URL when search parameters change
+  const updateURLParams = (params: {[key: string]: string | null}) => {
+    const currentParams = new URLSearchParams(location.search);
+    
+    // Update each parameter
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null || value === '' || value === 'any_sport' || value === 'any_area' || value === 'false') {
+        currentParams.delete(key);
+      } else {
+        currentParams.set(key, value);
+      }
+    });
+    
+    // Always preserve the type parameter
+    if (!currentParams.has('type') && searchType) {
+      currentParams.set('type', searchType);
+    }
+    
+    // Replace current URL with updated parameters
+    navigate(`/search?${currentParams.toString()}`, { replace: true });
+    console.log('Updated URL parameters:', currentParams.toString());
+  };
+
+  // Handle search type changes from URL
   useEffect(() => {
-    if (typeFromURL) {
+    if (typeFromURL && typeFromURL !== searchType) {
       console.log(`URL search type changed to: ${typeFromURL}`);
       setSearchType(typeFromURL);
     }
-    // Don't add searchType as a dependency to prevent cyclical updates
   }, [typeFromURL]);
 
-  // Update URL when search type changes from the UI
+  // Update URL when filters change
+  useEffect(() => {
+    updateURLParams({
+      'type': searchType,
+      'sport': selectedSport !== 'any_sport' ? selectedSport : null,
+      'area': selectedArea !== 'any_area' ? selectedArea : null,
+      'name': nameSearch || null,
+      'nearMe': nearMeOnly ? 'true' : null
+    });
+  }, [selectedSport, selectedArea, nameSearch, nearMeOnly]);
+
+  // Handle search type change from the UI
   const handleSearchTypeChange = (newType: string) => {
     if (newType && newType !== searchType) {
       setSearchType(newType);
-      
-      // Update URL to reflect the new search type but preserve other params
-      const params = new URLSearchParams(location.search);
-      params.set('type', newType);
-      
-      // Use replace to avoid accumulating history entries
-      navigate(`/search?${params.toString()}`, { replace: true });
+      updateURLParams({'type': newType});
       console.log(`Search type changed to: ${newType} via UI`);
     }
   };

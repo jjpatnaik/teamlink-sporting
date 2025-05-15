@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SearchContainer from '@/components/search/SearchContainer';
+import { toast } from "@/components/ui/use-toast";
 
 const SearchPage: React.FC = () => {
   const location = useLocation();
@@ -14,6 +15,16 @@ const SearchPage: React.FC = () => {
     
     // Add console log to track page navigation
     console.log("Navigated to search page with params:", location.search);
+    
+    // Show search page toast except when navigating with forceHideBadge parameter 
+    // (used by internal navigation)
+    const params = new URLSearchParams(location.search);
+    if (!params.get('forceHideBadge')) {
+      toast({
+        title: "Search Page",
+        description: "Find players, teams, tournaments and sponsorships"
+      });
+    }
   }, [location.search]);
   
   return (

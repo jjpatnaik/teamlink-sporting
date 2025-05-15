@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { usePlayerData } from '@/hooks/usePlayerData';
 import { useTournamentData, Tournament } from '@/hooks/useTournamentData';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
 import { useUserLocation } from '@/hooks/useUserLocation';
 
-type PlayerProfile = {
+// Define type interfaces for each search result type
+export type PlayerProfile = {
   id: string;
   name: string;
   sport: string;
@@ -13,7 +15,7 @@ type PlayerProfile = {
   profile_picture_url?: string;
 };
 
-type TeamProfile = {
+export type TeamProfile = {
   id: number;
   name: string;
   sport: string;
@@ -21,7 +23,7 @@ type TeamProfile = {
   logo: string;
 };
 
-type SponsorProfile = {
+export type SponsorProfile = {
   id: number;
   name: string;
   sport: string;
@@ -42,10 +44,14 @@ export interface SearchDataParams {
 }
 
 export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSearch, nearMeOnly }: SearchDataParams) => {
-  // Pass false to fetchAll to prevent authentication errors
+  // Data state to track what we're showing
+  const [currentData, setCurrentData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { userCity } = useUserLocation();
+  
+  // Fetch data sources - pass true to fetchAll to get all player profiles
   const { playerProfiles, loading: playersLoading } = usePlayerData(true);
   const { tournaments, loading: tournamentsLoading } = useTournamentData();
-  const { userCity } = useUserLocation();
 
   // Mock data for teams and sponsors
   const teams: TeamProfile[] = [
@@ -84,32 +90,45 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
     }
   ];
 
-  // Get the current data based on searchType - handle error cases
-  const getCurrentData = () => {
+  // Get the appropriate data based on search type
+  useEffect(() => {
+    setIsLoading(true);
+    
     try {
+      let data: any[] = [];
+      
       switch (searchType) {
         case 'Player':
-          return playerProfiles || [];
+          data = playerProfiles || [];
+          console.log(`Loaded ${data.length} player profiles`);
+          break;
         case 'Team':
-          return teams || [];
+          data = teams || [];
+          console.log(`Loaded ${data.length} teams`);
+          break;
         case 'Tournament':
-          return tournaments || [];
+          data = tournaments || [];
+          console.log(`Loaded ${data.length} tournaments`);
+          break;
         case 'Sponsorship':
-          return sponsors || [];
+          data = sponsors || [];
+          console.log(`Loaded ${data.length} sponsorships`);
+          break;
         default:
-          return [];
+          console.log(`Unknown search type: ${searchType}`);
+          data = [];
       }
+      
+      setCurrentData(data);
     } catch (error) {
       console.error("Error getting search data:", error);
-      return [];
+      setCurrentData([]);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [searchType, playerProfiles, tournaments]);
   
-  // Get the current data
-  const currentData = getCurrentData();
-  
-  // We need to cast the result to any[] to avoid TypeScript errors
-  // since different search types return different data structures
+  // Apply filters to current data
   const filteredResults = useSearchFilters<any>(
     currentData,
     searchType,
@@ -120,10 +139,7 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
     userCity
   );
 
-  const isLoading = (searchType === 'Player' && playersLoading) || 
-                   (searchType === 'Tournament' && tournamentsLoading);
-
-  // Define available sports and areas
+  // Build available filter options based on actual data
   const sports = Array.from(new Set([
     'Football', 'Basketball', 'Tennis', 'Cricket',
     ...(playerProfiles ? playerProfiles.map(p => p.sport) : []),
@@ -138,7 +154,7 @@ export const useSearchData = ({ searchType, selectedSport, selectedArea, nameSea
 
   return {
     filteredResults,
-    isLoading,
+    isLoading: isLoading || (searchType === 'Player' && playersLoading) || (searchType === 'Tournament' && tournamentsLoading),
     sports,
     areas
   };
