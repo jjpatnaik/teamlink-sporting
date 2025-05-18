@@ -18,13 +18,8 @@ const Header = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        setIsAuthenticated(!!data.session);
-      } catch (error) {
-        console.error("Error checking authentication:", error);
-        setIsAuthenticated(false);
-      }
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
     };
     
     checkAuth();
@@ -39,12 +34,7 @@ const Header = () => {
   }, []);
 
   const handleQuickSearch = (searchType: string) => {
-    try {
-      // Navigate to search page with type parameter and area=local parameter
-      navigate(`/search?type=${searchType}&area=local`);
-    } catch (error) {
-      console.error("Error navigating to search:", error);
-    }
+    navigate(`/search?type=${searchType}&area=local`);
   };
 
   return (
@@ -71,7 +61,6 @@ const Header = () => {
               size="icon" 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-              type="button"
             >
               {mobileMenuOpen ? <X /> : <Menu />}
             </Button>

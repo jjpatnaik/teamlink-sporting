@@ -2,7 +2,7 @@
 export const userTypes = [
   { value: "player", label: "Player" },
   { value: "team", label: "Club/Team (Coming Soon)", disabled: true },
-  { value: "organizer", label: "Tournament Organiser", disabled: false },
+  { value: "organizer", label: "Tournament Organiser (Coming Soon)", disabled: true },
   { value: "sponsor", label: "Sponsor (Coming Soon)", disabled: true },
 ];
 
@@ -37,9 +37,4 @@ export const clubs = [
   "Royal Challengers",
   "Manchester United",
   "Barcelona FC"
-];
-
-export const tournamentFormats = [
-  { value: "round_robin", label: "Round Robin" },
-  { value: "knockout", label: "Knockout" }
 ];

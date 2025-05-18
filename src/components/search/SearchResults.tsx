@@ -1,21 +1,18 @@
 
 import React from 'react';
-import { Search, AlertCircle } from "lucide-react";
+import { Search } from "lucide-react";
 import PlayerCard from './PlayerCard';
 import TeamCard from './TeamCard';
 import TournamentCard from './TournamentCard';
 import SponsorshipCard from './SponsorshipCard';
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 
 interface SearchResultsProps {
   searchType: string;
-  filteredResults: any[]; // Using any[] since it could be different types based on searchType
+  filteredResults: any[];
   selectedSport: string;
   selectedArea: string;
-  handleItemClick: (id: number | string) => void;
+  handleItemClick: (id: number) => void;
   loading?: boolean;
-  connectionError?: boolean;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({
@@ -24,8 +21,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   selectedSport,
   selectedArea,
   handleItemClick,
-  loading = false,
-  connectionError = false
+  loading = false
 }) => {
   if (loading) {
     return (
@@ -37,66 +33,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     );
   }
 
-  // Connection error state with more detailed information
-  if (connectionError) {
-    return (
-      <Alert variant="destructive" className="mb-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Connection issues detected</AlertTitle>
-        <AlertDescription className="space-y-2">
-          <p>We're having trouble connecting to our database. This could be due to:</p>
-          <ul className="list-disc pl-5">
-            <li>Network connectivity issues</li>
-            <li>Server maintenance</li>
-            <li>Temporary service outage</li>
-          </ul>
-          <p className="pt-2">Please try refreshing the page or try again later.</p>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-  
-  // Debug output to help identify issues
-  console.log(`SearchResults - Type: ${searchType}, Count: ${filteredResults?.length || 0}`);
-  console.log("Results data sample:", filteredResults?.slice(0, 2));
-
-  // No results state (but connection is good)
-  if (!filteredResults || filteredResults.length === 0) {
-    return (
-      <div>
-        <p className="text-sport-gray mb-4">
-          0 {searchType.toLowerCase()}s found
-          {selectedSport && selectedSport !== "any_sport" ? ` for ${selectedSport}` : ''}
-          {selectedArea && selectedArea !== "any_area" ? ` in ${selectedArea}` : ''}
-        </p>
-        
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-          <Search className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-          <h3 className="text-lg font-medium">No {searchType.toLowerCase()}s found</h3>
-          
-          {searchType === "Player" && (
-            <p className="text-gray-500">No players registered yet. Check back later or try different search filters.</p>
-          )}
-          
-          {searchType === "Team" && (
-            <p className="text-gray-500">No teams registered yet. Check back later or try different search filters.</p>
-          )}
-          
-          {searchType === "Tournament" && (
-            <p className="text-gray-500">No tournaments registered yet. Check back later or try different search filters.</p>
-          )}
-          
-          {searchType === "Sponsorship" && (
-            <p className="text-gray-500">No sponsorships registered yet. Check back later or try different search filters.</p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Results found state
   return (
     <div>
+      <h2 className="text-xl font-semibold mb-2">Results</h2>
       <p className="text-sport-gray mb-4">
         {filteredResults.length} {searchType.toLowerCase()}
         {filteredResults.length !== 1 ? 's' : ''} found
@@ -104,39 +43,31 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         {selectedArea && selectedArea !== "any_area" ? ` in ${selectedArea}` : ''}
       </p>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {searchType === "Player" && filteredResults.map((player) => (
-          <PlayerCard 
-            key={player.id} 
-            player={player} 
-            onClick={() => handleItemClick(player.id)} 
-          />
-        ))}
-        
-        {searchType === "Team" && filteredResults.map((team) => (
-          <TeamCard 
-            key={team.id} 
-            team={team} 
-            onClick={() => handleItemClick(team.id)} 
-          />
-        ))}
-        
-        {searchType === "Tournament" && filteredResults.map((tournament) => (
-          <TournamentCard 
-            key={tournament.id} 
-            tournament={tournament} 
-            onClick={() => handleItemClick(tournament.id)} 
-          />
-        ))}
-        
-        {searchType === "Sponsorship" && filteredResults.map((sponsorship) => (
-          <SponsorshipCard 
-            key={sponsorship.id} 
-            sponsorship={sponsorship} 
-            onClick={() => handleItemClick(sponsorship.id)} 
-          />
-        ))}
-      </div>
+      {filteredResults.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+          <Search className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+          <h3 className="text-lg font-medium">No results found</h3>
+          <p className="text-gray-500">Try adjusting your search filters</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {searchType === "Player" && filteredResults.map((player) => (
+            <PlayerCard key={player.id} player={player} onClick={handleItemClick} />
+          ))}
+          
+          {searchType === "Team" && filteredResults.map((team) => (
+            <TeamCard key={team.id} team={team} onClick={handleItemClick} />
+          ))}
+          
+          {searchType === "Tournament" && filteredResults.map((tournament) => (
+            <TournamentCard key={tournament.id} tournament={tournament} onClick={handleItemClick} />
+          ))}
+          
+          {searchType === "Sponsorship" && filteredResults.map((sponsorship) => (
+            <SponsorshipCard key={sponsorship.id} sponsorship={sponsorship} onClick={handleItemClick} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

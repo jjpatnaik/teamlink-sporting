@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { 
   Select, 
   SelectContent, 
@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
 
 interface SearchFiltersProps {
   searchType: string;
@@ -50,36 +49,12 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   nearMeOnly,
   setNearMeOnly
 }) => {
-  // Only reset filters when search type changes
-  useEffect(() => {
-    // Clear filters when search type changes
-    setSelectedSport("any_sport");
-    setSelectedArea("any_area");
-    setNameSearch("");
-    
-    // Show toast notification to indicate search type change
-    const suffix = searchType !== 'Sponsorship' ? 's' : '';
-    toast({
-      title: `Search Type Changed`,
-      description: `Now searching for ${searchType.toLowerCase()}${suffix}`
-    });
-    
-    console.log(`Search type changed to: ${searchType}`);
-  }, [searchType, setSelectedSport, setSelectedArea, setNameSearch]);
-  
-  // Handle search type change - only trigger if actually different
-  const handleSearchTypeChange = (value: string) => {
-    if (value && value !== searchType) {
-      setSearchType(value);
-    }
-  };
-  
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md mb-8 w-full lg:min-w-[280px]">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-1 gap-4 mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div>
           <label className="block text-sm font-medium mb-2">I'm looking for</label>
-          <Select value={searchType} onValueChange={handleSearchTypeChange}>
+          <Select value={searchType} onValueChange={setSearchType}>
             <SelectTrigger>
               <SelectValue placeholder="Select type" />
             </SelectTrigger>

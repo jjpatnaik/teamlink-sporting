@@ -22,7 +22,7 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
   };
 
   const navigateToSearch = (type: string) => {
-    navigate(`/search?type=${type}`);
+    navigate(`/search?type=${type}&area=local`);
   };
 
   // Get initials for avatar fallback
@@ -44,13 +44,13 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
   return (
     <div className="md:hidden pt-4 pb-3 space-y-3">
       <div className="grid grid-cols-5 gap-4 px-2 py-3 border-b border-gray-100">
-        <button 
-          onClick={() => navigateToSearch('Player')} 
+        <Link 
+          to="/search?type=Player" 
           className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
         >
           <User className="w-5 h-5" />
           <span className="text-xs mt-1">Players</span>
-        </button>
+        </Link>
         <button 
           onClick={() => navigateToSearch('Team')} 
           className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"

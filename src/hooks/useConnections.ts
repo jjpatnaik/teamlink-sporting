@@ -97,51 +97,21 @@ export const useConnections = () => {
 
         if (pendingError) throw pendingError;
 
-        // Fix: Map the data to ensure user property is properly formatted
-        const typedSentConnections = sentConnections?.map(conn => {
-          // Check if user is an array and extract the first element if it is
-          const userObj = Array.isArray(conn.user) ? conn.user[0] : conn.user;
-          return {
-            ...conn,
-            status: conn.status as 'pending' | 'accepted' | 'rejected',
-            user: {
-              full_name: userObj?.full_name || '',
-              sport: userObj?.sport || '',
-              position: userObj?.position || '',
-              profile_picture_url: userObj?.profile_picture_url || null
-            }
-          };
-        }) || [];
+        // Manually validate and cast the data
+        const typedSentConnections = sentConnections?.map(conn => ({
+          ...conn,
+          status: conn.status as 'pending' | 'accepted' | 'rejected'
+        })) || [];
         
-        const typedReceivedConnections = receivedConnections?.map(conn => {
-          // Check if user is an array and extract the first element if it is
-          const userObj = Array.isArray(conn.user) ? conn.user[0] : conn.user;
-          return {
-            ...conn,
-            status: conn.status as 'pending' | 'accepted' | 'rejected',
-            user: {
-              full_name: userObj?.full_name || '',
-              sport: userObj?.sport || '',
-              position: userObj?.position || '',
-              profile_picture_url: userObj?.profile_picture_url || null
-            }
-          };
-        }) || [];
+        const typedReceivedConnections = receivedConnections?.map(conn => ({
+          ...conn,
+          status: conn.status as 'pending' | 'accepted' | 'rejected'
+        })) || [];
         
-        const typedPendingRequests = pendingReqs?.map(req => {
-          // Check if user is an array and extract the first element if it is
-          const userObj = Array.isArray(req.user) ? req.user[0] : req.user;
-          return {
-            ...req,
-            status: req.status as 'pending' | 'accepted' | 'rejected',
-            user: {
-              full_name: userObj?.full_name || '',
-              sport: userObj?.sport || '',
-              position: userObj?.position || '',
-              profile_picture_url: userObj?.profile_picture_url || null
-            }
-          };
-        }) || [];
+        const typedPendingRequests = pendingReqs?.map(req => ({
+          ...req,
+          status: req.status as 'pending' | 'accepted' | 'rejected'
+        })) || [];
 
         // Combine accepted connections
         const allConnections = [...typedSentConnections, ...typedReceivedConnections];

@@ -48,6 +48,10 @@ const PlayerProfile = () => {
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
+      
+      if (!session && event === 'SIGNED_OUT') {
+        navigate("/");
+      }
     });
     
     return () => {
@@ -77,7 +81,43 @@ const PlayerProfile = () => {
     );
   }
 
-  // Removed authentication check to allow access for testing
+  if (!isAuthenticated && !id) {
+    return (
+      <>
+        <Header />
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center p-8">
+            <p className="text-xl text-sport-gray mb-4">You need to be logged in to view your profile</p>
+            <button 
+              onClick={() => navigate("/login")}
+              className="px-6 py-3 bg-sport-purple text-white rounded-md hover:bg-sport-purple/90 transition-colors"
+            >
+              Sign Up or Login
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!playerData && !id) {
+    return (
+      <>
+        <Header />
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center p-8">
+            <p className="text-xl text-sport-gray mb-4">You haven't created your profile yet</p>
+            <button 
+              onClick={() => navigate("/createprofile")}
+              className="px-6 py-3 bg-sport-purple text-white rounded-md hover:bg-sport-purple/90 transition-colors"
+            >
+              Create Your Profile
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -96,22 +136,23 @@ const PlayerProfile = () => {
             <div className="relative px-6 pb-6">
               <ProfileInfo playerData={playerData} isCurrentUser={isCurrentUser} />
               
-              {/* Show edit buttons for all users to enable testing */}
-              <div className="mt-4 flex justify-end space-x-2">
-                <Button 
-                  onClick={handleConnections}
-                  variant="outline"
-                  className="bg-sport-purple/10 hover:bg-sport-purple/20 text-sport-purple"
-                >
-                  My Connections
-                </Button>
-                <Button 
-                  onClick={handleEditProfile}
-                  className="bg-sport-purple hover:bg-sport-purple/90 text-white"
-                >
-                  Edit My Profile
-                </Button>
-              </div>
+              {isCurrentUser && (
+                <div className="mt-4 flex justify-end space-x-2">
+                  <Button 
+                    onClick={handleConnections}
+                    variant="outline"
+                    className="bg-sport-purple/10 hover:bg-sport-purple/20 text-sport-purple"
+                  >
+                    My Connections
+                  </Button>
+                  <Button 
+                    onClick={handleEditProfile}
+                    className="bg-sport-purple hover:bg-sport-purple/90 text-white"
+                  >
+                    Edit My Profile
+                  </Button>
+                </div>
+              )}
               
               <ProfileBio playerData={playerData} />
               <ProfileStats playerData={playerData} />
