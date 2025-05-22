@@ -1,140 +1,41 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Index from "@/pages/Index";
+import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
+import HowItWorksPage from "@/pages/HowItWorksPage";
+import CreateProfilePage from "@/pages/CreateProfilePage";
+import PlayerProfile from "@/pages/PlayerProfile";
+import TeamProfile from "@/pages/TeamProfile";
+import TournamentProfile from "@/pages/TournamentProfile";
+import SponsorProfile from "@/pages/SponsorProfile";
+import ConnectionsPage from "@/pages/ConnectionsPage";
+import SearchPage from "@/pages/SearchPage";
+import NotFound from "@/pages/NotFound";
+import { Toaster } from "@/components/ui/toaster"
+import TournamentOrganiserPanel from "./pages/tournament-organiser/TournamentOrganiserPanel";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import HowItWorksPage from "./pages/HowItWorksPage";
-import PlayerProfile from "./pages/PlayerProfile";
-import TeamProfile from "./pages/TeamProfile";
-import TournamentProfile from "./pages/TournamentProfile";
-import SponsorProfile from "./pages/SponsorProfile";
-import SignupPage from "./pages/signup";
-import LoginPage from "./pages/login";
-import CreateProfilePage from "./pages/createprofile";
-import SearchPage from "./pages/SearchPage";
-import ConnectionsPage from "./pages/ConnectionsPage";
-
-const App = () => {
-  const queryClient = new QueryClient();
-  const [session, setSession] = useState<any>(null);
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    // Check if user is logged in
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      
-      // If user is logged in, check if they have a profile
-      if (data.session?.user) {
-        const { data: profileData, error } = await supabase
-          .from('player_details')
-          .select('id')
-          .eq('id', data.session.user.id)
-          .maybeSingle();
-          
-        setHasProfile(!!profileData);
-      } else {
-        setHasProfile(null);
-      }
-      
-      setLoading(false);
-    };
-    
-    checkSession();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      
-      if (session?.user) {
-        const { data: profileData } = await supabase
-          .from('player_details')
-          .select('id')
-          .eq('id', session.user.id)
-          .maybeSingle();
-          
-        setHasProfile(!!profileData);
-      } else {
-        setHasProfile(null);
-      }
-    });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
+function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/how-it-works" element={<HowItWorksPage />} />
-            <Route 
-              path="/players" 
-              element={
-                session ? <PlayerProfile /> : <Navigate to="/login" />
-              } 
-            />
-            <Route 
-              path="/players/:id" 
-              element={<PlayerProfile />} 
-            />
-            <Route path="/teams" element={<TeamProfile />} />
-            <Route path="/teams/:id" element={<TeamProfile />} />
-            <Route path="/tournaments" element={<TournamentProfile />} />
-            <Route path="/tournaments/:id" element={<TournamentProfile />} />
-            <Route path="/sponsors" element={<SponsorProfile />} />
-            <Route path="/sponsors/:id" element={<SponsorProfile />} />
-            <Route 
-              path="/connections" 
-              element={
-                session ? <ConnectionsPage /> : <Navigate to="/login" />
-              } 
-            />
-            <Route 
-              path="/signup" 
-              element={
-                session ? 
-                  (hasProfile ? <Navigate to="/players" /> : <Navigate to="/createprofile" />) : 
-                  <SignupPage />
-              } 
-            />
-            <Route 
-              path="/login" 
-              element={
-                session ? 
-                  (hasProfile ? <Navigate to="/players" /> : <Navigate to="/createprofile" />) : 
-                  <LoginPage />
-              } 
-            />
-            <Route 
-              path="/createprofile" 
-              element={
-                session ? <CreateProfilePage /> : <Navigate to="/login" />
-              } 
-            />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/create-profile" element={<CreateProfilePage />} />
+        <Route path="/player/:id" element={<PlayerProfile />} />
+        <Route path="/team/:id" element={<TeamProfile />} />
+        <Route path="/tournament/:id" element={<TournamentProfile />} />
+        <Route path="/sponsor/:id" element={<SponsorProfile />} />
+        <Route path="/connections" element={<ConnectionsPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/organiser/tournament" element={<TournamentOrganiserPanel />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <Toaster />
+    </BrowserRouter>
   );
-};
+}
 
 export default App;
