@@ -48,19 +48,21 @@ const LoginPage: React.FC = () => {
           title: "Login failed",
           description: error.message,
         });
+        setIsLoading(false);
         return;
       }
 
       // Check if user is an organiser
       if (values.isOrganiser) {
-        // Check if user has organiser role in the database
-        const { data: organiserData, error: organiserError } = await supabase
-          .from('organisers')
+        // Check if user has organizer status by looking at tournaments they've created
+        // This is a temporary solution until we create an organisers table
+        const { data: tournamentData, error: tournamentError } = await supabase
+          .from('tournaments')
           .select('*')
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-          .maybeSingle();
+          .eq('organizer_id', (await supabase.auth.getUser()).data.user?.id)
+          .limit(1);
 
-        if (organiserError || !organiserData) {
+        if (tournamentError || !tournamentData || tournamentData.length === 0) {
           // User is not an organiser
           toast({
             variant: "destructive",

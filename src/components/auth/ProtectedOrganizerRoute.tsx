@@ -24,14 +24,15 @@ const ProtectedOrganizerRoute: React.FC<ProtectedOrganizerRouteProps> = ({ child
           return;
         }
         
-        // Check if user is an organizer
-        const { data: organizerData, error: organizerError } = await supabase
-          .from('organisers')
+        // Check if user is an organizer by looking at tournaments they've created
+        // This is a temporary solution until we create an organisers table
+        const { data: tournamentData, error: tournamentError } = await supabase
+          .from('tournaments')
           .select('*')
-          .eq('user_id', sessionData.session.user.id)
-          .maybeSingle();
+          .eq('organizer_id', sessionData.session.user.id)
+          .limit(1);
         
-        if (organizerError || !organizerData) {
+        if (tournamentError || !tournamentData || tournamentData.length === 0) {
           toast({
             variant: "destructive",
             title: "Access denied",
