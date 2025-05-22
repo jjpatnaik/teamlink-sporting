@@ -14,6 +14,7 @@ import PlayerSignupForm from "./PlayerSignupForm";
 import { userTypes } from "./constants";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import OrganizerSignupForm from "./OrganizerSignupForm";
 
 const SignupPage = () => {
   const [userType, setUserType] = useState<string>("player");
@@ -70,7 +71,6 @@ const SignupPage = () => {
                     <SelectItem 
                       key={type.value} 
                       value={type.value}
-                      disabled={type.disabled}
                     >
                       {type.label}
                     </SelectItem>
@@ -81,11 +81,12 @@ const SignupPage = () => {
 
             {userType === "player" ? (
               <PlayerSignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
+            ) : userType === "organizer" ? (
+              <OrganizerSignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
             ) : (
               <div className="py-8 text-center">
                 <p className="text-lg text-gray-600">
-                  {userType === "team" ? "Club/Team" : 
-                   userType === "organizer" ? "Tournament Organiser" : "Sponsor"} registration is coming soon!
+                  {userType === "team" ? "Club/Team" : "Sponsor"} registration is coming soon!
                 </p>
                 <p className="mt-2 text-gray-500">
                   We're currently working on making this available. Please check back later.

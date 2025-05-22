@@ -1,8 +1,8 @@
 
 export const userTypes = [
   { value: "player", label: "Player" },
+  { value: "organizer", label: "Tournament Organiser" },
   { value: "team", label: "Club/Team (Coming Soon)", disabled: true },
-  { value: "organizer", label: "Tournament Organiser (Coming Soon)", disabled: true },
   { value: "sponsor", label: "Sponsor (Coming Soon)", disabled: true },
 ];
 
