@@ -13,8 +13,9 @@ import SponsorProfile from "@/pages/SponsorProfile";
 import ConnectionsPage from "@/pages/ConnectionsPage";
 import SearchPage from "@/pages/SearchPage";
 import NotFound from "@/pages/NotFound";
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 import TournamentOrganiserPanel from "./pages/tournament-organiser/TournamentOrganiserPanel";
+import ProtectedOrganizerRoute from "./components/auth/ProtectedOrganizerRoute";
 
 function App() {
   return (
@@ -31,7 +32,14 @@ function App() {
         <Route path="/sponsor/:id" element={<SponsorProfile />} />
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/organiser/tournament" element={<TournamentOrganiserPanel />} />
+        <Route 
+          path="/organiser/tournament" 
+          element={
+            <ProtectedOrganizerRoute>
+              <TournamentOrganiserPanel />
+            </ProtectedOrganizerRoute>
+          } 
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

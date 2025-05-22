@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
+  isOrganiser: z.boolean().default(false),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -28,6 +30,7 @@ const LoginPage: React.FC = () => {
     defaultValues: {
       email: "",
       password: "",
+      isOrganiser: false,
     },
   });
 
@@ -48,12 +51,43 @@ const LoginPage: React.FC = () => {
         return;
       }
 
-      toast({
-        title: "Login successful",
-        description: "You are now logged in to your account",
-      });
-      
-      navigate("/players");
+      // Check if user is an organiser
+      if (values.isOrganiser) {
+        // Check if user has organiser role in the database
+        const { data: organiserData, error: organiserError } = await supabase
+          .from('organisers')
+          .select('*')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .maybeSingle();
+
+        if (organiserError || !organiserData) {
+          // User is not an organiser
+          toast({
+            variant: "destructive",
+            title: "Access denied",
+            description: "You don't have tournament organiser privileges.",
+          });
+          
+          // Sign out the user
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+
+        toast({
+          title: "Login successful",
+          description: "Welcome to the Tournament Organiser Panel",
+        });
+        
+        navigate("/organiser/tournament");
+      } else {
+        toast({
+          title: "Login successful",
+          description: "You are now logged in to your account",
+        });
+        
+        navigate("/players");
+      }
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -99,6 +133,26 @@ const LoginPage: React.FC = () => {
                       <Input placeholder="Enter your password" type="password" {...field} />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="isOrganiser"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Login as Tournament Organiser
+                      </FormLabel>
+                    </div>
                   </FormItem>
                 )}
               />
