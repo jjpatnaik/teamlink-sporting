@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from "@/pages/Index";
-import LoginPage from "@/pages/LoginPage";
-import SignupPage from "@/pages/SignupPage";
+import LoginPage from "@/pages/login";
+import SignupPage from "@/pages/signup";
 import HowItWorksPage from "@/pages/HowItWorksPage";
-import CreateProfilePage from "@/pages/CreateProfilePage";
+import CreateProfilePage from "@/pages/createprofile";
 import PlayerProfile from "@/pages/PlayerProfile";
 import TeamProfile from "@/pages/TeamProfile";
 import TournamentProfile from "@/pages/TournamentProfile";
