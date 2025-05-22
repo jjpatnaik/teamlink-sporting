@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
+import { useTournamentData } from "@/hooks/useTournamentData";
 import { 
   Trophy,
   MapPin,
@@ -15,8 +17,26 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const TournamentProfile = () => {
+  const { tournament, teams, loading, isOrganizer, currentUserId, addTeam } = useTournamentData();
+  const navigate = useNavigate();
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-sport-purple"></div>
+    </div>;
+  }
+
+  if (!tournament) {
+    return <div className="min-h-screen flex flex-col items-center justify-center">
+      <h1 className="text-2xl font-bold mb-4">Tournament not found</h1>
+      <Button onClick={() => navigate('/')}>Return to Home</Button>
+    </div>;
+  }
+
   return (
     <>
       <Header />
@@ -25,9 +45,11 @@ const TournamentProfile = () => {
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             {/* Cover Photo */}
             <div className="h-48 bg-gradient-to-r from-sport-purple/90 to-sport-blue/90 relative">
-              <Button variant="ghost" className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white">
-                Edit Profile
-              </Button>
+              {isOrganizer && (
+                <Button variant="ghost" className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white">
+                  Edit Profile
+                </Button>
+              )}
             </div>
             
             {/* Profile Info */}
@@ -40,16 +62,24 @@ const TournamentProfile = () => {
               
               <div className="flex flex-col md:flex-row justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold">Midwest Basketball Championship</h1>
-                  <p className="text-xl text-sport-purple">Regional Basketball Tournament</p>
-                  <div className="flex items-center mt-2 text-sport-gray">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    <span>Chicago, IL, USA</span>
-                  </div>
+                  <h1 className="text-3xl font-bold">{tournament.name}</h1>
+                  <p className="text-xl text-sport-purple">{tournament.sport} Tournament</p>
+                  {tournament.location && (
+                    <div className="flex items-center mt-2 text-sport-gray">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      <span>{tournament.location}</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="mt-4 md:mt-0 flex space-x-2">
-                  <Button className="btn-primary">Register Team</Button>
+                  <Button className="btn-primary" onClick={() => {
+                    if (currentUserId) {
+                      // Show registration modal
+                    } else {
+                      navigate('/login');
+                    }
+                  }}>Register Team</Button>
                   <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
                     Contact
                   </Button>
@@ -60,10 +90,7 @@ const TournamentProfile = () => {
               <div className="mt-6">
                 <h2 className="text-xl font-semibold mb-2">About the Tournament</h2>
                 <p className="text-sport-gray">
-                  The Midwest Basketball Championship is one of the most prestigious basketball tournaments in the region. 
-                  Now in its 12th year, the tournament brings together the best teams from across the Midwest to compete 
-                  for the championship title and substantial prize money. The tournament features men's and women's divisions, 
-                  with games played in state-of-the-art facilities.
+                  {tournament.description || "No description available."}
                 </p>
               </div>
               
@@ -71,19 +98,23 @@ const TournamentProfile = () => {
               <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-sport-gray">Dates</p>
-                  <p className="text-lg font-semibold">June 10-15, 2025</p>
+                  <p className="text-lg font-semibold">
+                    {tournament.start_date && tournament.end_date ? 
+                      `${new Date(tournament.start_date).toLocaleDateString()} - ${new Date(tournament.end_date).toLocaleDateString()}` : 
+                      "TBD"}
+                  </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-sport-gray">Teams</p>
-                  <p className="text-lg font-semibold">32 (16 per division)</p>
+                  <p className="text-lg font-semibold">{teams.length}/{tournament.teams_allowed}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-sport-gray">Location</p>
-                  <p className="text-lg font-semibold">United Center</p>
+                  <p className="text-lg font-semibold">{tournament.location || "TBD"}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-sport-gray">Prize Pool</p>
-                  <p className="text-lg font-semibold">$50,000</p>
+                  <p className="text-sm text-sport-gray">Format</p>
+                  <p className="text-lg font-semibold">{tournament.format}</p>
                 </div>
               </div>
               
@@ -92,109 +123,74 @@ const TournamentProfile = () => {
                 <h2 className="text-xl font-semibold mb-4">Tournament Schedule</h2>
                 
                 <div className="space-y-4">
-                  <div className="border-l-4 border-sport-purple pl-4 pb-4">
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-sport-purple mr-2" />
-                      <span className="text-sm text-sport-gray">June 10, 2025</span>
+                  {tournament.start_date ? (
+                    <>
+                      <div className="border-l-4 border-sport-purple pl-4 pb-4">
+                        <div className="flex items-center">
+                          <Calendar className="w-5 h-5 text-sport-purple mr-2" />
+                          <span className="text-sm text-sport-gray">
+                            {new Date(tournament.start_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-semibold mt-1">Opening Ceremony & Group Stage</h3>
+                        <div className="flex items-center mt-1">
+                          <Clock className="w-4 h-4 text-sport-gray mr-1" />
+                          <span className="text-sm text-sport-gray">9:00 AM - 8:00 PM</span>
+                        </div>
+                      </div>
+                      
+                      <div className="border-l-4 border-sport-purple pl-4 pb-4">
+                        <div className="flex items-center">
+                          <Calendar className="w-5 h-5 text-sport-purple mr-2" />
+                          <span className="text-sm text-sport-gray">
+                            {tournament.end_date && new Date(tournament.end_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-semibold mt-1">Finals & Award Ceremony</h3>
+                        <div className="flex items-center mt-1">
+                          <Clock className="w-4 h-4 text-sport-gray mr-1" />
+                          <span className="text-sm text-sport-gray">3:00 PM - 9:00 PM</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-sport-gray">
+                      Schedule will be announced soon
                     </div>
-                    <h3 className="text-lg font-semibold mt-1">Opening Ceremony & Group Stage</h3>
-                    <div className="flex items-center mt-1">
-                      <Clock className="w-4 h-4 text-sport-gray mr-1" />
-                      <span className="text-sm text-sport-gray">9:00 AM - 8:00 PM</span>
-                    </div>
-                  </div>
-                  
-                  <div className="border-l-4 border-sport-purple pl-4 pb-4">
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-sport-purple mr-2" />
-                      <span className="text-sm text-sport-gray">June 11-13, 2025</span>
-                    </div>
-                    <h3 className="text-lg font-semibold mt-1">Preliminary Rounds</h3>
-                    <div className="flex items-center mt-1">
-                      <Clock className="w-4 h-4 text-sport-gray mr-1" />
-                      <span className="text-sm text-sport-gray">10:00 AM - 9:00 PM</span>
-                    </div>
-                  </div>
-                  
-                  <div className="border-l-4 border-sport-purple pl-4 pb-4">
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-sport-purple mr-2" />
-                      <span className="text-sm text-sport-gray">June 14, 2025</span>
-                    </div>
-                    <h3 className="text-lg font-semibold mt-1">Semi-Finals</h3>
-                    <div className="flex items-center mt-1">
-                      <Clock className="w-4 h-4 text-sport-gray mr-1" />
-                      <span className="text-sm text-sport-gray">2:00 PM - 8:00 PM</span>
-                    </div>
-                  </div>
-                  
-                  <div className="border-l-4 border-sport-purple pl-4 pb-4">
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 text-sport-purple mr-2" />
-                      <span className="text-sm text-sport-gray">June 15, 2025</span>
-                    </div>
-                    <h3 className="text-lg font-semibold mt-1">Finals & Award Ceremony</h3>
-                    <div className="flex items-center mt-1">
-                      <Clock className="w-4 h-4 text-sport-gray mr-1" />
-                      <span className="text-sm text-sport-gray">3:00 PM - 9:00 PM</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
               
               {/* Participating Teams */}
               <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Featured Teams</h2>
+                <h2 className="text-xl font-semibold mb-4">Registered Teams</h2>
                 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                    <div className="w-10 h-10 bg-sport-light-purple rounded-full flex items-center justify-center mr-3">
-                      <span className="font-bold">CT</span>
-                    </div>
-                    <span className="font-medium">Chicago Thunder</span>
+                {teams.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {teams.map((team) => (
+                      <div key={team.id} className="bg-gray-50 p-4 rounded-lg flex items-center">
+                        <div className="w-10 h-10 bg-sport-light-purple rounded-full flex items-center justify-center mr-3">
+                          <span className="font-bold">
+                            {team.team_name.substring(0, 2).toUpperCase()}
+                          </span>
+                        </div>
+                        <span className="font-medium">{team.team_name}</span>
+                      </div>
+                    ))}
                   </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="font-bold">MW</span>
-                    </div>
-                    <span className="font-medium">Milwaukee Wolves</span>
+                ) : (
+                  <div className="text-center py-8 text-sport-gray">
+                    No teams registered yet. Be the first one to register!
                   </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="font-bold">IL</span>
-                    </div>
-                    <span className="font-medium">Iowa Lightning</span>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="font-bold">MP</span>
-                    </div>
-                    <span className="font-medium">Minneapolis Power</span>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="font-bold">DS</span>
-                    </div>
-                    <span className="font-medium">Detroit Stars</span>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="font-bold">CS</span>
-                    </div>
-                    <span className="font-medium">Cleveland Surge</span>
-                  </div>
-                </div>
+                )}
                 
-                <div className="mt-4 text-center">
-                  <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
-                    View All Teams
-                  </Button>
-                </div>
+                {teams.length > 6 && (
+                  <div className="mt-4 text-center">
+                    <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
+                      View All Teams
+                    </Button>
+                  </div>
+                )}
               </div>
               
               {/* Sponsors */}
@@ -239,7 +235,7 @@ const TournamentProfile = () => {
                     </div>
                     <div className="flex items-center">
                       <MapPin className="w-5 h-5 text-sport-gray mr-2" />
-                      <span>United Center, 1901 W Madison St, Chicago, IL</span>
+                      <span>{tournament.location || "Location TBD"}</span>
                     </div>
                   </div>
                 </div>
