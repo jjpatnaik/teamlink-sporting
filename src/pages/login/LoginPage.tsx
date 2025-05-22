@@ -54,47 +54,25 @@ const LoginPage: React.FC = () => {
 
       // Check if user is an organiser
       if (values.isOrganiser) {
-        // First check if user is in the organisers table
-        const { data: organiserData, error: organiserError } = await supabase
-          .from('organisers')
+        // Check if they've created tournaments (which defines an organizer)
+        const { data: tournamentData, error: tournamentError } = await supabase
+          .from('tournaments')
           .select('*')
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .eq('organizer_id', (await supabase.auth.getUser()).data.user?.id)
           .limit(1);
 
-        // If not in organisers table, check if they've created tournaments
-        // This is for backward compatibility with existing tournament creators
-        if (!organiserData || organiserData.length === 0) {
-          const { data: tournamentData, error: tournamentError } = await supabase
-            .from('tournaments')
-            .select('*')
-            .eq('organizer_id', (await supabase.auth.getUser()).data.user?.id)
-            .limit(1);
-
-          if (tournamentError || !tournamentData || tournamentData.length === 0) {
-            // User is not an organiser
-            toast({
-              variant: "destructive",
-              title: "Access denied",
-              description: "You don't have tournament organiser privileges.",
-            });
-            
-            // Sign out the user
-            await supabase.auth.signOut();
-            setIsLoading(false);
-            return;
-          } else {
-            // User has created tournaments but isn't in organisers table - add them
-            const { error: insertError } = await supabase
-              .from('organisers')
-              .insert({
-                user_id: (await supabase.auth.getUser()).data.user?.id,
-                email: (await supabase.auth.getUser()).data.user?.email
-              });
-              
-            if (insertError) {
-              console.error("Error adding user to organisers table:", insertError);
-            }
-          }
+        if (tournamentError || !tournamentData || tournamentData.length === 0) {
+          // User is not an organiser
+          toast({
+            variant: "destructive",
+            title: "Access denied",
+            description: "You don't have tournament organiser privileges.",
+          });
+          
+          // Sign out the user
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
         }
 
         toast({

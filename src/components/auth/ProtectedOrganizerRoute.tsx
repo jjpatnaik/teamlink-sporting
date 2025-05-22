@@ -24,30 +24,14 @@ const ProtectedOrganizerRoute: React.FC<ProtectedOrganizerRouteProps> = ({ child
           return;
         }
         
-        // First, check if user is in the organisers table
-        const { data: organiserData, error: organiserError } = await supabase
-          .from('organisers')
-          .select('*')
-          .eq('user_id', sessionData.session.user.id)
-          .limit(1);
-          
-        if (organiserData && organiserData.length > 0) {
-          // User is in the organisers table
-          setIsAuthorized(true);
-          setIsLoading(false);
-          return;
-        }
-        
-        // If not in organisers table, check if they've created tournaments
-        // This is for backward compatibility with existing tournament creators
+        // Check if user has created tournaments (which defines an organizer)
         const { data: tournamentData, error: tournamentError } = await supabase
           .from('tournaments')
           .select('*')
           .eq('organizer_id', sessionData.session.user.id)
           .limit(1);
         
-        if ((organiserError && tournamentError) || 
-            (!organiserData?.length && !tournamentData?.length)) {
+        if (tournamentError || !tournamentData?.length) {
           toast({
             variant: "destructive",
             title: "Access denied",
@@ -55,20 +39,6 @@ const ProtectedOrganizerRoute: React.FC<ProtectedOrganizerRouteProps> = ({ child
           });
           setIsAuthorized(false);
         } else {
-          // If they have created tournaments but aren't in the organisers table,
-          // add them to the organisers table for future checks
-          if (tournamentData && tournamentData.length > 0) {
-            const { error: insertError } = await supabase
-              .from('organisers')
-              .insert({
-                user_id: sessionData.session.user.id,
-                email: sessionData.session.user.email
-              });
-              
-            if (insertError) {
-              console.error("Error adding user to organisers table:", insertError);
-            }
-          }
           setIsAuthorized(true);
         }
       } catch (error) {
