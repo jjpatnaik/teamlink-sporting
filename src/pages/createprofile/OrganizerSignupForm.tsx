@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Upload, Building2 } from "lucide-react";
 import { useOrganizerData, OrganizerProfile } from "@/hooks/useOrganizerData";
-import { sportOptions } from "@/constants/sportOptions";
+import { sportsOptions } from "@/constants/sportOptions";
 
 const organizerSchema = z.object({
   organization_name: z.string().min(2, "Organization name must be at least 2 characters"),
@@ -241,7 +240,7 @@ const OrganizerSignupForm: React.FC<OrganizerSignupFormProps> = ({
                   <FormItem>
                     <FormLabel>Sports Organized*</FormLabel>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {sportOptions.map((sport) => (
+                      {sportsOptions.map((sport) => (
                         <FormField
                           key={sport.value}
                           control={form.control}

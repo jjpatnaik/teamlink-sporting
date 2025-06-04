@@ -9,7 +9,7 @@ export type OrganizerProfile = {
   organization_name: string;
   description: string | null;
   contact_person_name: string;
-  contact_email: string;
+  contact_email: string; // Made required to match database schema
   contact_phone: string | null;
   sports: string[];
   website_url: string | null;
@@ -74,9 +74,14 @@ export const useOrganizerData = () => {
         throw new Error("User not authenticated");
       }
 
+      // Ensure required fields are present
       const dataWithUserId = {
         ...profileData,
         user_id: sessionData.session.user.id,
+        // Ensure contact_email and contact_person_name are always strings
+        contact_email: profileData.contact_email || '',
+        contact_person_name: profileData.contact_person_name || '',
+        organization_name: profileData.organization_name || '',
       };
 
       if (organizerData) {
