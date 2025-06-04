@@ -25,8 +25,9 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/how-it-works" element={<HowItWorksPage />} />
-        <Route path="/create-profile" element={<CreateProfilePage />} />
+        <Route path="/createprofile" element={<CreateProfilePage />} />
         <Route path="/player/:id" element={<PlayerProfile />} />
+        <Route path="/players" element={<PlayerProfile />} />
         <Route path="/team/:id" element={<TeamProfile />} />
         <Route path="/tournament/:id" element={<TournamentProfile />} />
         <Route path="/sponsor/:id" element={<SponsorProfile />} />
