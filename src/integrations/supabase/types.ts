@@ -293,6 +293,204 @@ export type Database = {
         }
         Relationships: []
       }
+      player_profiles: {
+        Row: {
+          achievements: string | null
+          age: number | null
+          clubs: string | null
+          facebook_id: string | null
+          height: string | null
+          id: string
+          instagram_id: string | null
+          position: string
+          profile_id: string
+          sport: string
+          weight: string | null
+          whatsapp_id: string | null
+        }
+        Insert: {
+          achievements?: string | null
+          age?: number | null
+          clubs?: string | null
+          facebook_id?: string | null
+          height?: string | null
+          id?: string
+          instagram_id?: string | null
+          position: string
+          profile_id: string
+          sport: string
+          weight?: string | null
+          whatsapp_id?: string | null
+        }
+        Update: {
+          achievements?: string | null
+          age?: number | null
+          clubs?: string | null
+          facebook_id?: string | null
+          height?: string | null
+          id?: string
+          instagram_id?: string | null
+          position?: string
+          profile_id?: string
+          sport?: string
+          weight?: string | null
+          whatsapp_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          background_picture_url: string | null
+          bio: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          display_name: string
+          id: string
+          profile_picture_url: string | null
+          profile_type: Database["public"]["Enums"]["profile_type"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          background_picture_url?: string | null
+          bio?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name: string
+          id?: string
+          profile_picture_url?: string | null
+          profile_type: Database["public"]["Enums"]["profile_type"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          background_picture_url?: string | null
+          bio?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          profile_picture_url?: string | null
+          profile_type?: Database["public"]["Enums"]["profile_type"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sponsor_profiles: {
+        Row: {
+          company_name: string
+          contact_email: string
+          contact_person: string
+          contact_phone: string | null
+          id: string
+          industry: string | null
+          preferred_sports: string[] | null
+          profile_id: string
+          sponsorship_budget_range: string | null
+          sponsorship_types: string[] | null
+          website_url: string | null
+        }
+        Insert: {
+          company_name: string
+          contact_email: string
+          contact_person: string
+          contact_phone?: string | null
+          id?: string
+          industry?: string | null
+          preferred_sports?: string[] | null
+          profile_id: string
+          sponsorship_budget_range?: string | null
+          sponsorship_types?: string[] | null
+          website_url?: string | null
+        }
+        Update: {
+          company_name?: string
+          contact_email?: string
+          contact_person?: string
+          contact_phone?: string | null
+          id?: string
+          industry?: string | null
+          preferred_sports?: string[] | null
+          profile_id?: string
+          sponsorship_budget_range?: string | null
+          sponsorship_types?: string[] | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_profiles: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          founded_year: number | null
+          home_ground: string | null
+          id: string
+          league_division: string | null
+          profile_id: string
+          social_media_links: Json | null
+          sport: string
+          team_name: string
+          team_size: number | null
+          website_url: string | null
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          founded_year?: number | null
+          home_ground?: string | null
+          id?: string
+          league_division?: string | null
+          profile_id: string
+          social_media_links?: Json | null
+          sport: string
+          team_name: string
+          team_size?: number | null
+          website_url?: string | null
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          founded_year?: number | null
+          home_ground?: string | null
+          id?: string
+          league_division?: string | null
+          profile_id?: string
+          social_media_links?: Json | null
+          sport?: string
+          team_name?: string
+          team_size?: number | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_teams: {
         Row: {
           contact_email: string | null
@@ -399,7 +597,11 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      profile_type:
+        | "player"
+        | "team_captain"
+        | "tournament_organizer"
+        | "sponsor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -514,6 +716,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      profile_type: [
+        "player",
+        "team_captain",
+        "tournament_organizer",
+        "sponsor",
+      ],
+    },
   },
 } as const

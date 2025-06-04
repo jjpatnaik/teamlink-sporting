@@ -1,269 +1,135 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import SearchFilters from '@/components/search/SearchFilters';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search } from 'lucide-react';
+import { sportsOptions } from '@/constants/sportOptions';
 import UnifiedSearchResults from '@/components/search/UnifiedSearchResults';
-import { 
-  MOCK_SPORTS, 
-  MOCK_AREAS, 
-  MOCK_TEAMS, 
-  MOCK_SPONSORSHIPS 
-} from '@/data/mockData';
-import { supabase } from "@/integrations/supabase/client";
-import { useTournaments } from '@/hooks/useTournaments';
+import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
 
 const SearchPage = () => {
+  const [nameSearch, setNameSearch] = useState('');
+  const [selectedSport, setSelectedSport] = useState('any_sport');
+  const [selectedArea, setSelectedArea] = useState('any_area');
+  const [profileType, setProfileType] = useState('all');
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [selectedSport, setSelectedSport] = useState<string>("any_sport");
-  const [selectedArea, setSelectedArea] = useState<string>("any_area");
-  const [nameSearch, setNameSearch] = useState<string>("");
-  const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
-  const [selectedContentType, setSelectedContentType] = useState<string>("all");
-  const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
-  const [filteredTeams, setFilteredTeams] = useState<any[]>([]);
-  const [filteredTournaments, setFilteredTournaments] = useState<any[]>([]);
-  const [filteredSponsorships, setFilteredSponsorships] = useState<any[]>([]);
-  const [userCity, setUserCity] = useState<string | null>(null);
-  const [userPostcode, setUserPostcode] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [playerProfiles, setPlayerProfiles] = useState<any[]>([]);
   
-  // Use the new tournaments hook
-  const { tournaments, loading: tournamentsLoading } = useTournaments();
+  const { profiles, loading, searchProfiles } = useUnifiedSearch();
 
-  // Get user location data if they're logged in
   useEffect(() => {
-    const fetchUserLocation = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          const { data, error } = await supabase
-            .from('player_details')
-            .select('city, postcode')
-            .eq('id', user.id)
-            .maybeSingle();
-            
-          if (error) {
-            console.error("Error fetching user location:", error);
-            return;
-          }
-          
-          if (data) {
-            setUserCity(data.city);
-            setUserPostcode(data.postcode);
-          }
-        }
-      } catch (error) {
-        console.error("Error in fetchUserLocation:", error);
-      }
-    };
-    
-    fetchUserLocation();
-  }, []);
+    handleSearch();
+  }, [selectedSport, selectedArea, profileType]);
 
-  // Fetch player profiles from the database
-  useEffect(() => {
-    const fetchPlayerProfiles = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('player_details')
-          .select('*');
-
-        if (error) {
-          console.error("Error fetching player profiles:", error);
-          return;
-        }
-
-        if (data) {
-          // Transform the data to match the expected format
-          const transformedData = data.map((player, index) => ({
-            id: index + 1,
-            userId: player.id,
-            name: player.full_name,
-            sport: player.sport,
-            area: player.city || "Unknown",
-            image: player.profile_picture_url || "https://via.placeholder.com/300x200?text=No+Image"
-          }));
-          
-          setPlayerProfiles(transformedData);
-        }
-      } catch (error) {
-        console.error("Error in fetchPlayerProfiles:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPlayerProfiles();
-  }, []);
-
-  // Handle URL parameters
-  useEffect(() => {
-    const sportParam = searchParams.get('sport');
-    const areaParam = searchParams.get('area');
-    
-    if (sportParam) {
-      setSelectedSport(sportParam);
-    }
-    
-    if (areaParam === 'local' && userCity) {
-      // If we have the user's city, use it as the area
-      const cityArea = MOCK_AREAS.find(area => area.toLowerCase().includes(userCity.toLowerCase()));
-      if (cityArea) {
-        setSelectedArea(cityArea);
-      }
-      setNearMeOnly(true);
-    }
-  }, [searchParams, userCity]);
-
-  // Filter function for applying filters to any result set
-  const applyFilters = (results: any[]) => {
-    let filtered = [...results];
-    
-    // Apply sport filter
-    if (selectedSport !== "any_sport") {
-      filtered = filtered.filter(item => item.sport === selectedSport);
-    }
-    
-    // Apply area filter
-    if (selectedArea !== "any_area") {
-      filtered = filtered.filter(item => item.area === selectedArea);
-    }
-    
-    // Apply name search filter
-    if (nameSearch) {
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(nameSearch.toLowerCase())
-      );
-    }
-    
-    // Apply near me filter if enabled and we know user's location
-    if (nearMeOnly && userCity) {
-      filtered = filtered.filter(item => {
-        // This is a simplification - in a real app, you'd use more sophisticated
-        // location matching based on city/postcode proximity
-        return item.area.toLowerCase().includes(userCity.toLowerCase());
-      });
-    }
-    
-    return filtered;
+  const handleSearch = async () => {
+    await searchProfiles({
+      searchTerm: nameSearch || undefined,
+      profileType: profileType !== 'all' ? profileType : undefined,
+      sport: selectedSport !== 'any_sport' ? selectedSport : undefined,
+      city: selectedArea !== 'any_area' ? selectedArea : undefined,
+    });
   };
 
-  // Update results whenever filters change
-  useEffect(() => {
-    const baseFilters = () => {
-      const players = applyFilters(playerProfiles);
-      const teams = applyFilters(MOCK_TEAMS);
-      const tournamentResults = applyFilters(tournaments); // Use real tournaments data
-      const sponsorships = applyFilters(MOCK_SPONSORSHIPS);
-      
-      // Apply content type filter
-      switch (selectedContentType) {
-        case "players":
-          setFilteredPlayers(players);
-          setFilteredTeams([]);
-          setFilteredTournaments([]);
-          setFilteredSponsorships([]);
-          break;
-        case "teams":
-          setFilteredPlayers([]);
-          setFilteredTeams(teams);
-          setFilteredTournaments([]);
-          setFilteredSponsorships([]);
-          break;
-        case "tournaments":
-          setFilteredPlayers([]);
-          setFilteredTeams([]);
-          setFilteredTournaments(tournamentResults);
-          setFilteredSponsorships([]);
-          break;
-        case "sponsorships":
-          setFilteredPlayers([]);
-          setFilteredTeams([]);
-          setFilteredTournaments([]);
-          setFilteredSponsorships(sponsorships);
-          break;
-        default: // "all"
-          setFilteredPlayers(players);
-          setFilteredTeams(teams);
-          setFilteredTournaments(tournamentResults);
-          setFilteredSponsorships(sponsorships);
-          break;
-      }
-    };
-    
-    baseFilters();
-  }, [selectedSport, selectedArea, nameSearch, nearMeOnly, selectedContentType, userCity, playerProfiles, tournaments]);
+  const handleItemClick = (id: string) => {
+    navigate(`/profile/${id}`);
+  };
 
-  const handleItemClick = (id: string, type: string) => {
-    switch (type) {
-      case "Player": {
-        const player = playerProfiles.find(p => p.id.toString() === id);
-        if (player && player.userId) {
-          navigate(`/player/${player.userId}`);
-        } else {
-          navigate(`/player/${id}`);
-        }
-        break;
-      }
-      case "Team":
-        navigate(`/team/${id}`);
-        break;
-      case "Tournament":
-        // For tournaments, use the string ID directly
-        navigate(`/tournament/${id}`);
-        break;
-      case "Sponsorship":
-        navigate(`/sponsor/${id}`);
-        break;
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-sport-light-purple/10">
       <Header />
-      <main className="flex-grow bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Find Your Sports Network</h1>
-            <p className="text-sport-gray">Search for players, teams, tournaments, and sponsorships across all levels</p>
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Search Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-sport-blue to-sport-purple bg-clip-text text-transparent">
+              Discover Sports Community
+            </h1>
+            <p className="text-sport-gray text-lg">
+              Connect with players, teams, organizers, and sponsors
+            </p>
           </div>
-          
-          <SearchFilters 
-            selectedSport={selectedSport}
-            setSelectedSport={setSelectedSport}
-            selectedArea={selectedArea}
-            setSelectedArea={setSelectedArea}
-            nameSearch={nameSearch}
-            setNameSearch={setNameSearch}
-            sports={MOCK_SPORTS}
-            areas={MOCK_AREAS}
-            nearMeOnly={nearMeOnly}
-            setNearMeOnly={setNearMeOnly}
-            selectedContentType={selectedContentType}
-            setSelectedContentType={setSelectedContentType}
+
+          {/* Search Filters */}
+          <div className="bg-white rounded-lg shadow-sm border border-sport-light-purple/20 p-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {/* Name Search */}
+              <div className="md:col-span-2">
+                <Input
+                  placeholder="Search by name..."
+                  value={nameSearch}
+                  onChange={(e) => setNameSearch(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="border-sport-light-purple/50 focus-visible:ring-sport-purple/40"
+                />
+              </div>
+
+              {/* Profile Type Filter */}
+              <div>
+                <Select value={profileType} onValueChange={setProfileType}>
+                  <SelectTrigger className="border-sport-light-purple/50 focus-visible:ring-sport-purple/40">
+                    <SelectValue placeholder="Profile Type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="player">Sports Enthusiasts</SelectItem>
+                    <SelectItem value="team_captain">Team Captains</SelectItem>
+                    <SelectItem value="tournament_organizer">Tournament Organizers</SelectItem>
+                    <SelectItem value="sponsor">Sponsors</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sport Filter */}
+              <div>
+                <Select value={selectedSport} onValueChange={setSelectedSport}>
+                  <SelectTrigger className="border-sport-light-purple/50 focus-visible:ring-sport-purple/40">
+                    <SelectValue placeholder="Sport" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="any_sport">Any Sport</SelectItem>
+                    {sportsOptions.map((sport) => (
+                      <SelectItem key={sport.value} value={sport.value}>
+                        {sport.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Search Button */}
+              <div>
+                <Button 
+                  onClick={handleSearch}
+                  className="w-full bg-gradient-to-r from-sport-blue to-sport-purple hover:opacity-90 text-white"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Search Results */}
+          <UnifiedSearchResults
+            profiles={profiles}
+            handleItemClick={handleItemClick}
+            loading={loading}
+            searchFilters={{
+              selectedSport,
+              selectedArea,
+              nameSearch,
+              profileType
+            }}
           />
-          
-          <div className="mb-4">
-            <UnifiedSearchResults 
-              players={filteredPlayers}
-              teams={filteredTeams}
-              tournaments={filteredTournaments}
-              sponsorships={filteredSponsorships}
-              handleItemClick={handleItemClick}
-              loading={loading || tournamentsLoading}
-              searchFilters={{
-                selectedSport,
-                selectedArea,
-                nameSearch
-              }}
-            />
-          </div>
         </div>
       </main>
       <Footer />

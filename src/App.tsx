@@ -28,7 +28,8 @@ function App() {
         <Route path="/createprofile" element={<CreateProfilePage />} />
         <Route path="/player/:id" element={<PlayerProfile />} />
         <Route path="/players/:id" element={<PlayerProfile />} />
-        <Route path="/players" element={<PlayerProfile />} />
+        <Route path="/players" element={<SearchPage />} />
+        <Route path="/profile/:id" element={<PlayerProfile />} />
         <Route path="/team/:id" element={<TeamProfile />} />
         <Route path="/tournament/:id" element={<TournamentProfile />} />
         <Route path="/sponsor/:id" element={<SponsorProfile />} />
