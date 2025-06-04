@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -199,10 +200,10 @@ const SearchPage = () => {
     baseFilters();
   }, [selectedSport, selectedArea, nameSearch, nearMeOnly, selectedContentType, userCity, playerProfiles, tournaments]);
 
-  const handleItemClick = (id: number, type: string) => {
+  const handleItemClick = (id: string, type: string) => {
     switch (type) {
       case "Player": {
-        const player = playerProfiles.find(p => p.id === id);
+        const player = playerProfiles.find(p => p.id.toString() === id);
         if (player && player.userId) {
           navigate(`/player/${player.userId}`);
         } else {

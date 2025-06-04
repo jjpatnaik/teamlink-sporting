@@ -11,7 +11,7 @@ interface SearchResultsProps {
   filteredResults: any[];
   selectedSport: string;
   selectedArea: string;
-  handleItemClick: (id: number) => void;
+  handleItemClick: (id: string) => void;
   loading?: boolean;
 }
 
@@ -52,11 +52,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {searchType === "Player" && filteredResults.map((player) => (
-            <PlayerCard key={player.id} player={player} onClick={handleItemClick} />
+            <PlayerCard key={player.id} player={player} onClick={(id) => handleItemClick(id.toString())} />
           ))}
           
           {searchType === "Team" && filteredResults.map((team) => (
-            <TeamCard key={team.id} team={team} onClick={handleItemClick} />
+            <TeamCard key={team.id} team={team} onClick={(id) => handleItemClick(id.toString())} />
           ))}
           
           {searchType === "Tournament" && filteredResults.map((tournament) => (
@@ -64,7 +64,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           ))}
           
           {searchType === "Sponsorship" && filteredResults.map((sponsorship) => (
-            <SponsorshipCard key={sponsorship.id} sponsorship={sponsorship} onClick={handleItemClick} />
+            <SponsorshipCard key={sponsorship.id} sponsorship={sponsorship} onClick={(id) => handleItemClick(id.toString())} />
           ))}
         </div>
       )}
