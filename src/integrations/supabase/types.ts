@@ -51,6 +51,86 @@ export type Database = {
           },
         ]
       }
+      fixtures: {
+        Row: {
+          created_at: string
+          id: string
+          match_number: number
+          round_number: number
+          scheduled_datetime: string | null
+          status: string
+          team_1_id: string | null
+          team_1_score: number | null
+          team_2_id: string | null
+          team_2_score: number | null
+          tournament_id: string
+          updated_at: string
+          venue: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_number: number
+          round_number: number
+          scheduled_datetime?: string | null
+          status?: string
+          team_1_id?: string | null
+          team_1_score?: number | null
+          team_2_id?: string | null
+          team_2_score?: number | null
+          tournament_id: string
+          updated_at?: string
+          venue?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_number?: number
+          round_number?: number
+          scheduled_datetime?: string | null
+          status?: string
+          team_1_id?: string | null
+          team_1_score?: number | null
+          team_2_id?: string | null
+          team_2_score?: number | null
+          tournament_id?: string
+          updated_at?: string
+          venue?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixtures_team_1_id_fkey"
+            columns: ["team_1_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixtures_team_2_id_fkey"
+            columns: ["team_2_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixtures_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixtures_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organisers: {
         Row: {
           created_at: string
@@ -184,45 +264,60 @@ export type Database = {
           created_at: string
           description: string | null
           end_date: string | null
+          entry_fee: number | null
+          fixture_generation_status: string | null
           format: string
           id: string
           location: string | null
           name: string
           organizer_id: string
+          registration_deadline: string | null
           rules: string | null
           sport: string
           start_date: string | null
+          team_size: number | null
           teams_allowed: number
+          tournament_status: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          entry_fee?: number | null
+          fixture_generation_status?: string | null
           format: string
           id?: string
           location?: string | null
           name: string
           organizer_id: string
+          registration_deadline?: string | null
           rules?: string | null
           sport: string
           start_date?: string | null
+          team_size?: number | null
           teams_allowed: number
+          tournament_status?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          entry_fee?: number | null
+          fixture_generation_status?: string | null
           format?: string
           id?: string
           location?: string | null
           name?: string
           organizer_id?: string
+          registration_deadline?: string | null
           rules?: string | null
           sport?: string
           start_date?: string | null
+          team_size?: number | null
           teams_allowed?: number
+          tournament_status?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -11,6 +11,23 @@ export type Team = {
   status: string;
 };
 
+export type Fixture = {
+  id: string;
+  tournament_id: string;
+  round_number: number;
+  match_number: number;
+  team_1_id: string | null;
+  team_2_id: string | null;
+  team_1_score: number | null;
+  team_2_score: number | null;
+  winner_id: string | null;
+  scheduled_datetime: string | null;
+  venue: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Tournament = {
   id: string;
   name: string;
@@ -21,13 +38,19 @@ export type Tournament = {
   location: string | null;
   start_date: string | null;
   end_date: string | null;
+  registration_deadline: string | null;
+  entry_fee: number | null;
+  team_size: number | null;
   teams_allowed: number;
   organizer_id: string;
+  tournament_status: string | null;
+  fixture_generation_status: string | null;
 };
 
 export const useTournamentData = () => {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOrganizer, setIsOrganizer] = useState(false);
@@ -102,6 +125,23 @@ export const useTournamentData = () => {
         console.log(`Found ${teamsData ? teamsData.length : 0} teams`);
         setTeams(teamsData || []);
         
+        // Fetch fixtures for this tournament
+        console.log("Fetching fixtures for tournament:", id);
+        const { data: fixturesData, error: fixturesError } = await supabase
+          .from('fixtures')
+          .select('*')
+          .eq('tournament_id', id)
+          .order('round_number', { ascending: true })
+          .order('match_number', { ascending: true });
+          
+        if (fixturesError) {
+          console.error("Fixtures fetch error:", fixturesError);
+          throw fixturesError;
+        }
+        
+        console.log(`Found ${fixturesData ? fixturesData.length : 0} fixtures`);
+        setFixtures(fixturesData || []);
+        
       } catch (error: any) {
         console.error("Error in useTournamentData:", error);
         setError(error.message || "An unknown error occurred");
@@ -164,5 +204,78 @@ export const useTournamentData = () => {
     }
   };
 
-  return { tournament, teams, loading, error, isOrganizer, currentUserId, addTeam };
+  const updateFixtureResult = async (fixtureId: string, team1Score: number, team2Score: number) => {
+    if (!isOrganizer) {
+      toast({
+        title: "Unauthorized",
+        description: "Only the tournament organizer can update match results",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    try {
+      const fixture = fixtures.find(f => f.id === fixtureId);
+      if (!fixture) {
+        throw new Error("Fixture not found");
+      }
+
+      // Determine winner
+      let winnerId = null;
+      if (team1Score > team2Score) {
+        winnerId = fixture.team_1_id;
+      } else if (team2Score > team1Score) {
+        winnerId = fixture.team_2_id;
+      }
+      // If scores are equal, winnerId remains null (draw)
+
+      const { error } = await supabase
+        .from('fixtures')
+        .update({
+          team_1_score: team1Score,
+          team_2_score: team2Score,
+          winner_id: winnerId,
+          status: 'completed',
+        })
+        .eq('id', fixtureId);
+
+      if (error) throw error;
+
+      // Update local state
+      setFixtures(prevFixtures => 
+        prevFixtures.map(f => 
+          f.id === fixtureId 
+            ? { ...f, team_1_score: team1Score, team_2_score: team2Score, winner_id: winnerId, status: 'completed' }
+            : f
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: "Match result updated successfully!",
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error("Error updating fixture result:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update result: ${error.message}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  return { 
+    tournament, 
+    teams, 
+    fixtures, 
+    loading, 
+    error, 
+    isOrganizer, 
+    currentUserId, 
+    addTeam, 
+    updateFixtureResult 
+  };
 };

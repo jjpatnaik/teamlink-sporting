@@ -1,11 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Rocket } from "lucide-react";
+import { ArrowRight, Rocket, Calendar, Users } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useTournamentData } from "@/hooks/useTournamentData";
+import { useParams } from "react-router-dom";
 
 const FixtureManagementTool = () => {
+  const { id: tournamentId } = useParams();
+  const { tournament, teams, isOrganizer } = useTournamentData();
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const handleManualFixtures = () => {
     // In a real app, this would navigate to the fixture builder page
     toast({
@@ -14,17 +21,227 @@ const FixtureManagementTool = () => {
     });
   };
 
-  const handleAIFixtures = () => {
-    // In a real app, this would open a modal with AI fixture generation options
-    toast({
-      title: "AI Fixture Generator",
-      description: "This would open the AI fixture generator modal",
-    });
+  const generateRoundRobinFixtures = async () => {
+    if (!tournament || !tournamentId) return;
+    
+    try {
+      setIsGenerating(true);
+      
+      // Create all possible pairings for round robin
+      const fixtures = [];
+      let matchNumber = 1;
+      
+      for (let i = 0; i < teams.length; i++) {
+        for (let j = i + 1; j < teams.length; j++) {
+          fixtures.push({
+            tournament_id: tournamentId,
+            round_number: 1, // Round robin has only one round with multiple matches
+            match_number: matchNumber++,
+            team_1_id: teams[i].id,
+            team_2_id: teams[j].id,
+            status: 'scheduled',
+          });
+        }
+      }
+      
+      const { error } = await supabase
+        .from('fixtures')
+        .insert(fixtures);
+        
+      if (error) throw error;
+      
+      // Update tournament status
+      await supabase
+        .from('tournaments')
+        .update({
+          fixture_generation_status: 'completed',
+          tournament_status: 'fixtures_generated'
+        })
+        .eq('id', tournamentId);
+      
+      toast({
+        title: "Fixtures Generated",
+        description: `Successfully generated ${fixtures.length} fixtures for round robin format`,
+      });
+      
+    } catch (error: any) {
+      console.error("Error generating fixtures:", error);
+      toast({
+        title: "Error",
+        description: `Failed to generate fixtures: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  const generateKnockoutFixtures = async () => {
+    if (!tournament || !tournamentId) return;
+    
+    try {
+      setIsGenerating(true);
+      
+      // For knockout, we need to create the first round
+      // Number of teams must be a power of 2 for perfect bracket
+      const teamCount = teams.length;
+      const fixtures = [];
+      let matchNumber = 1;
+      
+      // First round pairings
+      for (let i = 0; i < teamCount; i += 2) {
+        if (i + 1 < teamCount) {
+          fixtures.push({
+            tournament_id: tournamentId,
+            round_number: 1,
+            match_number: matchNumber++,
+            team_1_id: teams[i].id,
+            team_2_id: teams[i + 1].id,
+            status: 'scheduled',
+          });
+        }
+      }
+      
+      const { error } = await supabase
+        .from('fixtures')
+        .insert(fixtures);
+        
+      if (error) throw error;
+      
+      // Update tournament status
+      await supabase
+        .from('tournaments')
+        .update({
+          fixture_generation_status: 'completed',
+          tournament_status: 'fixtures_generated'
+        })
+        .eq('id', tournamentId);
+      
+      toast({
+        title: "Fixtures Generated",
+        description: `Successfully generated ${fixtures.length} first round fixtures for knockout format`,
+      });
+      
+    } catch (error: any) {
+      console.error("Error generating fixtures:", error);
+      toast({
+        title: "Error",
+        description: `Failed to generate fixtures: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleAIFixtures = async () => {
+    if (!tournament || teams.length < 2) {
+      toast({
+        title: "Insufficient Teams",
+        description: "You need at least 2 teams to generate fixtures",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if registration is closed
+    const now = new Date();
+    const registrationDeadline = tournament.registration_deadline ? new Date(tournament.registration_deadline) : null;
+    
+    if (registrationDeadline && now < registrationDeadline) {
+      toast({
+        title: "Registration Still Open",
+        description: "Wait until registration closes to generate fixtures",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Generate fixtures based on tournament format
+      switch (tournament.format) {
+        case 'round-robin':
+          await generateRoundRobinFixtures();
+          break;
+        case 'knockout':
+          await generateKnockoutFixtures();
+          break;
+        case 'group-knockout':
+          // For now, treat as round robin (groups) - could be enhanced later
+          await generateRoundRobinFixtures();
+          break;
+        case 'league':
+          // Treat as round robin
+          await generateRoundRobinFixtures();
+          break;
+        default:
+          toast({
+            title: "Unsupported Format",
+            description: "This tournament format is not yet supported for automatic fixture generation",
+            variant: "destructive",
+          });
+      }
+    } catch (error: any) {
+      console.error("Error in AI fixture generation:", error);
+    }
+  };
+
+  if (!isOrganizer) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600">Only the tournament organizer can manage fixtures.</p>
+      </div>
+    );
+  }
+
+  const canGenerateFixtures = tournament?.fixture_generation_status === 'pending' && teams.length >= 2;
+  const fixturesGenerated = tournament?.fixture_generation_status === 'completed';
 
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-6">Fixture Management</h2>
+      
+      {/* Tournament Status Info */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Calendar className="mr-2 h-5 w-5" />
+            Tournament Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-sport-purple">{teams.length}</div>
+              <div className="text-sm text-gray-600">Registered Teams</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-sport-blue">{tournament?.teams_allowed || 0}</div>
+              <div className="text-sm text-gray-600">Max Teams</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium capitalize">
+                {tournament?.tournament_status?.replace('_', ' ') || 'Unknown'}
+              </div>
+              <div className="text-sm text-gray-600">Current Status</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {fixturesGenerated && (
+        <Card className="mb-6 bg-green-50 border-green-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center text-green-700">
+              <Calendar className="mr-2 h-5 w-5" />
+              <span className="font-medium">Fixtures have been generated successfully!</span>
+            </div>
+            <p className="text-green-600 text-sm mt-2">
+              Your tournament fixtures are ready. You can now manage match schedules and update results.
+            </p>
+          </CardContent>
+        </Card>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
@@ -50,8 +267,8 @@ const FixtureManagementTool = () => {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button onClick={handleManualFixtures} className="w-full">
-              Start Manual Builder
+            <Button onClick={handleManualFixtures} className="w-full" disabled={fixturesGenerated}>
+              {fixturesGenerated ? "Fixtures Already Generated" : "Start Manual Builder"}
             </Button>
           </CardFooter>
         </Card>
@@ -76,14 +293,25 @@ const FixtureManagementTool = () => {
               <li>Minimize travel time between matches</li>
               <li>Create the most exciting matchups</li>
             </ul>
+            
+            {!canGenerateFixtures && !fixturesGenerated && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-yellow-700 text-sm">
+                  {teams.length < 2 
+                    ? "Need at least 2 teams to generate fixtures" 
+                    : "Wait for registration to close before generating fixtures"}
+                </p>
+              </div>
+            )}
           </CardContent>
           <CardFooter>
             <Button 
               onClick={handleAIFixtures} 
               variant="secondary"
               className="w-full bg-sport-blue text-white hover:bg-sport-bright-blue"
+              disabled={!canGenerateFixtures || isGenerating}
             >
-              Generate With AI
+              {isGenerating ? "Generating..." : fixturesGenerated ? "Fixtures Already Generated" : "Generate With AI"}
             </Button>
           </CardFooter>
         </Card>

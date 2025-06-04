@@ -84,6 +84,7 @@ const CreateTournamentForm = () => {
       // Convert string numbers to integers
       const teamsAllowed = parseInt(data.teamsAllowed);
       const entryFee = data.entryFee ? parseFloat(data.entryFee) : 0;
+      const teamSize = data.teamSize ? parseInt(data.teamSize) : null;
       
       // Save tournament to database
       const { data: tournament, error } = await supabase
@@ -97,7 +98,12 @@ const CreateTournamentForm = () => {
           end_date: data.endDate.toISOString(),
           location: data.location || null,
           teams_allowed: teamsAllowed,
+          entry_fee: entryFee,
+          team_size: teamSize,
+          registration_deadline: data.registrationDeadline.toISOString(),
           organizer_id: organizerId,
+          tournament_status: 'registration_open',
+          fixture_generation_status: 'pending',
           rules: null, // Will be added in the rules section
         })
         .select()
@@ -115,7 +121,7 @@ const CreateTournamentForm = () => {
       
       toast({
         title: "Success",
-        description: "Tournament created successfully!",
+        description: "Tournament created successfully! Registration is now open.",
       });
       
       // Navigate to the tournament profile page
@@ -317,6 +323,47 @@ const CreateTournamentForm = () => {
               )}
             />
             
+            {/* Registration Deadline */}
+            <FormField
+              control={form.control}
+              name="registrationDeadline"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Registration Deadline</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <Clock className="mr-2 h-4 w-4" />
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
             {/* Location */}
             <FormField
               control={form.control}
@@ -352,6 +399,7 @@ const CreateTournamentForm = () => {
                       <Input 
                         type="number" 
                         placeholder="0.00" 
+                        step="0.01"
                         className="pl-10" 
                         {...field} 
                       />
@@ -403,47 +451,6 @@ const CreateTournamentForm = () => {
                       />
                     </div>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Registration Deadline */}
-            <FormField
-              control={form.control}
-              name="registrationDeadline"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Registration Deadline</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <Clock className="mr-2 h-4 w-4" />
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
