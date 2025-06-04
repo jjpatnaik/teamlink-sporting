@@ -7,6 +7,7 @@ import TournamentRulesSection from "./components/TournamentRulesSection";
 import FixtureManagementTool from "./components/FixtureManagementTool";
 import UpdatesPanel from "./components/UpdatesPanel";
 import PaymentGateway from "./components/PaymentGateway";
+import TournamentsList from "./components/TournamentsList";
 import { Card } from "@/components/ui/card";
 
 const TournamentOrganiserPanel = () => {
@@ -19,8 +20,9 @@ const TournamentOrganiserPanel = () => {
           <p className="text-gray-600 mb-6">Create and manage your sports tournaments</p>
           
           <Card className="p-1">
-            <Tabs defaultValue="create" className="w-full">
-              <TabsList className="grid grid-cols-5 mb-4">
+            <Tabs defaultValue="tournaments" className="w-full">
+              <TabsList className="grid grid-cols-6 mb-4">
+                <TabsTrigger value="tournaments">My Tournaments</TabsTrigger>
                 <TabsTrigger value="create">Create Tournament</TabsTrigger>
                 <TabsTrigger value="rules">Rules</TabsTrigger>
                 <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
@@ -29,6 +31,10 @@ const TournamentOrganiserPanel = () => {
               </TabsList>
               
               <div className="p-4">
+                <TabsContent value="tournaments" className="mt-0">
+                  <TournamentsList />
+                </TabsContent>
+                
                 <TabsContent value="create" className="mt-0">
                   <CreateTournamentForm />
                 </TabsContent>
