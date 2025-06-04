@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SearchFilters from '@/components/search/SearchFilters';
-import SearchResults from '@/components/search/SearchResults';
+import UnifiedSearchResults from '@/components/search/UnifiedSearchResults';
 import { 
   MOCK_SPORTS, 
   MOCK_AREAS, 
@@ -16,12 +17,14 @@ import { supabase } from "@/integrations/supabase/client";
 const SearchPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [searchType, setSearchType] = useState<string>("Player");
   const [selectedSport, setSelectedSport] = useState<string>("any_sport");
   const [selectedArea, setSelectedArea] = useState<string>("any_area");
   const [nameSearch, setNameSearch] = useState<string>("");
   const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
-  const [filteredResults, setFilteredResults] = useState<any[]>([]);
+  const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
+  const [filteredTeams, setFilteredTeams] = useState<any[]>([]);
+  const [filteredTournaments, setFilteredTournaments] = useState<any[]>([]);
+  const [filteredSponsorships, setFilteredSponsorships] = useState<any[]>([]);
   const [userCity, setUserCity] = useState<string | null>(null);
   const [userPostcode, setUserPostcode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -99,7 +102,6 @@ const SearchPage = () => {
   useEffect(() => {
     const sportParam = searchParams.get('sport');
     const areaParam = searchParams.get('area');
-    const typeParam = searchParams.get('type');
     
     if (sportParam) {
       setSelectedSport(sportParam);
@@ -113,68 +115,51 @@ const SearchPage = () => {
       }
       setNearMeOnly(true);
     }
-    
-    if (typeParam) {
-      setSearchType(typeParam);
-    }
   }, [searchParams, userCity]);
 
-  // Update results whenever filters change
-  useEffect(() => {
-    let results: any[] = [];
-    
-    // Filter by search type
-    switch (searchType) {
-      case "Player":
-        results = playerProfiles;
-        break;
-      case "Team":
-        results = MOCK_TEAMS;
-        break;
-      case "Tournament":
-        results = MOCK_TOURNAMENTS;
-        break;
-      case "Sponsorship":
-        results = MOCK_SPONSORSHIPS;
-        break;
-    }
+  // Filter function for applying filters to any result set
+  const applyFilters = (results: any[]) => {
+    let filtered = [...results];
     
     // Apply sport filter
     if (selectedSport !== "any_sport") {
-      results = results.filter(item => item.sport === selectedSport);
+      filtered = filtered.filter(item => item.sport === selectedSport);
     }
     
     // Apply area filter
     if (selectedArea !== "any_area") {
-      results = results.filter(item => item.area === selectedArea);
+      filtered = filtered.filter(item => item.area === selectedArea);
     }
     
     // Apply name search filter
     if (nameSearch) {
-      results = results.filter(item => 
+      filtered = filtered.filter(item => 
         item.name.toLowerCase().includes(nameSearch.toLowerCase())
       );
     }
     
     // Apply near me filter if enabled and we know user's location
     if (nearMeOnly && userCity) {
-      results = results.filter(item => {
+      filtered = filtered.filter(item => {
         // This is a simplification - in a real app, you'd use more sophisticated
         // location matching based on city/postcode proximity
         return item.area.toLowerCase().includes(userCity.toLowerCase());
       });
     }
     
-    setFilteredResults(results);
-  }, [searchType, selectedSport, selectedArea, nameSearch, nearMeOnly, userCity, playerProfiles]);
+    return filtered;
+  };
 
-  // Reset certain filters when search type changes
+  // Update results whenever filters change
   useEffect(() => {
-    setNameSearch("");
-  }, [searchType]);
+    setFilteredPlayers(applyFilters(playerProfiles));
+    setFilteredTeams(applyFilters(MOCK_TEAMS));
+    setFilteredTournaments(applyFilters(MOCK_TOURNAMENTS));
+    setFilteredSponsorships(applyFilters(MOCK_SPONSORSHIPS));
+  }, [selectedSport, selectedArea, nameSearch, nearMeOnly, userCity, playerProfiles]);
 
-  const handleItemClick = (id: number) => {
-    switch (searchType) {
+  const handleItemClick = (id: number, type: string) => {
+    switch (type) {
       case "Player": {
         const player = playerProfiles.find(p => p.id === id);
         if (player && player.userId) {
@@ -207,8 +192,6 @@ const SearchPage = () => {
           </div>
           
           <SearchFilters 
-            searchType={searchType}
-            setSearchType={setSearchType}
             selectedSport={selectedSport}
             setSelectedSport={setSelectedSport}
             selectedArea={selectedArea}
@@ -222,13 +205,18 @@ const SearchPage = () => {
           />
           
           <div className="mb-4">
-            <SearchResults 
-              searchType={searchType}
-              filteredResults={filteredResults}
-              selectedSport={selectedSport}
-              selectedArea={selectedArea}
+            <UnifiedSearchResults 
+              players={filteredPlayers}
+              teams={filteredTeams}
+              tournaments={filteredTournaments}
+              sponsorships={filteredSponsorships}
               handleItemClick={handleItemClick}
               loading={loading}
+              searchFilters={{
+                selectedSport,
+                selectedArea,
+                nameSearch
+              }}
             />
           </div>
         </div>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import { User, Users, Trophy, Award, Search, LogOut, Pencil, MessageCircle } from 'lucide-react';
+import { Search, LogOut, Pencil, MessageCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,10 +19,6 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/');
-  };
-
-  const navigateToSearch = (type: string) => {
-    navigate(`/search?type=${type}&area=local`);
   };
 
   const handleChatClick = () => {
@@ -51,28 +47,11 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
 
   return (
     <div className="md:hidden pt-4 pb-3 space-y-3">
-      <div className="grid grid-cols-6 gap-4 px-2 py-3 border-b border-gray-100">
-        <Link 
-          to="/search?type=Player" 
-          className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
-        >
-          <User className="w-5 h-5" />
-          <span className="text-xs mt-1">Players</span>
+      <div className="grid grid-cols-2 gap-4 px-2 py-3 border-b border-gray-100">
+        <Link to="/search" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
+          <Search className="w-5 h-5" />
+          <span className="text-xs mt-1">Search</span>
         </Link>
-        <button 
-          onClick={() => navigateToSearch('Team')} 
-          className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
-        >
-          <Users className="w-5 h-5" />
-          <span className="text-xs mt-1">Teams</span>
-        </button>
-        <button 
-          onClick={() => navigateToSearch('Tournament')} 
-          className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
-        >
-          <Trophy className="w-5 h-5" />
-          <span className="text-xs mt-1">Tournaments</span>
-        </button>
         <button 
           onClick={handleChatClick}
           className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
@@ -80,17 +59,6 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
           <MessageCircle className="w-5 h-5" />
           <span className="text-xs mt-1">Chat</span>
         </button>
-        <button 
-          onClick={() => navigateToSearch('Sponsorship')} 
-          className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
-        >
-          <Award className="w-5 h-5" />
-          <span className="text-xs mt-1">Sponsors</span>
-        </button>
-        <Link to="/search" className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors">
-          <Search className="w-5 h-5" />
-          <span className="text-xs mt-1">Search</span>
-        </Link>
       </div>
       
       <div className="px-2">
@@ -125,7 +93,7 @@ const MobileMenu = ({ isOpen, isAuthenticated }: MobileMenuProps) => {
               className="border-sport-purple text-sport-purple hover:bg-sport-light-purple w-full justify-start"
               onClick={() => navigate('/players')}
             >
-              <User className="mr-2 h-4 w-4" />
+              <Search className="mr-2 h-4 w-4" />
               My Profile
             </Button>
             

@@ -10,10 +10,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { 
   Search, 
-  User, 
-  Users, 
-  Trophy, 
-  Award,
   MapPin,
   Dumbbell
 } from "lucide-react";
@@ -21,8 +17,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 interface SearchFiltersProps {
-  searchType: string;
-  setSearchType: (value: string) => void;
   selectedSport: string;
   setSelectedSport: (value: string) => void;
   selectedArea: string;
@@ -36,8 +30,6 @@ interface SearchFiltersProps {
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
-  searchType,
-  setSearchType,
   selectedSport,
   setSelectedSport,
   selectedArea,
@@ -51,42 +43,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
 }) => {
   return (
     <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium mb-2">I'm looking for</label>
-          <Select value={searchType} onValueChange={setSearchType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Player">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>Player</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="Team">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span>Team</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="Tournament">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4" />
-                  <span>Tournament</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="Sponsorship">
-                <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4" />
-                  <span>Sponsorship</span>
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
           <label className="block text-sm font-medium mb-2">Sport</label>
           <Select value={selectedSport} onValueChange={setSelectedSport}>
@@ -131,7 +88,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
         <Input
-          placeholder={`Search ${searchType.toLowerCase()} by name...`}
+          placeholder="Search by name..."
           className="pl-10"
           value={nameSearch}
           onChange={(e) => setNameSearch(e.target.value)}
