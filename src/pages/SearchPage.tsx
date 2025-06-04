@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -21,6 +20,7 @@ const SearchPage = () => {
   const [selectedArea, setSelectedArea] = useState<string>("any_area");
   const [nameSearch, setNameSearch] = useState<string>("");
   const [nearMeOnly, setNearMeOnly] = useState<boolean>(false);
+  const [selectedContentType, setSelectedContentType] = useState<string>("all");
   const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<any[]>([]);
   const [filteredTournaments, setFilteredTournaments] = useState<any[]>([]);
@@ -152,11 +152,49 @@ const SearchPage = () => {
 
   // Update results whenever filters change
   useEffect(() => {
-    setFilteredPlayers(applyFilters(playerProfiles));
-    setFilteredTeams(applyFilters(MOCK_TEAMS));
-    setFilteredTournaments(applyFilters(MOCK_TOURNAMENTS));
-    setFilteredSponsorships(applyFilters(MOCK_SPONSORSHIPS));
-  }, [selectedSport, selectedArea, nameSearch, nearMeOnly, userCity, playerProfiles]);
+    const baseFilters = () => {
+      const players = applyFilters(playerProfiles);
+      const teams = applyFilters(MOCK_TEAMS);
+      const tournaments = applyFilters(MOCK_TOURNAMENTS);
+      const sponsorships = applyFilters(MOCK_SPONSORSHIPS);
+      
+      // Apply content type filter
+      switch (selectedContentType) {
+        case "players":
+          setFilteredPlayers(players);
+          setFilteredTeams([]);
+          setFilteredTournaments([]);
+          setFilteredSponsorships([]);
+          break;
+        case "teams":
+          setFilteredPlayers([]);
+          setFilteredTeams(teams);
+          setFilteredTournaments([]);
+          setFilteredSponsorships([]);
+          break;
+        case "tournaments":
+          setFilteredPlayers([]);
+          setFilteredTeams([]);
+          setFilteredTournaments(tournaments);
+          setFilteredSponsorships([]);
+          break;
+        case "sponsorships":
+          setFilteredPlayers([]);
+          setFilteredTeams([]);
+          setFilteredTournaments([]);
+          setFilteredSponsorships(sponsorships);
+          break;
+        default: // "all"
+          setFilteredPlayers(players);
+          setFilteredTeams(teams);
+          setFilteredTournaments(tournaments);
+          setFilteredSponsorships(sponsorships);
+          break;
+      }
+    };
+    
+    baseFilters();
+  }, [selectedSport, selectedArea, nameSearch, nearMeOnly, selectedContentType, userCity, playerProfiles]);
 
   const handleItemClick = (id: number, type: string) => {
     switch (type) {
@@ -202,6 +240,8 @@ const SearchPage = () => {
             areas={MOCK_AREAS}
             nearMeOnly={nearMeOnly}
             setNearMeOnly={setNearMeOnly}
+            selectedContentType={selectedContentType}
+            setSelectedContentType={setSelectedContentType}
           />
           
           <div className="mb-4">

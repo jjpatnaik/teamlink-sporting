@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { 
   Search, 
   MapPin,
-  Dumbbell
+  Dumbbell,
+  Filter
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,8 @@ interface SearchFiltersProps {
   areas: string[];
   nearMeOnly: boolean;
   setNearMeOnly: (value: boolean) => void;
+  selectedContentType: string;
+  setSelectedContentType: (value: string) => void;
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
@@ -39,11 +42,49 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   sports,
   areas,
   nearMeOnly,
-  setNearMeOnly
+  setNearMeOnly,
+  selectedContentType,
+  setSelectedContentType
 }) => {
   return (
     <div className="bg-white p-6 rounded-xl shadow-md mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium mb-2">Content Type</label>
+          <Select value={selectedContentType} onValueChange={setSelectedContentType}>
+            <SelectTrigger>
+              <SelectValue placeholder="All content" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All content</SelectItem>
+              <SelectItem value="players">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  <span>Players</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="teams">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  <span>Teams</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="tournaments">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  <span>Tournaments</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="sponsorships">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  <span>Sponsorships</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
         <div>
           <label className="block text-sm font-medium mb-2">Sport</label>
           <Select value={selectedSport} onValueChange={setSelectedSport}>
