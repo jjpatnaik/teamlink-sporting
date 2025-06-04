@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { MapPin, UserPlus, Check, X } from 'lucide-react';
+import { MapPin, UserPlus, Check, MessageCircle } from 'lucide-react';
 import { PlayerData } from '@/hooks/usePlayerData';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -32,11 +32,12 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
         const { data, error } = await supabase
           .from('connections')
           .select('status')
-          .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`)
-          .or(`requester_id.eq.${playerData.id},receiver_id.eq.${playerData.id}`)
+          .or(`and(requester_id.eq.${user.id},receiver_id.eq.${playerData.id}),and(requester_id.eq.${playerData.id},receiver_id.eq.${user.id})`)
           .maybeSingle();
           
-        if (error) throw error;
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
         
         if (data) {
           setConnectionStatus(data.status);
@@ -95,38 +96,8 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
     }
   };
 
-  const handleRespondToRequest = async (response: 'accepted' | 'rejected') => {
-    if (!playerData) return;
-    
-    try {
-      setIsLoading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("You must be logged in to respond to connection requests");
-        return;
-      }
-      
-      // Update connection request
-      const { error } = await supabase
-        .from('connections')
-        .update({ status: response })
-        .match({ 
-          requester_id: playerData.id,
-          receiver_id: user.id,
-          status: 'pending'
-        });
-        
-      if (error) throw error;
-      
-      setConnectionStatus(response);
-      toast.success(`Connection request ${response}`);
-    } catch (error: any) {
-      console.error(`Error ${response} connection request:`, error);
-      toast.error(error.message || `Failed to ${response} connection request`);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleMessage = () => {
+    toast.info("Messaging feature coming soon!");
   };
 
   const renderConnectionButton = () => {
@@ -167,7 +138,7 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
       default:
         return (
           <Button 
-            className="btn-primary"
+            className="bg-sport-purple hover:bg-sport-purple/90 text-white"
             onClick={handleConnect}
             disabled={isLoading}
           >
@@ -176,6 +147,21 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
           </Button>
         );
     }
+  };
+
+  const renderMessageButton = () => {
+    if (isCurrentUser) return null;
+    
+    return (
+      <Button 
+        variant="outline" 
+        className="border-sport-purple text-sport-purple hover:bg-sport-light-purple"
+        onClick={handleMessage}
+      >
+        <MessageCircle className="mr-2 h-4 w-4" />
+        Message
+      </Button>
+    );
   };
 
   return (
@@ -190,14 +176,8 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
       </div>
       
       <div className="mt-4 md:mt-0 flex space-x-2">
-        {!isCurrentUser ? (
-          <>
-            {renderConnectionButton()}
-            <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
-              Message
-            </Button>
-          </>
-        ) : null}
+        {renderConnectionButton()}
+        {renderMessageButton()}
       </div>
     </div>
   );

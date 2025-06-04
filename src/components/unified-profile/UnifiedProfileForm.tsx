@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -95,23 +94,61 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
     }
   };
 
+  const getSpecificDefaultValues = () => {
+    if (!initialData) return {};
+    
+    switch (profileType) {
+      case 'player':
+        return {
+          sport: initialData.playerProfile?.sport || '',
+          position: initialData.playerProfile?.position || '',
+          age: initialData.playerProfile?.age || undefined,
+          height: initialData.playerProfile?.height || '',
+          weight: initialData.playerProfile?.weight || '',
+          clubs: initialData.playerProfile?.clubs || '',
+          achievements: initialData.playerProfile?.achievements || '',
+          facebook_id: initialData.playerProfile?.facebook_id || '',
+          instagram_id: initialData.playerProfile?.instagram_id || '',
+          whatsapp_id: initialData.playerProfile?.whatsapp_id || '',
+        };
+      case 'team_captain':
+        return {
+          team_name: initialData.teamProfile?.team_name || '',
+          sport: initialData.teamProfile?.sport || '',
+          founded_year: initialData.teamProfile?.founded_year || undefined,
+          team_size: initialData.teamProfile?.team_size || undefined,
+          league_division: initialData.teamProfile?.league_division || '',
+          home_ground: initialData.teamProfile?.home_ground || '',
+          contact_email: initialData.teamProfile?.contact_email || '',
+          contact_phone: initialData.teamProfile?.contact_phone || '',
+          website_url: initialData.teamProfile?.website_url || '',
+        };
+      case 'sponsor':
+        return {
+          company_name: initialData.sponsorProfile?.company_name || '',
+          industry: initialData.sponsorProfile?.industry || '',
+          contact_person: initialData.sponsorProfile?.contact_person || '',
+          contact_email: initialData.sponsorProfile?.contact_email || '',
+          contact_phone: initialData.sponsorProfile?.contact_phone || '',
+          website_url: initialData.sponsorProfile?.website_url || '',
+          sponsorship_budget_range: initialData.sponsorProfile?.sponsorship_budget_range || '',
+          preferred_sports: initialData.sponsorProfile?.preferred_sports || [],
+          sponsorship_types: initialData.sponsorProfile?.sponsorship_types || [],
+        };
+      default:
+        return {};
+    }
+  };
+
   const specificForm = useForm({
     resolver: zodResolver(getSpecificFormSchema()),
     defaultValues: getSpecificDefaultValues()
   });
 
-  function getSpecificDefaultValues() {
-    switch (profileType) {
-      case 'player':
-        return initialData?.playerProfile || {};
-      case 'team_captain':
-        return initialData?.teamProfile || {};
-      case 'sponsor':
-        return initialData?.sponsorProfile || {};
-      default:
-        return {};
-    }
-  }
+  // Reset specific form when profile type changes or initial data changes
+  useEffect(() => {
+    specificForm.reset(getSpecificDefaultValues());
+  }, [profileType, initialData]);
 
   const handleSubmit = async (data: any) => {
     setIsLoading(true);
@@ -146,7 +183,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Sport</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value || ''}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select sport" />
@@ -191,6 +228,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                               type="number" 
                               placeholder="Age" 
                               {...field} 
+                              value={field.value || ''}
                               onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
                             />
                           </FormControl>
@@ -233,7 +271,10 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                       <FormItem>
                         <FormLabel>Previous Clubs</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="List your previous clubs" {...field} />
+                          <Textarea 
+                            placeholder="List your previous clubs (one per line or separated by commas)" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -253,6 +294,51 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                       </FormItem>
                     )}
                   />
+
+                  <div className="space-y-4">
+                    <h4 className="text-md font-medium">Social Media Links</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={specificForm.control}
+                        name="facebook_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Facebook Profile</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Facebook profile URL" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={specificForm.control}
+                        name="instagram_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Instagram Handle</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Instagram profile URL" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={specificForm.control}
+                        name="whatsapp_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>WhatsApp Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="WhatsApp number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
                 </div>
               </Form>
             </CardContent>
@@ -288,7 +374,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Sport</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value || ''}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select sport" />
@@ -320,6 +406,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                               type="number" 
                               placeholder="Year" 
                               {...field} 
+                              value={field.value || ''}
                               onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
                             />
                           </FormControl>
@@ -338,6 +425,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                               type="number" 
                               placeholder="Number of players" 
                               {...field} 
+                              value={field.value || ''}
                               onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
                             />
                           </FormControl>
@@ -481,7 +569,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Sponsorship Budget Range</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select budget range" />
@@ -543,7 +631,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
                         field.onChange(value);
                         setProfileType(value);
                       }} 
-                      defaultValue={field.value}
+                      value={field.value}
                       disabled={isEditing}
                     >
                       <FormControl>

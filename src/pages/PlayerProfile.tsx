@@ -18,6 +18,7 @@ import TestUserCreator from "@/components/TestUserCreator";
 const PlayerProfile = () => {
   const { playerData, loading } = usePlayerData();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isCurrentUser, setIsCurrentUser] = useState<boolean>(false);
   const navigate = useNavigate();
   const { id } = useParams();
@@ -37,10 +38,15 @@ const PlayerProfile = () => {
       const { data } = await supabase.auth.getSession();
       setIsAuthenticated(!!data.session);
       
-      if (data.session?.user && !id) {
-        setIsCurrentUser(true);
-      } else if (data.session?.user && id === data.session.user.id) {
-        setIsCurrentUser(true);
+      if (data.session?.user) {
+        setCurrentUserId(data.session.user.id);
+        
+        // If no ID in URL, or the ID matches current user, it's their profile
+        if (!id || id === data.session.user.id) {
+          setIsCurrentUser(true);
+        } else {
+          setIsCurrentUser(false);
+        }
       }
     };
     
@@ -48,6 +54,18 @@ const PlayerProfile = () => {
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
+      
+      if (session?.user) {
+        setCurrentUserId(session.user.id);
+        if (!id || id === session.user.id) {
+          setIsCurrentUser(true);
+        } else {
+          setIsCurrentUser(false);
+        }
+      } else {
+        setCurrentUserId(null);
+        setIsCurrentUser(false);
+      }
       
       if (!session && event === 'SIGNED_OUT') {
         navigate("/");
@@ -58,6 +76,13 @@ const PlayerProfile = () => {
       subscription.unsubscribe();
     };
   }, [navigate, id]);
+
+  // Update isCurrentUser when playerData changes
+  useEffect(() => {
+    if (playerData && currentUserId) {
+      setIsCurrentUser(playerData.id === currentUserId);
+    }
+  }, [playerData, currentUserId]);
 
   const handleEditProfile = () => {
     navigate('/createprofile');
@@ -74,7 +99,7 @@ const PlayerProfile = () => {
         <div className="flex justify-center items-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sport-purple mx-auto mb-4"></div>
-            <p className="text-sport-gray">Loading your profile...</p>
+            <p className="text-sport-gray">Loading profile...</p>
           </div>
         </div>
       </>

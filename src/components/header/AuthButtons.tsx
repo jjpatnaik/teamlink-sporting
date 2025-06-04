@@ -1,17 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Pencil, UserPlus } from 'lucide-react';
+import { toast } from "sonner";
+import { ChevronDown, User, LogOut, Settings } from 'lucide-react';
 
 interface AuthButtonsProps {
   isAuthenticated: boolean;
@@ -19,114 +13,107 @@ interface AuthButtonsProps {
 
 const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   const navigate = useNavigate();
-  const [currentUserData, setCurrentUserData] = useState<any>(null);
+  const [userDisplayName, setUserDisplayName] = useState<string>('User');
 
-  // Fetch the current logged-in user's data
   useEffect(() => {
-    const fetchCurrentUserData = async () => {
+    const fetchUserDisplayName = async () => {
       if (isAuthenticated) {
         try {
-          // Get current user
           const { data: { user } } = await supabase.auth.getUser();
-          
           if (user) {
-            // Fetch player details for the current user
-            const { data, error } = await supabase
-              .from('player_details')
-              .select('*')
-              .eq('id', user.id)
+            // First try to get display name from profiles table
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('display_name')
+              .eq('user_id', user.id)
               .maybeSingle();
-              
-            if (error) throw error;
-            setCurrentUserData(data);
+
+            if (profileData?.display_name) {
+              setUserDisplayName(profileData.display_name);
+            } else {
+              // Fall back to player_details table
+              const { data: playerData } = await supabase
+                .from('player_details')
+                .select('full_name')
+                .eq('id', user.id)
+                .maybeSingle();
+
+              if (playerData?.full_name) {
+                setUserDisplayName(playerData.full_name);
+              } else {
+                // Fall back to email
+                setUserDisplayName(user.email?.split('@')[0] || 'User');
+              }
+            }
           }
         } catch (error) {
-          console.error("Error fetching current user data:", error);
+          console.error('Error fetching user display name:', error);
         }
       }
     };
-    
-    fetchCurrentUserData();
+
+    fetchUserDisplayName();
   }, [isAuthenticated]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast.error("Error signing out");
+      } else {
+        toast.success("Signed out successfully");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Error signing out");
+    }
+  };
+
+  const handleMyProfile = () => {
+    navigate("/profile");
   };
 
   const handleEditProfile = () => {
-    navigate('/createprofile');
+    navigate("/createprofile");
   };
 
-  if (isAuthenticated) {
-    // Get initials for avatar fallback
-    const getInitials = () => {
-      if (currentUserData?.full_name) {
-        const nameParts = currentUserData.full_name.split(' ');
-        if (nameParts.length >= 2) {
-          return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
-        }
-        return nameParts[0][0].toUpperCase();
-      }
-      return 'U';
-    };
-
+  if (!isAuthenticated) {
     return (
-      <div className="flex items-center">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar className="h-10 w-10 border-2 border-white cursor-pointer">
-                <AvatarImage 
-                  src={currentUserData?.profile_picture_url || ''} 
-                  alt={currentUserData?.full_name || 'User'} 
-                />
-                <AvatarFallback className="bg-sport-purple text-white">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <div className="flex items-center justify-start gap-2 p-2">
-              <div className="flex flex-col space-y-1 leading-none">
-                <p className="font-medium">{currentUserData?.full_name || 'User'}</p>
-                <p className="text-sm text-muted-foreground">{currentUserData?.sport || 'Athlete'}</p>
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/players')}>
-              <User className="mr-2 h-4 w-4" />
-              <span>My Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/connections')}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              <span>Connections</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleEditProfile}>
-              <Pencil className="mr-2 h-4 w-4" />
-              <span>Edit Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="flex items-center space-x-2">
+        <Button variant="ghost" onClick={() => navigate("/login")}>
+          Sign In
+        </Button>
+        <Button onClick={() => navigate("/signup")}>
+          Sign Up
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center space-x-3">
-      <Button variant="outline" asChild className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
-        <Link to="/login">Log In</Link>
-      </Button>
-      <Button className="btn-primary" asChild>
-        <Link to="/signup">Sign Up</Link>
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="flex items-center space-x-2">
+          <span>{userDisplayName}</span>
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48 bg-white border border-gray-200 shadow-lg">
+        <DropdownMenuItem onClick={handleMyProfile} className="flex items-center space-x-2 cursor-pointer">
+          <User className="h-4 w-4" />
+          <span>My Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleEditProfile} className="flex items-center space-x-2 cursor-pointer">
+          <Settings className="h-4 w-4" />
+          <span>Edit Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout} className="flex items-center space-x-2 cursor-pointer text-red-600">
+          <LogOut className="h-4 w-4" />
+          <span>Sign Out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

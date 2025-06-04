@@ -47,7 +47,9 @@ const CreateProfilePage = () => {
       }
 
       if (result.success) {
-        navigate("/search");
+        toast.success(`Profile ${isEditing ? 'updated' : 'created'} successfully!`);
+        // Navigate to the user's profile page after creation/update
+        navigate("/profile");
       }
 
       return result;
