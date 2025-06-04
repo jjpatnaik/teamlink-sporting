@@ -11,7 +11,7 @@ interface UnifiedSearchResultsProps {
   teams: any[];
   tournaments: any[];
   sponsorships: any[];
-  handleItemClick: (id: number, type: string) => void;
+  handleItemClick: (id: string, type: string) => void;
   loading?: boolean;
   searchFilters: {
     selectedSport: string;
@@ -66,7 +66,7 @@ const UnifiedSearchResults: React.FC<UnifiedSearchResultsProps> = ({
                   <PlayerCard 
                     key={`player-${player.id}`} 
                     player={player} 
-                    onClick={(id) => handleItemClick(id, 'Player')} 
+                    onClick={(id) => handleItemClick(id.toString(), 'Player')} 
                   />
                 ))}
               </div>
@@ -81,7 +81,7 @@ const UnifiedSearchResults: React.FC<UnifiedSearchResultsProps> = ({
                   <TeamCard 
                     key={`team-${team.id}`} 
                     team={team} 
-                    onClick={(id) => handleItemClick(id, 'Team')} 
+                    onClick={(id) => handleItemClick(id.toString(), 'Team')} 
                   />
                 ))}
               </div>
@@ -111,7 +111,7 @@ const UnifiedSearchResults: React.FC<UnifiedSearchResultsProps> = ({
                   <SponsorshipCard 
                     key={`sponsorship-${sponsorship.id}`} 
                     sponsorship={sponsorship} 
-                    onClick={(id) => handleItemClick(id, 'Sponsorship')} 
+                    onClick={(id) => handleItemClick(id.toString(), 'Sponsorship')} 
                   />
                 ))}
               </div>

@@ -8,10 +8,10 @@ import {
   MOCK_SPORTS, 
   MOCK_AREAS, 
   MOCK_TEAMS, 
-  MOCK_TOURNAMENTS, 
   MOCK_SPONSORSHIPS 
 } from '@/data/mockData';
 import { supabase } from "@/integrations/supabase/client";
+import { useTournaments } from '@/hooks/useTournaments';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -29,6 +29,9 @@ const SearchPage = () => {
   const [userPostcode, setUserPostcode] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [playerProfiles, setPlayerProfiles] = useState<any[]>([]);
+  
+  // Use the new tournaments hook
+  const { tournaments, loading: tournamentsLoading } = useTournaments();
 
   // Get user location data if they're logged in
   useEffect(() => {
@@ -155,7 +158,7 @@ const SearchPage = () => {
     const baseFilters = () => {
       const players = applyFilters(playerProfiles);
       const teams = applyFilters(MOCK_TEAMS);
-      const tournaments = applyFilters(MOCK_TOURNAMENTS);
+      const tournamentResults = applyFilters(tournaments); // Use real tournaments data
       const sponsorships = applyFilters(MOCK_SPONSORSHIPS);
       
       // Apply content type filter
@@ -175,7 +178,7 @@ const SearchPage = () => {
         case "tournaments":
           setFilteredPlayers([]);
           setFilteredTeams([]);
-          setFilteredTournaments(tournaments);
+          setFilteredTournaments(tournamentResults);
           setFilteredSponsorships([]);
           break;
         case "sponsorships":
@@ -187,14 +190,14 @@ const SearchPage = () => {
         default: // "all"
           setFilteredPlayers(players);
           setFilteredTeams(teams);
-          setFilteredTournaments(tournaments);
+          setFilteredTournaments(tournamentResults);
           setFilteredSponsorships(sponsorships);
           break;
       }
     };
     
     baseFilters();
-  }, [selectedSport, selectedArea, nameSearch, nearMeOnly, selectedContentType, userCity, playerProfiles]);
+  }, [selectedSport, selectedArea, nameSearch, nearMeOnly, selectedContentType, userCity, playerProfiles, tournaments]);
 
   const handleItemClick = (id: number, type: string) => {
     switch (type) {
@@ -211,6 +214,7 @@ const SearchPage = () => {
         navigate(`/team/${id}`);
         break;
       case "Tournament":
+        // For tournaments, use the string ID directly
         navigate(`/tournament/${id}`);
         break;
       case "Sponsorship":
@@ -251,7 +255,7 @@ const SearchPage = () => {
               tournaments={filteredTournaments}
               sponsorships={filteredSponsorships}
               handleItemClick={handleItemClick}
-              loading={loading}
+              loading={loading || tournamentsLoading}
               searchFilters={{
                 selectedSport,
                 selectedArea,

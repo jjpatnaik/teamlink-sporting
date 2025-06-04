@@ -7,7 +7,7 @@ import { Dumbbell, MapPin, Calendar, ArrowRight } from "lucide-react";
 
 interface TournamentCardProps {
   tournament: {
-    id: number;
+    id: string;
     name: string;
     sport: string;
     area: string;
@@ -15,7 +15,7 @@ interface TournamentCardProps {
     endDate: string;
     image: string;
   };
-  onClick: (id: number) => void;
+  onClick: (id: string) => void;
 }
 
 const TournamentCard: React.FC<TournamentCardProps> = ({ tournament, onClick }) => {
