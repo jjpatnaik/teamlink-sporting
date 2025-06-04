@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,10 +19,10 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const tournamentFormats = [
-  { value: "round-robin", label: "Round Robin" },
   { value: "knockout", label: "Knockout" },
-  { value: "group-knockout", label: "Group + Knockout" },
-  { value: "league", label: "League" }
+  { value: "round_robin", label: "Round Robin" },
+  { value: "league", label: "League" },
+  { value: "swiss", label: "Swiss System" }
 ];
 
 const formSchema = z.object({
@@ -85,6 +84,8 @@ const CreateTournamentForm = () => {
       const teamsAllowed = parseInt(data.teamsAllowed);
       const entryFee = data.entryFee ? parseFloat(data.entryFee) : 0;
       const teamSize = data.teamSize ? parseInt(data.teamSize) : null;
+      
+      console.log("Submitting tournament with format:", data.format);
       
       // Save tournament to database
       const { data: tournament, error } = await supabase
