@@ -11,15 +11,18 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import PlayerSignupForm from "./PlayerSignupForm";
+import OrganizerSignupForm from "./OrganizerSignupForm";
 import { userTypes } from "../signup/constants";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePlayerData } from "@/hooks/usePlayerData";
+import { useOrganizerData } from "@/hooks/useOrganizerData";
 
 const CreateProfilePage = () => {
   const [userType, setUserType] = useState<string>("player");
   const [isLoading, setIsLoading] = useState(false);
-  const { playerData, loading: profileLoading } = usePlayerData();
+  const { playerData, loading: playerLoading } = usePlayerData();
+  const { organizerData, loading: organizerLoading } = useOrganizerData();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   
@@ -36,15 +39,20 @@ const CreateProfilePage = () => {
     checkAuth();
   }, [navigate]);
 
-  // Determine if we're editing an existing profile
+  // Determine if we're editing an existing profile and set the appropriate user type
   useEffect(() => {
     if (playerData) {
       setIsEditing(true);
-      console.log("Editing existing profile with data:", playerData);
+      setUserType("player");
+      console.log("Editing existing player profile with data:", playerData);
+    } else if (organizerData) {
+      setIsEditing(true);
+      setUserType("organizer");
+      console.log("Editing existing organizer profile with data:", organizerData);
     }
-  }, [playerData]);
+  }, [playerData, organizerData]);
   
-  if (profileLoading) {
+  if (playerLoading || organizerLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-sport-light-purple/10">
         <Header />
@@ -102,18 +110,23 @@ const CreateProfilePage = () => {
               existingData={playerData}
               isEditing={isEditing}
             />
+          ) : userType === "organizer" ? (
+            <OrganizerSignupForm 
+              isLoading={isLoading} 
+              setIsLoading={setIsLoading} 
+              existingData={organizerData}
+              isEditing={isEditing}
+            />
           ) : (
             <div className="py-16 text-center bg-white rounded-lg shadow-sm border border-sport-light-purple/20">
               <div className="max-w-md mx-auto">
                 <div className="w-20 h-20 rounded-full bg-sport-light-purple/30 flex items-center justify-center mx-auto mb-6">
                   <span className="text-3xl text-sport-purple">
-                    {userType === "team" ? "🏆" : 
-                     userType === "organizer" ? "🏅" : "🤝"}
+                    {userType === "team" ? "🏆" : "🤝"}
                   </span>
                 </div>
                 <h3 className="text-xl font-semibold text-sport-dark-gray mb-3">
-                  {userType === "team" ? "Club/Team" : 
-                   userType === "organizer" ? "Tournament Organiser" : "Sponsor"} registration
+                  {userType === "team" ? "Club/Team" : "Sponsor"} registration
                 </h3>
                 <p className="text-sport-gray mb-6">
                   We're currently working on making this feature available. 

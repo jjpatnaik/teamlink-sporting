@@ -158,6 +158,75 @@ export type Database = {
         }
         Relationships: []
       }
+      organizer_profiles: {
+        Row: {
+          address: string | null
+          city: string | null
+          contact_email: string
+          contact_person_name: string
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          description: string | null
+          established_year: number | null
+          facebook_url: string | null
+          id: string
+          instagram_url: string | null
+          linkedin_url: string | null
+          logo_url: string | null
+          organization_name: string
+          sports: string[]
+          twitter_url: string | null
+          updated_at: string
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          contact_email: string
+          contact_person_name: string
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          established_year?: number | null
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          organization_name: string
+          sports?: string[]
+          twitter_url?: string | null
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          contact_email?: string
+          contact_person_name?: string
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          established_year?: number | null
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          organization_name?: string
+          sports?: string[]
+          twitter_url?: string | null
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       player_details: {
         Row: {
           achievements: string | null
