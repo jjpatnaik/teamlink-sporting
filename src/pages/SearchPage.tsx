@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -179,20 +178,20 @@ const SearchPage = () => {
       case "Player": {
         const player = playerProfiles.find(p => p.id === id);
         if (player && player.userId) {
-          navigate(`/players/${player.userId}`);
+          navigate(`/player/${player.userId}`);
         } else {
-          navigate(`/players/${id}`);
+          navigate(`/player/${id}`);
         }
         break;
       }
       case "Team":
-        navigate(`/teams/${id}`);
+        navigate(`/team/${id}`);
         break;
       case "Tournament":
-        navigate(`/tournaments/${id}`);
+        navigate(`/tournament/${id}`);
         break;
       case "Sponsorship":
-        navigate(`/sponsors/${id}`);
+        navigate(`/sponsor/${id}`);
         break;
     }
   };
