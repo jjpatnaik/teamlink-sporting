@@ -21,8 +21,39 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
     }
   };
   
+  // Parse clubs string into career entries if career history is not available
+  const parseClubsToCareerHistory = () => {
+    if (!playerData?.clubs) return [];
+    
+    try {
+      // Parse the clubs string format: "Club1 (Position1, StartDate1 - EndDate1); Club2 (Position2, StartDate2 - EndDate2)"
+      const entries = playerData.clubs.split('; ').map(entry => {
+        const clubMatch = entry.match(/(.*?)\s\((.*?),\s(.*?)\s-\s(.*?)\)/);
+        if (clubMatch && clubMatch.length >= 5) {
+          return {
+            club: clubMatch[1],
+            position: clubMatch[2],
+            startDate: clubMatch[3],
+            endDate: clubMatch[4]
+          };
+        }
+        return null;
+      }).filter(Boolean);
+      
+      return entries;
+    } catch (error) {
+      console.error("Error parsing clubs string:", error);
+      return [];
+    }
+  };
+  
   const renderCareerEntries = () => {
-    if (!playerData?.careerHistory?.length) {
+    // Use career history if available, otherwise parse from clubs string
+    const careerEntries = playerData?.careerHistory?.length 
+      ? playerData.careerHistory 
+      : parseClubsToCareerHistory();
+
+    if (!careerEntries || careerEntries.length === 0) {
       // Default fallback entries if no career history is available
       return (
         <>
@@ -31,7 +62,7 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
               <Calendar className="w-5 h-5 text-sport-purple mr-2" />
               <span className="text-sm text-sport-gray">2020 - Present</span>
             </div>
-            <h3 className="text-lg font-semibold mt-1">{playerData?.clubs || "Chicago Breeze"}</h3>
+            <h3 className="text-lg font-semibold mt-1">Chicago Breeze</h3>
             <p className="text-sport-gray">Starting {playerData?.position}</p>
           </div>
           
@@ -47,10 +78,17 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
       );
     }
 
-    return playerData.careerHistory.map((entry, index) => {
+    // Sort entries by start date (most recent first)
+    const sortedEntries = [...careerEntries].sort((a, b) => {
+      const dateA = new Date(a.startDate + '-01');
+      const dateB = new Date(b.startDate + '-01');
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    return sortedEntries.map((entry, index) => {
       const startDate = formatDate(entry.startDate);
       const endDate = entry.endDate === 'Present' ? 'Present' : formatDate(entry.endDate);
-      const isActive = entry.endDate === 'Present';
+      const isActive = entry.endDate === 'Present' || index === 0; // Most recent is active
       
       return (
         <div 
