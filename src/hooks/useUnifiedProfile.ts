@@ -137,42 +137,57 @@ export const useUnifiedProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Create main profile
+      // Ensure required fields are present
+      if (!profileData.display_name || !profileData.profile_type) {
+        throw new Error('Display name and profile type are required');
+      }
+
+      // Create main profile with properly typed data
+      const profileInsertData = {
+        user_id: user.id,
+        profile_type: profileData.profile_type,
+        display_name: profileData.display_name,
+        bio: profileData.bio || null,
+        city: profileData.city || null,
+        country: profileData.country || null,
+        profile_picture_url: profileData.profile_picture_url || null,
+        background_picture_url: profileData.background_picture_url || null,
+      };
+
       const { data: newProfile, error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          user_id: user.id,
-          ...profileData
-        })
+        .insert(profileInsertData)
         .select()
         .single();
 
       if (profileError) throw profileError;
 
-      // Create specific profile data
-      let specificTable = '';
-      switch (profileData.profile_type) {
-        case 'player':
-          specificTable = 'player_profiles';
-          break;
-        case 'team_captain':
-          specificTable = 'team_profiles';
-          break;
-        case 'sponsor':
-          specificTable = 'sponsor_profiles';
-          break;
-        default:
-          throw new Error('Invalid profile type');
+      // Create specific profile data based on type
+      if (profileData.profile_type === 'player') {
+        const { error: specificError } = await supabase
+          .from('player_profiles')
+          .insert({
+            profile_id: newProfile.id,
+            ...specificData
+          });
+        if (specificError) throw specificError;
+      } else if (profileData.profile_type === 'team_captain') {
+        const { error: specificError } = await supabase
+          .from('team_profiles')
+          .insert({
+            profile_id: newProfile.id,
+            ...specificData
+          });
+        if (specificError) throw specificError;
+      } else if (profileData.profile_type === 'sponsor') {
+        const { error: specificError } = await supabase
+          .from('sponsor_profiles')
+          .insert({
+            profile_id: newProfile.id,
+            ...specificData
+          });
+        if (specificError) throw specificError;
       }
-
-      const { error: specificError } = await supabase
-        .from(specificTable)
-        .insert({
-          profile_id: newProfile.id,
-          ...specificData
-        });
-
-      if (specificError) throw specificError;
 
       toast.success('Profile created successfully!');
       await fetchProfile();
@@ -196,26 +211,26 @@ export const useUnifiedProfile = () => {
 
       if (profileError) throw profileError;
 
-      // Update specific profile data
-      let specificTable = '';
-      switch (profile.profile_type) {
-        case 'player':
-          specificTable = 'player_profiles';
-          break;
-        case 'team_captain':
-          specificTable = 'team_profiles';
-          break;
-        case 'sponsor':
-          specificTable = 'sponsor_profiles';
-          break;
+      // Update specific profile data based on type
+      if (profile.profile_type === 'player') {
+        const { error: specificError } = await supabase
+          .from('player_profiles')
+          .update(specificData)
+          .eq('profile_id', profile.id);
+        if (specificError) throw specificError;
+      } else if (profile.profile_type === 'team_captain') {
+        const { error: specificError } = await supabase
+          .from('team_profiles')
+          .update(specificData)
+          .eq('profile_id', profile.id);
+        if (specificError) throw specificError;
+      } else if (profile.profile_type === 'sponsor') {
+        const { error: specificError } = await supabase
+          .from('sponsor_profiles')
+          .update(specificData)
+          .eq('profile_id', profile.id);
+        if (specificError) throw specificError;
       }
-
-      const { error: specificError } = await supabase
-        .from(specificTable)
-        .update(specificData)
-        .eq('profile_id', profile.id);
-
-      if (specificError) throw specificError;
 
       toast.success('Profile updated successfully!');
       await fetchProfile();

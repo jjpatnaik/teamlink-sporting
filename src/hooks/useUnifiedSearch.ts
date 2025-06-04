@@ -56,7 +56,11 @@ export const useUnifiedSearch = () => {
       }
 
       if (filters.profileType && filters.profileType !== 'all') {
-        query = query.eq('profile_type', filters.profileType);
+        // Ensure the profile type is one of the valid enum values
+        const validProfileTypes = ['player', 'team_captain', 'tournament_organizer', 'sponsor'];
+        if (validProfileTypes.includes(filters.profileType)) {
+          query = query.eq('profile_type', filters.profileType as 'player' | 'team_captain' | 'tournament_organizer' | 'sponsor');
+        }
       }
 
       if (filters.city) {
