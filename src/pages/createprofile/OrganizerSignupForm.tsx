@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useNavigate } from "react-router-dom";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Upload, Building2 } from "lucide-react";
 import { useOrganizerData, OrganizerProfile } from "@/hooks/useOrganizerData";
 import { sportsOptions } from "@/constants/sportOptions";
+import { toast } from "sonner";
 
 const organizerSchema = z.object({
   organization_name: z.string().min(2, "Organization name must be at least 2 characters"),
@@ -49,6 +51,7 @@ const OrganizerSignupForm: React.FC<OrganizerSignupFormProps> = ({
   const { createOrUpdateProfile, uploadLogo } = useOrganizerData();
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(existingData?.logo_url || null);
+  const navigate = useNavigate();
 
   const form = useForm<OrganizerFormData>({
     resolver: zodResolver(organizerSchema),
@@ -105,11 +108,20 @@ const OrganizerSignupForm: React.FC<OrganizerSignupFormProps> = ({
 
       const success = await createOrUpdateProfile(formData);
       if (success) {
-        // Redirect or show success message
-        console.log("Profile saved successfully");
+        toast.success(
+          isEditing 
+            ? "Organization profile updated successfully!" 
+            : "Organization profile created successfully!"
+        );
+        
+        // Redirect to tournament organiser panel after successful creation
+        setTimeout(() => {
+          navigate("/organiser/tournament");
+        }, 1000);
       }
     } catch (error) {
       console.error("Error saving organizer profile:", error);
+      toast.error("Failed to save organization profile. Please try again.");
     } finally {
       setIsLoading(false);
     }
