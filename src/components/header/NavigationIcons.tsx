@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import { User, Users, Trophy, Award, Search, MapPin } from 'lucide-react';
+import { User, Users, Trophy, Award, Search, MapPin, MessageCircle } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +12,10 @@ import { MOCK_SPORTS } from '@/data/mockData';
 
 interface NavigationIconsProps {
   handleQuickSearch: (searchType: string) => void;
+  onChatToggle: () => void;
 }
 
-const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
+const NavigationIcons = ({ handleQuickSearch, onChatToggle }: NavigationIconsProps) => {
   const navigate = useNavigate();
 
   const navigateToSearch = (type: string) => {
@@ -43,6 +44,13 @@ const NavigationIcons = ({ handleQuickSearch }: NavigationIconsProps) => {
       >
         <Trophy className="w-5 h-5" />
         <span className="text-xs mt-1">Tournaments</span>
+      </button>
+      <button 
+        onClick={onChatToggle}
+        className="flex flex-col items-center text-sport-gray hover:text-sport-purple transition-colors"
+      >
+        <MessageCircle className="w-5 h-5" />
+        <span className="text-xs mt-1">Chat</span>
       </button>
       <button 
         onClick={() => navigateToSearch('Sponsorship')} 
