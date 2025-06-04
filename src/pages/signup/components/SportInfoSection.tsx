@@ -40,8 +40,8 @@ const SportInfoSection: React.FC<SportInfoSectionProps> = ({ form, selectedSport
               </FormControl>
               <SelectContent>
                 {sports.map((sport) => (
-                  <SelectItem key={sport} value={sport}>
-                    {sport}
+                  <SelectItem key={sport.value} value={sport.value}>
+                    {sport.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -70,8 +70,8 @@ const SportInfoSection: React.FC<SportInfoSectionProps> = ({ form, selectedSport
                 </FormControl>
                 <SelectContent>
                   {sportPositions[selectedSport]?.map((position) => (
-                    <SelectItem key={position} value={position}>
-                      {position}
+                    <SelectItem key={position.value} value={position.value}>
+                      {position.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
