@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import TestUserCreator from "@/components/TestUserCreator";
 
 const PlayerProfile = () => {
-  const { playerData, loading } = usePlayerData();
+  const { playerData, isLoading } = usePlayerData();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isCurrentUser, setIsCurrentUser] = useState<boolean>(false);
@@ -92,7 +92,7 @@ const PlayerProfile = () => {
     navigate('/connections');
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <>
         <Header />
