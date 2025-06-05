@@ -20,6 +20,31 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
       return dateString;
     }
   };
+
+  // Calculate duration between two dates
+  const calculateDuration = (startDate: string, endDate: string): string => {
+    if (!startDate) return '';
+    
+    try {
+      const start = new Date(startDate + '-01');
+      const end = endDate === 'Present' ? new Date() : new Date(endDate + '-01');
+      
+      const diffInMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      
+      if (diffInMonths < 12) {
+        return `${diffInMonths} mos`;
+      } else {
+        const years = Math.floor(diffInMonths / 12);
+        const months = diffInMonths % 12;
+        if (months === 0) {
+          return `${years} yr${years > 1 ? 's' : ''}`;
+        }
+        return `${years} yr${years > 1 ? 's' : ''} ${months} mo${months > 1 ? 's' : ''}`;
+      }
+    } catch (e) {
+      return '';
+    }
+  };
   
   // Parse clubs string into career entries if career history is not available
   const parseClubsToCareerHistory = () => {
@@ -57,22 +82,32 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
       // Default fallback entries if no career history is available
       return (
         <>
-          <div className="border-l-4 border-sport-purple pl-4 pb-4">
-            <div className="flex items-center">
-              <Calendar className="w-5 h-5 text-sport-purple mr-2" />
-              <span className="text-sm text-sport-gray">2020 - Present</span>
+          <div className="flex items-start space-x-4 pb-6">
+            <div className="w-12 h-12 bg-sport-purple rounded-md flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-sm">CB</span>
             </div>
-            <h3 className="text-lg font-semibold mt-1">Chicago Breeze</h3>
-            <p className="text-sport-gray">Starting {playerData?.position}</p>
+            <div className="flex-grow">
+              <h3 className="text-lg font-semibold">Chicago Breeze</h3>
+              <p className="text-sport-gray mb-1">Starting {playerData?.position}</p>
+              <div className="flex items-center text-sm text-sport-gray">
+                <Calendar className="w-4 h-4 mr-2" />
+                <span>Jan 2020 - Present • 4 yrs 11 mos</span>
+              </div>
+            </div>
           </div>
           
-          <div className="border-l-4 border-sport-gray pl-4 pb-4">
-            <div className="flex items-center">
-              <Calendar className="w-5 h-5 text-sport-gray mr-2" />
-              <span className="text-sm text-sport-gray">2018 - 2020</span>
+          <div className="flex items-start space-x-4 pb-6">
+            <div className="w-12 h-12 bg-sport-gray rounded-md flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-sm">MW</span>
             </div>
-            <h3 className="text-lg font-semibold mt-1">Michigan Wolverines</h3>
-            <p className="text-sport-gray">Collegiate Athlete</p>
+            <div className="flex-grow">
+              <h3 className="text-lg font-semibold">Michigan Wolverines</h3>
+              <p className="text-sport-gray mb-1">Collegiate Athlete</p>
+              <div className="flex items-center text-sm text-sport-gray">
+                <Calendar className="w-4 h-4 mr-2" />
+                <span>Sep 2018 - Dec 2019 • 1 yr 4 mos</span>
+              </div>
+            </div>
           </div>
         </>
       );
@@ -88,21 +123,34 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
     return sortedEntries.map((entry, index) => {
       const startDate = formatDate(entry.startDate);
       const endDate = entry.endDate === 'Present' ? 'Present' : formatDate(entry.endDate);
+      const duration = calculateDuration(entry.startDate, entry.endDate);
       const isActive = entry.endDate === 'Present' || index === 0; // Most recent is active
       
+      // Create initials for club logo
+      const clubInitials = entry.club
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+      
       return (
-        <div 
-          key={index} 
-          className={`border-l-4 ${isActive ? 'border-sport-purple' : 'border-sport-gray'} pl-4 pb-4`}
-        >
-          <div className="flex items-center">
-            <Calendar className={`w-5 h-5 ${isActive ? 'text-sport-purple' : 'text-sport-gray'} mr-2`} />
-            <span className="text-sm text-sport-gray">
-              {startDate} - {endDate}
-            </span>
+        <div key={index} className="flex items-start space-x-4 pb-6">
+          <div className={`w-12 h-12 ${isActive ? 'bg-sport-purple' : 'bg-sport-gray'} rounded-md flex items-center justify-center flex-shrink-0`}>
+            <span className="text-white font-bold text-sm">{clubInitials}</span>
           </div>
-          <h3 className="text-lg font-semibold mt-1">{entry.club}</h3>
-          <p className="text-sport-gray">{entry.position}</p>
+          <div className="flex-grow">
+            <h3 className="text-lg font-semibold">{entry.club}</h3>
+            <p className="text-sport-gray mb-1">{entry.position}</p>
+            <div className="flex items-center text-sm text-sport-gray">
+              <Calendar className="w-4 h-4 mr-2" />
+              <span>
+                {startDate}
+                {entry.endDate === 'Present' ? ' - Present' : ` - ${endDate}`}
+                {duration && ` • ${duration}`}
+              </span>
+            </div>
+          </div>
         </div>
       );
     });
@@ -110,9 +158,9 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
 
   return (
     <div className="mt-8">
-      <h2 className="text-xl font-semibold mb-4">Career History</h2>
+      <h2 className="text-xl font-semibold mb-6">Career History</h2>
       
-      <div className="space-y-4">
+      <div className="space-y-0">
         {renderCareerEntries()}
       </div>
     </div>
