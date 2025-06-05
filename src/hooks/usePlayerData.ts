@@ -45,49 +45,87 @@ export const usePlayerData = (playerId?: string) => {
         
         // If no playerId provided, get current user's data
         if (!playerId) {
-          const { data: { user } } = await supabase.auth.getUser();
+          console.log('No playerId provided, fetching current user...');
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError) {
+            console.error('Error getting current user:', userError);
+            setError('Authentication error: ' + userError.message);
+            setPlayerData(null);
+            setIsLoading(false);
+            return;
+          }
+          
           if (!user) {
             console.log('No user authenticated and no playerId provided');
             setPlayerData(null);
             setIsLoading(false);
             return;
           }
+          
+          console.log('Current authenticated user:', user.id);
           targetUserId = user.id;
         }
 
-        console.log('Fetching player data for ID:', targetUserId);
+        console.log('=== FETCHING PLAYER DATA ===');
+        console.log('Target User ID:', targetUserId);
+        console.log('Provided Player ID:', playerId);
+        console.log('Current URL route:', window.location.pathname);
 
+        // First, let's check if the user exists in auth.users (for debugging)
+        console.log('Checking if user exists in authentication...');
+        
         const { data, error: fetchError } = await supabase
           .from('player_details')
           .select('*')
-          .eq('id', targetUserId)
-          .maybeSingle();
+          .eq('id', targetUserId);
+
+        console.log('Database query result:', { data, error: fetchError });
+        console.log('Number of records found:', data?.length || 0);
 
         if (fetchError) {
           console.error('Error fetching player data:', fetchError);
+          console.error('Error details:', {
+            code: fetchError.code,
+            message: fetchError.message,
+            details: fetchError.details,
+            hint: fetchError.hint
+          });
           setError(fetchError.message);
           setPlayerData(null);
           return;
         }
 
-        console.log('Raw player data from database:', data);
-
-        if (data) {
-          // Parse career history from clubs string
-          const careerHistory = parseCareerHistoryFromClubs(data.clubs);
-          const playerDataWithCareer = {
-            ...data,
-            careerHistory
-          };
-          console.log('Processed player data with career history:', playerDataWithCareer);
-          setPlayerData(playerDataWithCareer);
-        } else {
-          console.log('No player data found for ID:', targetUserId);
+        // Check if we got any data
+        if (!data || data.length === 0) {
+          console.log('=== NO PLAYER PROFILE FOUND ===');
+          console.log('This means the user exists but has not created a player profile yet');
+          console.log('User should be redirected to create profile page');
           setPlayerData(null);
+          return;
         }
+
+        const playerRecord = data[0];
+        console.log('=== PLAYER PROFILE FOUND ===');
+        console.log('Raw player data from database:', playerRecord);
+
+        // Parse career history from clubs string
+        const careerHistory = parseCareerHistoryFromClubs(playerRecord.clubs);
+        const playerDataWithCareer = {
+          ...playerRecord,
+          careerHistory
+        };
+        
+        console.log('=== PROCESSED PLAYER DATA ===');
+        console.log('Final player data with career history:', playerDataWithCareer);
+        setPlayerData(playerDataWithCareer);
+
       } catch (error: any) {
+        console.error('=== UNEXPECTED ERROR ===');
         console.error('Error in fetchPlayerData:', error);
-        setError(error.message);
+        console.error('Error type:', typeof error);
+        console.error('Error stack:', error?.stack);
+        setError(error.message || 'An unexpected error occurred');
         setPlayerData(null);
       } finally {
         setIsLoading(false);
@@ -106,7 +144,8 @@ export const usePlayerData = (playerId?: string) => {
     
     try {
       console.log('Parsing clubs string:', clubsString);
-      const entries = clubsString.split('; ').map(entry => {
+      const entries = clubsString.split('; ').map((entry, index) => {
+        console.log(`Parsing entry ${index}:`, entry);
         const clubMatch = entry.match(/(.*?)\s\((.*?),\s(.*?)\s-\s(.*?)\)/);
         if (clubMatch && clubMatch.length >= 5) {
           const parsed = {
@@ -115,10 +154,10 @@ export const usePlayerData = (playerId?: string) => {
             startDate: clubMatch[3],
             endDate: clubMatch[4]
           };
-          console.log('Parsed career entry:', parsed);
+          console.log(`Parsed entry ${index}:`, parsed);
           return parsed;
         }
-        console.log('Failed to parse entry:', entry);
+        console.log(`Failed to parse entry ${index}:`, entry);
         return null;
       }).filter(Boolean) as CareerEntry[];
       

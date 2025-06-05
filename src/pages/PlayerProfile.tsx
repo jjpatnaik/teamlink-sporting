@@ -17,7 +17,7 @@ import TestUserCreator from "@/components/TestUserCreator";
 
 const PlayerProfile = () => {
   const { id } = useParams();
-  const { playerData, isLoading } = usePlayerData(id); // Pass the ID parameter to the hook
+  const { playerData, isLoading, error } = usePlayerData(id); // Pass the ID parameter to the hook
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isCurrentUser, setIsCurrentUser] = useState<boolean>(false);
@@ -92,6 +92,17 @@ const PlayerProfile = () => {
     navigate('/connections');
   };
 
+  // Add comprehensive debugging for the data
+  console.log('=== PLAYER PROFILE COMPONENT DEBUG ===');
+  console.log('URL ID parameter:', id);
+  console.log('Current User ID:', currentUserId);
+  console.log('Is Current User:', isCurrentUser);
+  console.log('Is Authenticated:', isAuthenticated);
+  console.log('Player Data:', playerData);
+  console.log('Is Loading:', isLoading);
+  console.log('Error:', error);
+  console.log('Current URL:', window.location.href);
+
   if (isLoading) {
     return (
       <>
@@ -100,6 +111,26 @@ const PlayerProfile = () => {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sport-purple mx-auto mb-4"></div>
             <p className="text-sport-gray">Loading profile...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Header />
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center p-8">
+            <p className="text-xl text-red-600 mb-4">Error loading profile</p>
+            <p className="text-sport-gray mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-sport-purple text-white rounded-md hover:bg-sport-purple/90 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         </div>
       </>
@@ -125,13 +156,14 @@ const PlayerProfile = () => {
     );
   }
 
-  if (!playerData && !id) {
+  if (!playerData && isCurrentUser) {
     return (
       <>
         <Header />
         <div className="flex justify-center items-center min-h-screen">
           <div className="text-center p-8">
             <p className="text-xl text-sport-gray mb-4">You haven't created your profile yet</p>
+            <p className="text-sport-gray mb-6">Create your player profile to showcase your skills and connect with teams, scouts, and other players.</p>
             <button 
               onClick={() => navigate("/createprofile")}
               className="px-6 py-3 bg-sport-purple text-white rounded-md hover:bg-sport-purple/90 transition-colors"
@@ -144,11 +176,25 @@ const PlayerProfile = () => {
     );
   }
 
-  // Add debugging for the data
-  console.log('PlayerProfile - id from URL:', id);
-  console.log('PlayerProfile - currentUserId:', currentUserId);
-  console.log('PlayerProfile - playerData:', playerData);
-  console.log('PlayerProfile - isCurrentUser:', isCurrentUser);
+  if (!playerData && !isCurrentUser) {
+    return (
+      <>
+        <Header />
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center p-8">
+            <p className="text-xl text-sport-gray mb-4">Player profile not found</p>
+            <p className="text-sport-gray mb-4">This player hasn't created their profile yet or the profile doesn't exist.</p>
+            <button 
+              onClick={() => navigate("/search")}
+              className="px-6 py-3 bg-sport-purple text-white rounded-md hover:bg-sport-purple/90 transition-colors"
+            >
+              Browse Other Players
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
