@@ -65,7 +65,6 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
     
     try {
       console.log('Parsing clubs string:', playerData.clubs);
-      // Parse the clubs string format: "Club1 (Position1, StartDate1 - EndDate1); Club2 (Position2, StartDate2 - EndDate2)"
       const entries = playerData.clubs.split('; ').map((entry, index) => {
         console.log(`Parsing entry ${index}:`, entry);
         const clubMatch = entry.match(/(.*?)\s\((.*?),\s(.*?)\s-\s(.*?)\)/);
@@ -100,38 +99,13 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
     console.log('Career entries to render:', careerEntries);
 
     if (!careerEntries || careerEntries.length === 0) {
-      console.log('No career entries found, showing default entries');
-      // Default fallback entries if no career history is available
+      console.log('No career entries found');
       return (
-        <>
-          <div className="flex items-start space-x-4 pb-6">
-            <div className="w-12 h-12 bg-sport-purple rounded-md flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm">CB</span>
-            </div>
-            <div className="flex-grow">
-              <h3 className="text-lg font-semibold">Chicago Breeze</h3>
-              <p className="text-sport-gray mb-1">Starting {playerData?.position || 'Player'}</p>
-              <div className="flex items-center text-sm text-sport-gray">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Jan 2020 - Present • 4 yrs 11 mos</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-4 pb-6">
-            <div className="w-12 h-12 bg-sport-gray rounded-md flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm">MW</span>
-            </div>
-            <div className="flex-grow">
-              <h3 className="text-lg font-semibold">Michigan Wolverines</h3>
-              <p className="text-sport-gray mb-1">Collegiate Athlete</p>
-              <div className="flex items-center text-sm text-sport-gray">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Sep 2018 - Dec 2019 • 1 yr 4 mos</span>
-              </div>
-            </div>
-          </div>
-        </>
+        <div className="text-center py-8 text-sport-gray">
+          <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>No career history available yet.</p>
+          <p className="text-sm">Add your career history when editing your profile.</p>
+        </div>
       );
     }
 
@@ -174,8 +148,13 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
       });
       
       return (
-        <div key={index} className="flex items-start space-x-4 pb-6">
-          <div className={`w-12 h-12 ${isActive ? 'bg-sport-purple' : 'bg-sport-gray'} rounded-md flex items-center justify-center flex-shrink-0`}>
+        <div key={index} className="flex items-start space-x-4 pb-6 relative">
+          {/* Timeline line */}
+          {index < sortedEntries.length - 1 && (
+            <div className="absolute left-6 top-12 w-0.5 h-16 bg-sport-light-purple/30"></div>
+          )}
+          
+          <div className={`w-12 h-12 ${isActive ? 'bg-sport-purple' : 'bg-sport-gray'} rounded-md flex items-center justify-center flex-shrink-0 relative z-10`}>
             <span className="text-white font-bold text-sm">{clubInitials}</span>
           </div>
           <div className="flex-grow">
@@ -189,6 +168,11 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
                 {duration && ` • ${duration}`}
               </span>
             </div>
+            {isActive && (
+              <span className="inline-block mt-2 px-2 py-1 bg-sport-purple/10 text-sport-purple text-xs rounded-full">
+                Current
+              </span>
+            )}
           </div>
         </div>
       );

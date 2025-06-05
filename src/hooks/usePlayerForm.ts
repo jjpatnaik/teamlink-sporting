@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlayerFormValues, playerFormSchema } from "@/components/player/profile/types";
@@ -36,15 +36,15 @@ export const usePlayerForm = ({ setIsLoading, isEditing = false, existingData }:
               endDate: clubMatch[4]
             };
           }
-          return { club: "", position: "", startDate: "", endDate: "Present" };
+          return { club: "", position: "", startDate: "", endDate: "" };
         });
-        return entries.length > 0 ? entries : [{ club: "", position: "", startDate: "", endDate: "Present" }];
+        return entries.length > 0 ? entries : [{ club: "", position: "", startDate: "", endDate: "" }];
       } catch (error) {
         console.error("Error parsing career history:", error);
-        return [{ club: "", position: "", startDate: "", endDate: "Present" }];
+        return [{ club: "", position: "", startDate: "", endDate: "" }];
       }
     }
-    return [{ club: "", position: "", startDate: "", endDate: "Present" }];
+    return [{ club: "", position: "", startDate: "", endDate: "" }];
   };
   
   const [careerEntries, setCareerEntries] = useState(parseCareerHistory());
@@ -69,6 +69,11 @@ export const usePlayerForm = ({ setIsLoading, isEditing = false, existingData }:
       instagramId: existingData?.instagram_id || "",
     },
   });
+
+  // Sync career entries with form whenever they change
+  useEffect(() => {
+    form.setValue('careerHistory', careerEntries);
+  }, [careerEntries, form]);
 
   const handleFileChange = (files: FileList | null, type: 'profile' | 'background') => {
     if (files && files.length > 0) {
@@ -143,8 +148,13 @@ export const usePlayerForm = ({ setIsLoading, isEditing = false, existingData }:
         console.log("Background picture uploaded:", backgroundPictureUrl);
       }
       
-      const clubsString = careerEntries
-        .map(entry => `${entry.club} (${entry.position}, ${entry.startDate} - ${entry.endDate})`)
+      // Create clubs string from career entries, filtering out empty entries
+      const validCareerEntries = careerEntries.filter(entry => 
+        entry.club.trim() && entry.position.trim() && entry.startDate.trim()
+      );
+      
+      const clubsString = validCareerEntries
+        .map(entry => `${entry.club} (${entry.position}, ${entry.startDate} - ${entry.endDate || 'Present'})`)
         .join('; ');
       
       console.log("Career history prepared:", clubsString);
