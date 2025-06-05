@@ -72,8 +72,9 @@ export const usePlayerData = (playerId?: string) => {
         console.log('Provided Player ID:', playerId);
         console.log('Current URL route:', window.location.pathname);
 
-        // First, let's check if the user exists in auth.users (for debugging)
-        console.log('Checking if user exists in authentication...');
+        // First, let's check the current session for debugging
+        const { data: sessionData } = await supabase.auth.getSession();
+        console.log('Current session:', sessionData.session?.user?.id);
         
         const { data, error: fetchError } = await supabase
           .from('player_details')
@@ -91,7 +92,7 @@ export const usePlayerData = (playerId?: string) => {
             details: fetchError.details,
             hint: fetchError.hint
           });
-          setError(fetchError.message);
+          setError(`Database error: ${fetchError.message}`);
           setPlayerData(null);
           return;
         }
@@ -125,7 +126,7 @@ export const usePlayerData = (playerId?: string) => {
         console.error('Error in fetchPlayerData:', error);
         console.error('Error type:', typeof error);
         console.error('Error stack:', error?.stack);
-        setError(error.message || 'An unexpected error occurred');
+        setError(`Unexpected error: ${error.message || 'An unexpected error occurred'}`);
         setPlayerData(null);
       } finally {
         setIsLoading(false);

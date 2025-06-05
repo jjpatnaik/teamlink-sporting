@@ -40,12 +40,17 @@ const PlayerProfile = () => {
       
       if (data.session?.user) {
         setCurrentUserId(data.session.user.id);
+        console.log('=== AUTH CHECK ===');
+        console.log('Current user ID:', data.session.user.id);
+        console.log('URL ID parameter:', id);
         
         // If no ID in URL, or the ID matches current user, it's their profile
         if (!id || id === data.session.user.id) {
           setIsCurrentUser(true);
+          console.log('This is the current user\'s profile');
         } else {
           setIsCurrentUser(false);
+          console.log('This is another user\'s profile');
         }
       }
     };
