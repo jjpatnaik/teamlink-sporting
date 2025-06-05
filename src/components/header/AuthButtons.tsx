@@ -14,6 +14,7 @@ interface AuthButtonsProps {
 const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   const navigate = useNavigate();
   const [userDisplayName, setUserDisplayName] = useState<string>('User');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserDisplayName = async () => {
@@ -21,6 +22,8 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
+            setCurrentUserId(user.id);
+            
             // First try to get display name from profiles table
             const { data: profileData } = await supabase
               .from('profiles')
@@ -71,7 +74,12 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   };
 
   const handleMyProfile = () => {
-    navigate("/profile");
+    if (currentUserId) {
+      navigate(`/player/${currentUserId}`);
+    } else {
+      // Fallback to the general profile route that will determine the user
+      navigate("/player/profile");
+    }
   };
 
   const handleEditProfile = () => {
