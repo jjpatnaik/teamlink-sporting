@@ -87,7 +87,8 @@ const LoginPage: React.FC = () => {
           description: "You are now logged in to your account",
         });
         
-        navigate("/players");
+        // Redirect to main page instead of search page
+        navigate("/");
       }
     } catch (error) {
       console.error("Login error:", error);

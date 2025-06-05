@@ -19,6 +19,23 @@ export interface SearchProfile {
 export const useUnifiedSearch = () => {
   const [profiles, setProfiles] = useState<SearchProfile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Get current user ID
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    
+    getCurrentUser();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setCurrentUserId(session?.user?.id || null);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
 
   const searchProfiles = async (filters: {
     searchTerm?: string;
@@ -49,6 +66,11 @@ export const useUnifiedSearch = () => {
             company_name
           )
         `);
+
+      // Exclude current user's profile
+      if (currentUserId) {
+        query = query.neq('id', currentUserId);
+      }
 
       // Apply filters
       if (filters.searchTerm) {
@@ -111,8 +133,11 @@ export const useUnifiedSearch = () => {
   };
 
   useEffect(() => {
-    getAllProfiles();
-  }, []);
+    // Only search when we have determined the current user ID (even if it's null)
+    if (currentUserId !== undefined) {
+      getAllProfiles();
+    }
+  }, [currentUserId]);
 
   return {
     profiles,
