@@ -8,15 +8,22 @@ type CareerHistoryProps = {
 };
 
 const CareerHistory = ({ playerData }: CareerHistoryProps) => {
+  console.log('CareerHistory - playerData:', playerData);
+  console.log('CareerHistory - careerHistory:', playerData?.careerHistory);
+  console.log('CareerHistory - clubs string:', playerData?.clubs);
+
   // Format date for display, e.g. "2020-01" to "Jan 2020"
   const formatDate = (dateString: string): string => {
     if (!dateString || dateString === 'Present') return dateString;
     
     try {
       const [year, month] = dateString.split('-');
+      if (!year || !month) return dateString;
+      
       const date = new Date(parseInt(year), parseInt(month) - 1);
       return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
     } catch (e) {
+      console.error('Error formatting date:', e, dateString);
       return dateString;
     }
   };
@@ -31,7 +38,9 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
       
       const diffInMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
       
-      if (diffInMonths < 12) {
+      if (diffInMonths < 1) {
+        return '1 mo';
+      } else if (diffInMonths < 12) {
         return `${diffInMonths} mos`;
       } else {
         const years = Math.floor(diffInMonths / 12);
@@ -42,29 +51,39 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
         return `${years} yr${years > 1 ? 's' : ''} ${months} mo${months > 1 ? 's' : ''}`;
       }
     } catch (e) {
+      console.error('Error calculating duration:', e);
       return '';
     }
   };
   
   // Parse clubs string into career entries if career history is not available
   const parseClubsToCareerHistory = () => {
-    if (!playerData?.clubs) return [];
+    if (!playerData?.clubs) {
+      console.log('No clubs string available');
+      return [];
+    }
     
     try {
+      console.log('Parsing clubs string:', playerData.clubs);
       // Parse the clubs string format: "Club1 (Position1, StartDate1 - EndDate1); Club2 (Position2, StartDate2 - EndDate2)"
-      const entries = playerData.clubs.split('; ').map(entry => {
+      const entries = playerData.clubs.split('; ').map((entry, index) => {
+        console.log(`Parsing entry ${index}:`, entry);
         const clubMatch = entry.match(/(.*?)\s\((.*?),\s(.*?)\s-\s(.*?)\)/);
         if (clubMatch && clubMatch.length >= 5) {
-          return {
+          const parsed = {
             club: clubMatch[1],
             position: clubMatch[2],
             startDate: clubMatch[3],
             endDate: clubMatch[4]
           };
+          console.log(`Parsed entry ${index}:`, parsed);
+          return parsed;
         }
+        console.log(`Failed to parse entry ${index}:`, entry);
         return null;
       }).filter(Boolean);
       
+      console.log('All parsed entries:', entries);
       return entries;
     } catch (error) {
       console.error("Error parsing clubs string:", error);
@@ -74,11 +93,14 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
   
   const renderCareerEntries = () => {
     // Use career history if available, otherwise parse from clubs string
-    const careerEntries = playerData?.careerHistory?.length 
+    let careerEntries = playerData?.careerHistory?.length 
       ? playerData.careerHistory 
       : parseClubsToCareerHistory();
 
+    console.log('Career entries to render:', careerEntries);
+
     if (!careerEntries || careerEntries.length === 0) {
+      console.log('No career entries found, showing default entries');
       // Default fallback entries if no career history is available
       return (
         <>
@@ -88,7 +110,7 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
             </div>
             <div className="flex-grow">
               <h3 className="text-lg font-semibold">Chicago Breeze</h3>
-              <p className="text-sport-gray mb-1">Starting {playerData?.position}</p>
+              <p className="text-sport-gray mb-1">Starting {playerData?.position || 'Player'}</p>
               <div className="flex items-center text-sm text-sport-gray">
                 <Calendar className="w-4 h-4 mr-2" />
                 <span>Jan 2020 - Present • 4 yrs 11 mos</span>
@@ -115,16 +137,23 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
 
     // Sort entries by start date (most recent first)
     const sortedEntries = [...careerEntries].sort((a, b) => {
-      const dateA = new Date(a.startDate + '-01');
-      const dateB = new Date(b.startDate + '-01');
-      return dateB.getTime() - dateA.getTime();
+      try {
+        const dateA = new Date(a.startDate + '-01');
+        const dateB = new Date(b.startDate + '-01');
+        return dateB.getTime() - dateA.getTime();
+      } catch (e) {
+        console.error('Error sorting entries:', e);
+        return 0;
+      }
     });
+
+    console.log('Sorted entries:', sortedEntries);
 
     return sortedEntries.map((entry, index) => {
       const startDate = formatDate(entry.startDate);
       const endDate = entry.endDate === 'Present' ? 'Present' : formatDate(entry.endDate);
       const duration = calculateDuration(entry.startDate, entry.endDate);
-      const isActive = entry.endDate === 'Present' || index === 0; // Most recent is active
+      const isActive = entry.endDate === 'Present';
       
       // Create initials for club logo
       const clubInitials = entry.club
@@ -133,6 +162,16 @@ const CareerHistory = ({ playerData }: CareerHistoryProps) => {
         .join('')
         .toUpperCase()
         .substring(0, 2);
+      
+      console.log(`Rendering entry ${index}:`, {
+        club: entry.club,
+        position: entry.position,
+        startDate,
+        endDate,
+        duration,
+        isActive,
+        clubInitials
+      });
       
       return (
         <div key={index} className="flex items-start space-x-4 pb-6">
