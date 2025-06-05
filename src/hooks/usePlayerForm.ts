@@ -218,7 +218,8 @@ export const usePlayerForm = ({ setIsLoading, isEditing = false, existingData }:
       
       localStorage.setItem('profileCreated', 'true');
       
-      setTimeout(() => navigate("/players"), 1500);
+      // Navigate to the user's profile page (without ID parameter to show their own profile)
+      setTimeout(() => navigate("/profile"), 1500);
       
       toast.success(`Profile ${isEditing ? "updated" : "created"} successfully!`);
     } catch (error: any) {
