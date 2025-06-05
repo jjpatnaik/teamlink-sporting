@@ -16,12 +16,12 @@ import { Button } from "@/components/ui/button";
 import TestUserCreator from "@/components/TestUserCreator";
 
 const PlayerProfile = () => {
-  const { playerData, isLoading } = usePlayerData();
+  const { id } = useParams();
+  const { playerData, isLoading } = usePlayerData(id); // Pass the ID parameter to the hook
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isCurrentUser, setIsCurrentUser] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { id } = useParams();
 
   useEffect(() => {
     const checkProfileCreated = () => {
@@ -143,6 +143,12 @@ const PlayerProfile = () => {
       </>
     );
   }
+
+  // Add debugging for the data
+  console.log('PlayerProfile - id from URL:', id);
+  console.log('PlayerProfile - currentUserId:', currentUserId);
+  console.log('PlayerProfile - playerData:', playerData);
+  console.log('PlayerProfile - isCurrentUser:', isCurrentUser);
 
   return (
     <>

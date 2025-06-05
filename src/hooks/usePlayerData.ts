@@ -41,41 +41,54 @@ export const usePlayerData = (playerId?: string) => {
         setIsLoading(true);
         setError(null);
 
-        let query = supabase.from('player_details').select('*');
+        let targetUserId = playerId;
         
-        if (playerId) {
-          query = query.eq('id', playerId);
-        } else {
-          // If no playerId provided, get current user's data
+        // If no playerId provided, get current user's data
+        if (!playerId) {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
+            console.log('No user authenticated and no playerId provided');
             setPlayerData(null);
+            setIsLoading(false);
             return;
           }
-          query = query.eq('id', user.id);
+          targetUserId = user.id;
         }
 
-        const { data, error: fetchError } = await query.maybeSingle();
+        console.log('Fetching player data for ID:', targetUserId);
+
+        const { data, error: fetchError } = await supabase
+          .from('player_details')
+          .select('*')
+          .eq('id', targetUserId)
+          .maybeSingle();
 
         if (fetchError) {
           console.error('Error fetching player data:', fetchError);
           setError(fetchError.message);
+          setPlayerData(null);
           return;
         }
+
+        console.log('Raw player data from database:', data);
 
         if (data) {
           // Parse career history from clubs string
           const careerHistory = parseCareerHistoryFromClubs(data.clubs);
-          setPlayerData({
+          const playerDataWithCareer = {
             ...data,
             careerHistory
-          });
+          };
+          console.log('Processed player data with career history:', playerDataWithCareer);
+          setPlayerData(playerDataWithCareer);
         } else {
+          console.log('No player data found for ID:', targetUserId);
           setPlayerData(null);
         }
       } catch (error: any) {
         console.error('Error in fetchPlayerData:', error);
         setError(error.message);
+        setPlayerData(null);
       } finally {
         setIsLoading(false);
       }
@@ -86,22 +99,30 @@ export const usePlayerData = (playerId?: string) => {
 
   // Helper function to parse career history from clubs string
   const parseCareerHistoryFromClubs = (clubsString?: string): CareerEntry[] => {
-    if (!clubsString) return [];
+    if (!clubsString) {
+      console.log('No clubs string to parse');
+      return [];
+    }
     
     try {
+      console.log('Parsing clubs string:', clubsString);
       const entries = clubsString.split('; ').map(entry => {
         const clubMatch = entry.match(/(.*?)\s\((.*?),\s(.*?)\s-\s(.*?)\)/);
         if (clubMatch && clubMatch.length >= 5) {
-          return {
+          const parsed = {
             club: clubMatch[1],
             position: clubMatch[2],
             startDate: clubMatch[3],
             endDate: clubMatch[4]
           };
+          console.log('Parsed career entry:', parsed);
+          return parsed;
         }
+        console.log('Failed to parse entry:', entry);
         return null;
       }).filter(Boolean) as CareerEntry[];
       
+      console.log('All parsed career entries:', entries);
       return entries;
     } catch (error) {
       console.error("Error parsing career history:", error);
