@@ -28,7 +28,10 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
         
+        console.log('Checking connection status between:', user.id, 'and', playerData.id);
+        
         // Check if there's already a connection request between users
+        // Use the user IDs directly since both old and new systems use user_id
         const { data, error } = await supabase
           .from('connections')
           .select('status')
@@ -36,11 +39,16 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
           .maybeSingle();
           
         if (error && error.code !== 'PGRST116') {
-          throw error;
+          console.error('Error checking connection status:', error);
+          return;
         }
         
         if (data) {
+          console.log('Found existing connection with status:', data.status);
           setConnectionStatus(data.status);
+        } else {
+          console.log('No existing connection found');
+          setConnectionStatus(null);
         }
       } catch (error) {
         console.error('Error checking connection status:', error);
@@ -51,10 +59,14 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
   }, [playerData, isCurrentUser]);
 
   const handleConnect = async () => {
-    if (!playerData) return;
+    if (!playerData) {
+      toast.error("Player data not available");
+      return;
+    }
     
     try {
       setIsLoading(true);
+      console.log('Attempting to create connection...');
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -62,13 +74,43 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
         return;
       }
       
+      console.log('Current user:', user.id);
+      console.log('Target player:', playerData.id);
+      
       // Prevent connecting to yourself
       if (user.id === playerData.id) {
         toast.error("You cannot connect with yourself");
         return;
       }
       
-      // Create connection request
+      // First, check if both users exist in some profile system
+      // Check if current user has a profile
+      const { data: currentUserProfile, error: currentUserError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+        
+      if (currentUserError) {
+        console.error('Error checking current user profile:', currentUserError);
+      }
+      
+      // Check if target user has a profile  
+      const { data: targetUserProfile, error: targetUserError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', playerData.id)
+        .maybeSingle();
+        
+      if (targetUserError) {
+        console.error('Error checking target user profile:', targetUserError);
+      }
+      
+      console.log('Current user profile check:', currentUserProfile);
+      console.log('Target user profile check:', targetUserProfile);
+      
+      // For now, let's try to create the connection directly using user IDs
+      // The connections table should reference auth.users, not player_details
       const { error } = await supabase
         .from('connections')
         .insert({
@@ -78,8 +120,11 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
         });
         
       if (error) {
+        console.error('Connection creation error:', error);
         if (error.code === '23505') { // Unique violation
           toast.error("You already have a connection with this player");
+        } else if (error.code === '23503') { // Foreign key violation
+          toast.error("Unable to create connection. Please ensure both users have complete profiles.");
         } else {
           throw error;
         }
@@ -143,7 +188,7 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
             disabled={isLoading}
           >
             <UserPlus className="mr-2 h-4 w-4" />
-            Connect
+            {isLoading ? 'Connecting...' : 'Connect'}
           </Button>
         );
     }
