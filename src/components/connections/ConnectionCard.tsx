@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, X, UserCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ConnectionType } from '@/hooks/useConnections';
+import { supabase } from "@/integrations/supabase/client";
 
 type ConnectionCardProps = {
   connection: ConnectionType;
@@ -23,11 +24,38 @@ const ConnectionCard = ({
   const navigate = useNavigate();
   const [acceptLoading, setAcceptLoading] = React.useState(false);
   const [rejectLoading, setRejectLoading] = React.useState(false);
+  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
+
+  // Get current user ID
+  React.useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getCurrentUser();
+  }, []);
 
   // Get user data
   const userData = connection.user;
-  const userId = isPending ? connection.requester_id : 
-    (connection.requester_id === connection.user.full_name ? connection.receiver_id : connection.requester_id);
+  
+  // Determine which user's profile to show - it should be the OTHER user, not the current user
+  const getTargetUserId = () => {
+    if (!currentUserId) return connection.requester_id; // fallback
+    
+    // If current user is the requester, show receiver's profile
+    if (connection.requester_id === currentUserId) {
+      return connection.receiver_id;
+    }
+    // If current user is the receiver, show requester's profile
+    else if (connection.receiver_id === currentUserId) {
+      return connection.requester_id;
+    }
+    
+    // Fallback - this shouldn't happen in normal cases
+    return connection.requester_id;
+  };
+
+  const targetUserId = getTargetUserId();
 
   // Format date
   const formattedDate = new Date(connection.created_at).toLocaleDateString(undefined, {
@@ -61,7 +89,13 @@ const ConnectionCard = ({
   };
 
   const handleViewProfile = () => {
-    navigate(`/players/${userId}`);
+    console.log('Navigating to profile:', targetUserId);
+    console.log('Connection details:', {
+      requester_id: connection.requester_id,
+      receiver_id: connection.receiver_id,
+      current_user: currentUserId
+    });
+    navigate(`/players/${targetUserId}`);
   };
 
   // Get initials for avatar fallback
