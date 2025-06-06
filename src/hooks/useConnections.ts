@@ -34,24 +34,12 @@ export const useConnections = () => {
           return;
         }
 
-        // Since the connections table now properly references auth.users,
-        // we need to join with player_details to get profile information
+        console.log('Fetching connections for user:', user.id);
+
         // Fetch accepted connections where the user is the requester
         const { data: sentConnections, error: sentError } = await supabase
           .from('connections')
-          .select(`
-            id,
-            requester_id,
-            receiver_id,
-            status,
-            created_at,
-            user:player_details!receiver_id(
-              full_name,
-              sport,
-              position,
-              profile_picture_url
-            )
-          `)
+          .select('*')
           .eq('requester_id', user.id)
           .eq('status', 'accepted');
 
@@ -62,19 +50,7 @@ export const useConnections = () => {
         // Fetch accepted connections where the user is the receiver
         const { data: receivedConnections, error: receivedError } = await supabase
           .from('connections')
-          .select(`
-            id,
-            requester_id,
-            receiver_id,
-            status,
-            created_at,
-            user:player_details!requester_id(
-              full_name,
-              sport,
-              position,
-              profile_picture_url
-            )
-          `)
+          .select('*')
           .eq('receiver_id', user.id)
           .eq('status', 'accepted');
 
@@ -82,22 +58,10 @@ export const useConnections = () => {
           console.error('Error fetching received connections:', receivedError);
         }
 
-        // Fetch pending connection requests
+        // Fetch pending connection requests (where current user is the receiver)
         const { data: pendingReqs, error: pendingError } = await supabase
           .from('connections')
-          .select(`
-            id,
-            requester_id,
-            receiver_id,
-            status,
-            created_at,
-            user:player_details!requester_id(
-              full_name,
-              sport,
-              position,
-              profile_picture_url
-            )
-          `)
+          .select('*')
           .eq('receiver_id', user.id)
           .eq('status', 'pending');
 
@@ -105,26 +69,80 @@ export const useConnections = () => {
           console.error('Error fetching pending requests:', pendingError);
         }
 
-        // Filter out null results and type properly
-        const validSentConnections = (sentConnections || []).filter(conn => conn.user).map(conn => ({
-          ...conn,
-          status: conn.status as 'pending' | 'accepted' | 'rejected'
-        }));
+        console.log('Raw pending requests:', pendingReqs);
+        console.log('Raw sent connections:', sentConnections);
+        console.log('Raw received connections:', receivedConnections);
+
+        // Now we need to fetch user details for each connection
+        const allConnectionsRaw = [
+          ...(sentConnections || []),
+          ...(receivedConnections || []),
+          ...(pendingReqs || [])
+        ];
+
+        // Get unique user IDs we need to fetch details for
+        const userIds = new Set<string>();
         
-        const validReceivedConnections = (receivedConnections || []).filter(conn => conn.user).map(conn => ({
-          ...conn,
-          status: conn.status as 'pending' | 'accepted' | 'rejected'
-        }));
-        
-        const validPendingRequests = (pendingReqs || []).filter(req => req.user).map(req => ({
-          ...req,
-          status: req.status as 'pending' | 'accepted' | 'rejected'
-        }));
+        (sentConnections || []).forEach(conn => userIds.add(conn.receiver_id));
+        (receivedConnections || []).forEach(conn => userIds.add(conn.requester_id));
+        (pendingReqs || []).forEach(req => userIds.add(req.requester_id));
+
+        console.log('User IDs to fetch details for:', Array.from(userIds));
+
+        // Fetch user details from player_details table
+        const { data: userDetails, error: userDetailsError } = await supabase
+          .from('player_details')
+          .select('id, full_name, sport, position, profile_picture_url')
+          .in('id', Array.from(userIds));
+
+        if (userDetailsError) {
+          console.error('Error fetching user details:', userDetailsError);
+        }
+
+        console.log('Fetched user details:', userDetails);
+
+        // Create a map of user details
+        const userDetailsMap = new Map();
+        (userDetails || []).forEach(user => {
+          userDetailsMap.set(user.id, {
+            full_name: user.full_name || 'Unknown User',
+            sport: user.sport || 'Unknown Sport',
+            position: user.position || 'Unknown Position',
+            profile_picture_url: user.profile_picture_url
+          });
+        });
+
+        // Process connections with user details
+        const processConnections = (connections: any[], isRequester: boolean) => {
+          return connections.map(conn => {
+            const targetUserId = isRequester ? conn.receiver_id : conn.requester_id;
+            const userDetail = userDetailsMap.get(targetUserId);
+            
+            return {
+              ...conn,
+              status: conn.status as 'pending' | 'accepted' | 'rejected',
+              user: userDetail || {
+                full_name: 'Unknown User',
+                sport: 'Unknown Sport',
+                position: 'Unknown Position',
+                profile_picture_url: null
+              }
+            };
+          });
+        };
+
+        const processedSentConnections = processConnections(sentConnections || [], true);
+        const processedReceivedConnections = processConnections(receivedConnections || [], false);
+        const processedPendingRequests = processConnections(pendingReqs || [], false);
+
+        console.log('Processed pending requests:', processedPendingRequests);
+        console.log('Processed accepted connections:', [...processedSentConnections, ...processedReceivedConnections]);
 
         // Combine accepted connections
-        const allConnections = [...validSentConnections, ...validReceivedConnections];
+        const allConnections = [...processedSentConnections, ...processedReceivedConnections];
         setConnections(allConnections);
-        setPendingRequests(validPendingRequests);
+        setPendingRequests(processedPendingRequests);
+        
       } catch (error: any) {
         console.error("Error fetching connections:", error);
         setError(error.message || "Failed to fetch connections");
@@ -138,6 +156,8 @@ export const useConnections = () => {
 
   const handleConnectionResponse = async (connectionId: string, action: 'accepted' | 'rejected') => {
     try {
+      console.log(`${action} connection:`, connectionId);
+      
       const { error } = await supabase
         .from('connections')
         .update({ status: action })
