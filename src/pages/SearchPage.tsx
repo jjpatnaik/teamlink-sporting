@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search } from 'lucide-react';
 import { sportsOptions } from '@/constants/sportOptions';
 import UnifiedSearchResults from '@/components/search/UnifiedSearchResults';
-import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
+import { useUnifiedSearch, SearchProfile } from '@/hooks/useUnifiedSearch';
 
 const SearchPage = () => {
   const [nameSearch, setNameSearch] = useState('');
@@ -33,8 +33,34 @@ const SearchPage = () => {
     });
   };
 
-  const handleItemClick = (id: string) => {
-    navigate(`/profile/${id}`);
+  const handleItemClick = (profile: SearchProfile) => {
+    console.log('=== PROFILE CLICK NAVIGATION ===');
+    console.log('Clicked profile:', profile);
+    console.log('Profile type:', profile.profile_type);
+    console.log('Profile ID:', profile.id);
+    
+    // Navigate based on profile type using the user_id instead of profile.id
+    switch (profile.profile_type) {
+      case 'player':
+        console.log('Navigating to player profile:', `/player/${profile.id}`);
+        navigate(`/player/${profile.id}`);
+        break;
+      case 'team_captain':
+        console.log('Navigating to team profile:', `/team/${profile.id}`);
+        navigate(`/team/${profile.id}`);
+        break;
+      case 'tournament_organizer':
+        console.log('Navigating to tournament profile:', `/tournament/${profile.id}`);
+        navigate(`/tournament/${profile.id}`);
+        break;
+      case 'sponsor':
+        console.log('Navigating to sponsor profile:', `/sponsor/${profile.id}`);
+        navigate(`/sponsor/${profile.id}`);
+        break;
+      default:
+        console.log('Unknown profile type, defaulting to player profile');
+        navigate(`/player/${profile.id}`);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

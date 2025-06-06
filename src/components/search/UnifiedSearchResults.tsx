@@ -6,7 +6,7 @@ import { SearchProfile } from '@/hooks/useUnifiedSearch';
 
 interface UnifiedSearchResultsProps {
   profiles: SearchProfile[];
-  handleItemClick: (id: string) => void;
+  handleItemClick: (profile: SearchProfile) => void;
   loading?: boolean;
   searchFilters: {
     selectedSport: string;
@@ -71,7 +71,7 @@ const UnifiedSearchResults: React.FC<UnifiedSearchResultsProps> = ({
             <UnifiedProfileCard 
               key={profile.id} 
               profile={profile} 
-              onClick={handleItemClick}
+              onClick={() => handleItemClick(profile)}
             />
           ))}
         </div>

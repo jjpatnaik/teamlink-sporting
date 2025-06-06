@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface SearchProfile {
-  id: string;
+  id: string; // This will be the user_id for proper routing
   display_name: string;
   profile_type: 'player' | 'team_captain' | 'tournament_organizer' | 'sponsor';
   bio?: string;
@@ -45,10 +45,15 @@ export const useUnifiedSearch = () => {
   }) => {
     setLoading(true);
     try {
+      console.log('=== UNIFIED SEARCH QUERY ===');
+      console.log('Search filters:', filters);
+      console.log('Current user ID:', currentUserId);
+
       let query = supabase
         .from('profiles')
         .select(`
           id,
+          user_id,
           display_name,
           profile_type,
           bio,
@@ -69,7 +74,7 @@ export const useUnifiedSearch = () => {
 
       // Exclude current user's profile
       if (currentUserId) {
-        query = query.neq('id', currentUserId);
+        query = query.neq('user_id', currentUserId);
       }
 
       // Apply filters
@@ -91,6 +96,8 @@ export const useUnifiedSearch = () => {
 
       const { data, error } = await query;
 
+      console.log('Search query result:', { data, error });
+
       if (error) {
         console.error('Search error:', error);
         toast.error('Error searching profiles');
@@ -99,7 +106,7 @@ export const useUnifiedSearch = () => {
 
       // Transform data to flatten the related profile information
       const transformedProfiles: SearchProfile[] = (data || []).map((profile: any) => ({
-        id: profile.id,
+        id: profile.user_id, // Use user_id for routing instead of profile.id
         display_name: profile.display_name,
         profile_type: profile.profile_type,
         bio: profile.bio,
@@ -111,6 +118,8 @@ export const useUnifiedSearch = () => {
         company_name: profile.sponsor_profiles?.[0]?.company_name,
       }));
 
+      console.log('Transformed profiles:', transformedProfiles);
+
       // Additional sport filter for player and team profiles
       let filteredProfiles = transformedProfiles;
       if (filters.sport && filters.sport !== 'any_sport') {
@@ -119,6 +128,7 @@ export const useUnifiedSearch = () => {
         );
       }
 
+      console.log('Final filtered profiles:', filteredProfiles);
       setProfiles(filteredProfiles);
     } catch (error) {
       console.error('Search error:', error);

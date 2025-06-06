@@ -7,7 +7,7 @@ import { SearchProfile } from '@/hooks/useUnifiedSearch';
 
 interface UnifiedProfileCardProps {
   profile: SearchProfile;
-  onClick: (id: string) => void;
+  onClick: () => void;
 }
 
 const UnifiedProfileCard: React.FC<UnifiedProfileCardProps> = ({ profile, onClick }) => {
@@ -73,10 +73,14 @@ const UnifiedProfileCard: React.FC<UnifiedProfileCardProps> = ({ profile, onClic
     }
   };
 
+  console.log('=== UNIFIED PROFILE CARD RENDER ===');
+  console.log('Profile:', profile);
+  console.log('Profile ID:', profile.id);
+
   return (
     <Card 
       className="hover:shadow-lg transition-all duration-200 cursor-pointer group border-sport-light-purple/20"
-      onClick={() => onClick(profile.id)}
+      onClick={onClick}
     >
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
