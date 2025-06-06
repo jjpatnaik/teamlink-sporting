@@ -73,13 +73,6 @@ export const useConnections = () => {
         console.log('Raw sent connections:', sentConnections);
         console.log('Raw received connections:', receivedConnections);
 
-        // Now we need to fetch user details for each connection
-        const allConnectionsRaw = [
-          ...(sentConnections || []),
-          ...(receivedConnections || []),
-          ...(pendingReqs || [])
-        ];
-
         // Get unique user IDs we need to fetch details for
         const userIds = new Set<string>();
         
@@ -89,26 +82,35 @@ export const useConnections = () => {
 
         console.log('User IDs to fetch details for:', Array.from(userIds));
 
-        // Fetch user details from player_details table
-        const { data: userDetails, error: userDetailsError } = await supabase
-          .from('player_details')
-          .select('id, full_name, sport, position, profile_picture_url')
-          .in('id', Array.from(userIds));
+        // Fetch user details from the new unified profile system
+        const { data: userProfiles, error: userProfilesError } = await supabase
+          .from('profiles')
+          .select(`
+            user_id,
+            display_name,
+            profile_picture_url,
+            player_profiles (
+              sport,
+              position
+            )
+          `)
+          .in('user_id', Array.from(userIds));
 
-        if (userDetailsError) {
-          console.error('Error fetching user details:', userDetailsError);
+        if (userProfilesError) {
+          console.error('Error fetching user profiles:', userProfilesError);
         }
 
-        console.log('Fetched user details:', userDetails);
+        console.log('Fetched user profiles:', userProfiles);
 
         // Create a map of user details
         const userDetailsMap = new Map();
-        (userDetails || []).forEach(user => {
-          userDetailsMap.set(user.id, {
-            full_name: user.full_name || 'Unknown User',
-            sport: user.sport || 'Unknown Sport',
-            position: user.position || 'Unknown Position',
-            profile_picture_url: user.profile_picture_url
+        (userProfiles || []).forEach(profile => {
+          const playerProfile = profile.player_profiles;
+          userDetailsMap.set(profile.user_id, {
+            full_name: profile.display_name || 'Unknown User',
+            sport: playerProfile?.sport || 'Unknown Sport',
+            position: playerProfile?.position || 'Unknown Position',
+            profile_picture_url: profile.profile_picture_url
           });
         });
 
