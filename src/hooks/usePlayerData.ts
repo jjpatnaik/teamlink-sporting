@@ -120,10 +120,10 @@ export const usePlayerData = (playerId?: string) => {
           return;
         }
 
-        if (profileData && profileData.player_profiles && profileData.player_profiles.length > 0) {
+        if (profileData && profileData.player_profiles) {
           console.log('=== FOUND DATA IN NEW UNIFIED PROFILE SYSTEM ===');
           const profile = profileData;
-          const playerProfile = profileData.player_profiles[0];
+          const playerProfile = profileData.player_profiles;
           
           // Convert unified profile format to PlayerData format
           const convertedPlayerData: PlayerData = {
