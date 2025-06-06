@@ -31,7 +31,6 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
         console.log('Checking connection status between:', user.id, 'and', playerData.id);
         
         // Check if there's already a connection request between users
-        // Use the user IDs directly since both old and new systems use user_id
         const { data, error } = await supabase
           .from('connections')
           .select('status')
@@ -83,34 +82,7 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
         return;
       }
       
-      // First, check if both users exist in some profile system
-      // Check if current user has a profile
-      const { data: currentUserProfile, error: currentUserError } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-        
-      if (currentUserError) {
-        console.error('Error checking current user profile:', currentUserError);
-      }
-      
-      // Check if target user has a profile  
-      const { data: targetUserProfile, error: targetUserError } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('user_id', playerData.id)
-        .maybeSingle();
-        
-      if (targetUserError) {
-        console.error('Error checking target user profile:', targetUserError);
-      }
-      
-      console.log('Current user profile check:', currentUserProfile);
-      console.log('Target user profile check:', targetUserProfile);
-      
-      // For now, let's try to create the connection directly using user IDs
-      // The connections table should reference auth.users, not player_details
+      // Create connection request - now that foreign keys are fixed, this should work
       const { error } = await supabase
         .from('connections')
         .insert({
@@ -123,10 +95,8 @@ const ProfileInfo = ({ playerData, isCurrentUser = false }: ProfileInfoProps) =>
         console.error('Connection creation error:', error);
         if (error.code === '23505') { // Unique violation
           toast.error("You already have a connection with this player");
-        } else if (error.code === '23503') { // Foreign key violation
-          toast.error("Unable to create connection. Please ensure both users have complete profiles.");
         } else {
-          throw error;
+          toast.error("Failed to send connection request");
         }
         return;
       }

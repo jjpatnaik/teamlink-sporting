@@ -34,6 +34,8 @@ export const useConnections = () => {
           return;
         }
 
+        // Since the connections table now properly references auth.users,
+        // we need to join with player_details to get profile information
         // Fetch accepted connections where the user is the requester
         const { data: sentConnections, error: sentError } = await supabase
           .from('connections')
@@ -53,7 +55,9 @@ export const useConnections = () => {
           .eq('requester_id', user.id)
           .eq('status', 'accepted');
 
-        if (sentError) throw sentError;
+        if (sentError) {
+          console.error('Error fetching sent connections:', sentError);
+        }
 
         // Fetch accepted connections where the user is the receiver
         const { data: receivedConnections, error: receivedError } = await supabase
@@ -74,7 +78,9 @@ export const useConnections = () => {
           .eq('receiver_id', user.id)
           .eq('status', 'accepted');
 
-        if (receivedError) throw receivedError;
+        if (receivedError) {
+          console.error('Error fetching received connections:', receivedError);
+        }
 
         // Fetch pending connection requests
         const { data: pendingReqs, error: pendingError } = await supabase
@@ -95,28 +101,30 @@ export const useConnections = () => {
           .eq('receiver_id', user.id)
           .eq('status', 'pending');
 
-        if (pendingError) throw pendingError;
+        if (pendingError) {
+          console.error('Error fetching pending requests:', pendingError);
+        }
 
-        // Manually validate and cast the data
-        const typedSentConnections = sentConnections?.map(conn => ({
+        // Filter out null results and type properly
+        const validSentConnections = (sentConnections || []).filter(conn => conn.user).map(conn => ({
           ...conn,
           status: conn.status as 'pending' | 'accepted' | 'rejected'
-        })) || [];
+        }));
         
-        const typedReceivedConnections = receivedConnections?.map(conn => ({
+        const validReceivedConnections = (receivedConnections || []).filter(conn => conn.user).map(conn => ({
           ...conn,
           status: conn.status as 'pending' | 'accepted' | 'rejected'
-        })) || [];
+        }));
         
-        const typedPendingRequests = pendingReqs?.map(req => ({
+        const validPendingRequests = (pendingReqs || []).filter(req => req.user).map(req => ({
           ...req,
           status: req.status as 'pending' | 'accepted' | 'rejected'
-        })) || [];
+        }));
 
         // Combine accepted connections
-        const allConnections = [...typedSentConnections, ...typedReceivedConnections];
+        const allConnections = [...validSentConnections, ...validReceivedConnections];
         setConnections(allConnections);
-        setPendingRequests(typedPendingRequests);
+        setPendingRequests(validPendingRequests);
       } catch (error: any) {
         console.error("Error fetching connections:", error);
         setError(error.message || "Failed to fetch connections");

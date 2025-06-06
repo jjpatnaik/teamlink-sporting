@@ -34,22 +34,7 @@ export type Database = {
           status?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "connections_receiver_id_fkey"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "player_details"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "connections_requester_id_fkey"
-            columns: ["requester_id"]
-            isOneToOne: false
-            referencedRelation: "player_details"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       fixtures: {
         Row: {
