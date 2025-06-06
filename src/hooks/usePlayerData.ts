@@ -76,50 +76,87 @@ export const usePlayerData = (playerId?: string) => {
         const { data: sessionData } = await supabase.auth.getSession();
         console.log('Current session:', sessionData.session?.user?.id);
         
-        const { data, error: fetchError } = await supabase
+        // First, try to get data from the old player_details table
+        console.log('Checking old player_details table...');
+        const { data: oldPlayerData, error: oldFetchError } = await supabase
           .from('player_details')
           .select('*')
           .eq('id', targetUserId);
 
-        console.log('Database query result:', { data, error: fetchError });
-        console.log('Number of records found:', data?.length || 0);
+        console.log('Old player_details query result:', { data: oldPlayerData, error: oldFetchError });
 
-        if (fetchError) {
-          console.error('Error fetching player data:', fetchError);
-          console.error('Error details:', {
-            code: fetchError.code,
-            message: fetchError.message,
-            details: fetchError.details,
-            hint: fetchError.hint
-          });
-          setError(`Database error: ${fetchError.message}`);
+        if (oldPlayerData && oldPlayerData.length > 0) {
+          console.log('=== FOUND DATA IN OLD PLAYER_DETAILS TABLE ===');
+          const playerRecord = oldPlayerData[0];
+          const careerHistory = parseCareerHistoryFromClubs(playerRecord.clubs);
+          const playerDataWithCareer = {
+            ...playerRecord,
+            careerHistory
+          };
+          
+          console.log('Final player data with career history:', playerDataWithCareer);
+          setPlayerData(playerDataWithCareer);
+          return;
+        }
+
+        // If no data in old table, check the new unified profile system
+        console.log('No data in old table, checking new unified profile system...');
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            player_profiles (*)
+          `)
+          .eq('user_id', targetUserId)
+          .eq('profile_type', 'player')
+          .maybeSingle();
+
+        console.log('Unified profile query result:', { data: profileData, error: profileError });
+
+        if (profileError) {
+          console.error('Error fetching unified profile:', profileError);
+          setError(`Database error: ${profileError.message}`);
           setPlayerData(null);
           return;
         }
 
-        // Check if we got any data
-        if (!data || data.length === 0) {
-          console.log('=== NO PLAYER PROFILE FOUND ===');
-          console.log('This means the user exists but has not created a player profile yet');
-          console.log('User should be redirected to create profile page');
-          setPlayerData(null);
+        if (profileData && profileData.player_profiles && profileData.player_profiles.length > 0) {
+          console.log('=== FOUND DATA IN NEW UNIFIED PROFILE SYSTEM ===');
+          const profile = profileData;
+          const playerProfile = profileData.player_profiles[0];
+          
+          // Convert unified profile format to PlayerData format
+          const convertedPlayerData: PlayerData = {
+            id: profile.user_id,
+            full_name: profile.display_name,
+            sport: playerProfile.sport,
+            position: playerProfile.position,
+            city: profile.city || '',
+            postcode: '', // Not available in new system
+            age: playerProfile.age?.toString() || '',
+            height: playerProfile.height || '',
+            weight: playerProfile.weight || '',
+            bio: profile.bio || '',
+            clubs: playerProfile.clubs || '',
+            achievements: playerProfile.achievements || '',
+            facebook_id: playerProfile.facebook_id || '',
+            whatsapp_id: playerProfile.whatsapp_id || '',
+            instagram_id: playerProfile.instagram_id || '',
+            profile_picture_url: profile.profile_picture_url || '',
+            background_picture_url: profile.background_picture_url || '',
+            careerHistory: parseCareerHistoryFromClubs(playerProfile.clubs)
+          };
+          
+          console.log('Converted unified profile to PlayerData format:', convertedPlayerData);
+          setPlayerData(convertedPlayerData);
           return;
         }
 
-        const playerRecord = data[0];
-        console.log('=== PLAYER PROFILE FOUND ===');
-        console.log('Raw player data from database:', playerRecord);
-
-        // Parse career history from clubs string
-        const careerHistory = parseCareerHistoryFromClubs(playerRecord.clubs);
-        const playerDataWithCareer = {
-          ...playerRecord,
-          careerHistory
-        };
-        
-        console.log('=== PROCESSED PLAYER DATA ===');
-        console.log('Final player data with career history:', playerDataWithCareer);
-        setPlayerData(playerDataWithCareer);
+        // If no data found in either system
+        console.log('=== NO PLAYER PROFILE FOUND IN EITHER SYSTEM ===');
+        console.log('This means the user exists but has not created a player profile yet');
+        console.log('User should be redirected to create profile page');
+        setPlayerData(null);
 
       } catch (error: any) {
         console.error('=== UNEXPECTED ERROR ===');
