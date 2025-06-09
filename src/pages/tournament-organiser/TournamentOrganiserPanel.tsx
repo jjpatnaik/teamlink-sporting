@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import CreateTournamentForm from "./components/CreateTournamentForm";
@@ -11,6 +12,16 @@ import TournamentsList from "./components/TournamentsList";
 import { Card } from "@/components/ui/card";
 
 const TournamentOrganiserPanel = () => {
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState("tournaments");
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'create') {
+      setActiveTab('create');
+    }
+  }, [searchParams]);
+
   return (
     <>
       <Header />
@@ -20,7 +31,7 @@ const TournamentOrganiserPanel = () => {
           <p className="text-gray-600 mb-6">Create and manage your sports tournaments</p>
           
           <Card className="p-1">
-            <Tabs defaultValue="tournaments" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid grid-cols-6 mb-4">
                 <TabsTrigger value="tournaments">My Tournaments</TabsTrigger>
                 <TabsTrigger value="create">Create Tournament</TabsTrigger>

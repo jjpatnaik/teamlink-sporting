@@ -91,7 +91,7 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   };
 
   const handleOrganizeTournament = () => {
-    navigate("/organiser/tournament");
+    navigate("/organiser/tournament?tab=create");
   };
 
   if (!isAuthenticated) {
