@@ -14,6 +14,8 @@ import { Card } from "@/components/ui/card";
 const TournamentOrganiserPanel = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("tournaments");
+  const [tournamentFormCompleted, setTournamentFormCompleted] = useState(false);
+  const [rulesCompleted, setRulesCompleted] = useState(false);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -21,6 +23,20 @@ const TournamentOrganiserPanel = () => {
       setActiveTab('create');
     }
   }, [searchParams]);
+
+  const handleFormCompletion = () => {
+    setTournamentFormCompleted(true);
+    setActiveTab('rules');
+  };
+
+  const handleRulesCompletion = () => {
+    setRulesCompleted(true);
+  };
+
+  const resetCreationFlow = () => {
+    setTournamentFormCompleted(false);
+    setRulesCompleted(false);
+  };
 
   return (
     <>
@@ -33,9 +49,15 @@ const TournamentOrganiserPanel = () => {
           <Card className="p-1">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid grid-cols-6 mb-4">
-                <TabsTrigger value="tournaments">My Tournaments</TabsTrigger>
+                <TabsTrigger value="tournaments" onClick={resetCreationFlow}>My Tournaments</TabsTrigger>
                 <TabsTrigger value="create">Create Tournament</TabsTrigger>
-                <TabsTrigger value="rules">Rules</TabsTrigger>
+                <TabsTrigger 
+                  value="rules" 
+                  disabled={!tournamentFormCompleted}
+                  className={!tournamentFormCompleted ? "opacity-50 cursor-not-allowed" : ""}
+                >
+                  Rules
+                </TabsTrigger>
                 <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
                 <TabsTrigger value="updates">Updates</TabsTrigger>
                 <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -47,11 +69,17 @@ const TournamentOrganiserPanel = () => {
                 </TabsContent>
                 
                 <TabsContent value="create" className="mt-0">
-                  <CreateTournamentForm />
+                  <CreateTournamentForm 
+                    onFormComplete={handleFormCompletion}
+                    showSubmitButton={false}
+                  />
                 </TabsContent>
                 
                 <TabsContent value="rules" className="mt-0">
-                  <TournamentRulesSection />
+                  <TournamentRulesSection 
+                    onRulesComplete={handleRulesCompletion}
+                    showFinalSubmit={tournamentFormCompleted && rulesCompleted}
+                  />
                 </TabsContent>
                 
                 <TabsContent value="fixtures" className="mt-0">

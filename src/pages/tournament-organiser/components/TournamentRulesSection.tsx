@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useTournamentFormSubmission } from "./form/useTournamentFormSubmission";
 
 const rulesSchema = z.object({
   generalRules: z.string().min(10, "General rules should be at least 10 characters"),
@@ -19,7 +20,14 @@ const rulesSchema = z.object({
 
 type RulesFormValues = z.infer<typeof rulesSchema>;
 
-const TournamentRulesSection = () => {
+interface TournamentRulesSectionProps {
+  onRulesComplete?: () => void;
+  showFinalSubmit?: boolean;
+}
+
+const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false }: TournamentRulesSectionProps) => {
+  const { onSubmit: submitTournament } = useTournamentFormSubmission();
+  
   const form = useForm<RulesFormValues>({
     resolver: zodResolver(rulesSchema),
     defaultValues: {
@@ -30,14 +38,37 @@ const TournamentRulesSection = () => {
     },
   });
 
-  const onSubmit = async (data: RulesFormValues) => {
-    // In a real app, this would save to the database
+  const onSaveRules = async (data: RulesFormValues) => {
     console.log("Rules data:", data);
     
     toast({
       title: "Rules Saved",
       description: "Tournament rules have been updated successfully",
     });
+    
+    if (onRulesComplete) {
+      onRulesComplete();
+    }
+  };
+
+  const handleCreateTournament = () => {
+    // Get form data from the parent component or local storage
+    // For now, we'll create a mock form data
+    const mockTournamentData = {
+      name: "Sample Tournament",
+      description: "Sample Description",
+      sport: "football",
+      format: "knockout",
+      startDate: new Date(),
+      endDate: new Date(),
+      location: "Sample Location",
+      entryFee: "0",
+      teamsAllowed: "8",
+      teamSize: "11",
+      registrationDeadline: new Date(),
+    };
+    
+    submitTournament(mockTournamentData);
   };
 
   return (
@@ -45,7 +76,7 @@ const TournamentRulesSection = () => {
       <h2 className="text-2xl font-semibold mb-6">Tournament Rules</h2>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSaveRules)} className="space-y-6">
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="generalRules">
               <AccordionTrigger className="text-lg font-medium">General Rules</AccordionTrigger>
@@ -143,6 +174,15 @@ const TournamentRulesSection = () => {
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline">Preview</Button>
             <Button type="submit" className="bg-sport-purple hover:bg-sport-dark-purple">Save Rules</Button>
+            {showFinalSubmit && (
+              <Button 
+                type="button" 
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleCreateTournament}
+              >
+                Create Tournament
+              </Button>
+            )}
           </div>
         </form>
       </Form>
