@@ -8,9 +8,10 @@ import { formSchema, FormValues } from "./form/tournamentFormSchema";
 import TournamentBasicFields from "./form/TournamentBasicFields";
 import TournamentDateFields from "./form/TournamentDateFields";
 import TournamentTeamFields from "./form/TournamentTeamFields";
+import TournamentOrganizerFields from "./form/TournamentOrganizerFields";
 
 interface CreateTournamentFormProps {
-  onFormComplete?: () => void;
+  onFormComplete?: (formData: FormValues) => void;
   showSubmitButton?: boolean;
 }
 
@@ -26,16 +27,29 @@ const CreateTournamentForm = ({ onFormComplete, showSubmitButton = true }: Creat
       entryFee: "0",
       teamsAllowed: "8",
       teamSize: "",
+      organizerEmail: "",
+      organizerPhone: "",
+      organizerWebsite: "",
+      organizerFacebook: "",
+      organizerTwitter: "",
+      organizerInstagram: "",
     },
   });
 
-  const handleContinue = () => {
-    // Validate the form first
-    form.trigger().then((isValid) => {
-      if (isValid && onFormComplete) {
-        onFormComplete();
-      }
-    });
+  const handleContinue = async () => {
+    console.log("Continue button clicked, validating form...");
+    
+    // Trigger validation for all fields
+    const isValid = await form.trigger();
+    console.log("Form validation result:", isValid);
+    
+    if (isValid && onFormComplete) {
+      const formData = form.getValues();
+      console.log("Form data being passed:", formData);
+      onFormComplete(formData);
+    } else {
+      console.log("Form validation failed, errors:", form.formState.errors);
+    }
   };
 
   return (
@@ -49,6 +63,8 @@ const CreateTournamentForm = ({ onFormComplete, showSubmitButton = true }: Creat
             <TournamentDateFields form={form} />
             <TournamentTeamFields form={form} />
           </div>
+          
+          <TournamentOrganizerFields form={form} />
           
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline">Save Draft</Button>

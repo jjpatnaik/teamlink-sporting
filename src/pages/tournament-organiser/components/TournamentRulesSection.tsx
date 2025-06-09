@@ -7,9 +7,10 @@ import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useTournamentFormSubmission } from "./form/useTournamentFormSubmission";
+import { FormValues } from "./form/tournamentFormSchema";
 
 const rulesSchema = z.object({
   generalRules: z.string().min(10, "General rules should be at least 10 characters"),
@@ -23,9 +24,10 @@ type RulesFormValues = z.infer<typeof rulesSchema>;
 interface TournamentRulesSectionProps {
   onRulesComplete?: () => void;
   showFinalSubmit?: boolean;
+  tournamentFormData?: FormValues | null;
 }
 
-const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false }: TournamentRulesSectionProps) => {
+const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false, tournamentFormData }: TournamentRulesSectionProps) => {
   const { onSubmit: submitTournament } = useTournamentFormSubmission();
   
   const form = useForm<RulesFormValues>({
@@ -52,23 +54,33 @@ const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false }: To
   };
 
   const handleCreateTournament = () => {
-    // Get form data from the parent component or local storage
-    // For now, we'll create a mock form data
-    const mockTournamentData = {
-      name: "Sample Tournament",
-      description: "Sample Description",
-      sport: "football",
-      format: "knockout",
-      startDate: new Date(),
-      endDate: new Date(),
-      location: "Sample Location",
-      entryFee: "0",
-      teamsAllowed: "8",
-      teamSize: "11",
-      registrationDeadline: new Date(),
+    console.log("Creating tournament with data:", tournamentFormData);
+    
+    if (!tournamentFormData) {
+      toast({
+        title: "Error",
+        description: "Tournament form data is missing. Please go back and complete the form.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Get rules data
+    const rulesData = form.getValues();
+    
+    // Combine all tournament data
+    const fullTournamentData = {
+      ...tournamentFormData,
+      rules: {
+        generalRules: rulesData.generalRules,
+        tiebreakers: rulesData.tiebreakers,
+        pointSystem: rulesData.pointSystem,
+        termsConditions: rulesData.termsConditions,
+      }
     };
     
-    submitTournament(mockTournamentData);
+    console.log("Submitting complete tournament data:", fullTournamentData);
+    submitTournament(fullTournamentData);
   };
 
   return (
@@ -186,6 +198,12 @@ const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false }: To
           </div>
         </form>
       </Form>
+      
+      {/* Debug information */}
+      <div className="mt-4 p-4 bg-gray-100 rounded text-sm">
+        <p>Debug: showFinalSubmit = {showFinalSubmit.toString()}</p>
+        <p>Debug: tournamentFormData = {tournamentFormData ? "Available" : "Not available"}</p>
+      </div>
     </div>
   );
 };

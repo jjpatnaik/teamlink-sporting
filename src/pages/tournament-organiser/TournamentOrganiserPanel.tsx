@@ -10,12 +10,14 @@ import UpdatesPanel from "./components/UpdatesPanel";
 import PaymentGateway from "./components/PaymentGateway";
 import TournamentsList from "./components/TournamentsList";
 import { Card } from "@/components/ui/card";
+import { FormValues } from "./components/form/tournamentFormSchema";
 
 const TournamentOrganiserPanel = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("tournaments");
   const [tournamentFormCompleted, setTournamentFormCompleted] = useState(false);
   const [rulesCompleted, setRulesCompleted] = useState(false);
+  const [tournamentFormData, setTournamentFormData] = useState<FormValues | null>(null);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -24,18 +26,22 @@ const TournamentOrganiserPanel = () => {
     }
   }, [searchParams]);
 
-  const handleFormCompletion = () => {
+  const handleFormCompletion = (formData: FormValues) => {
+    console.log("Form completion received:", formData);
+    setTournamentFormData(formData);
     setTournamentFormCompleted(true);
     setActiveTab('rules');
   };
 
   const handleRulesCompletion = () => {
+    console.log("Rules completion received");
     setRulesCompleted(true);
   };
 
   const resetCreationFlow = () => {
     setTournamentFormCompleted(false);
     setRulesCompleted(false);
+    setTournamentFormData(null);
   };
 
   return (
@@ -79,6 +85,7 @@ const TournamentOrganiserPanel = () => {
                   <TournamentRulesSection 
                     onRulesComplete={handleRulesCompletion}
                     showFinalSubmit={tournamentFormCompleted && rulesCompleted}
+                    tournamentFormData={tournamentFormData}
                   />
                 </TabsContent>
                 

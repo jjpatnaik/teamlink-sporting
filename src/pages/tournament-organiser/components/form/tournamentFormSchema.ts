@@ -19,6 +19,12 @@ export const formSchema = z.object({
   registrationDeadline: z.date({
     required_error: "Registration deadline is required",
   }),
+  organizerEmail: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+  organizerPhone: z.string().optional(),
+  organizerWebsite: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  organizerFacebook: z.string().optional(),
+  organizerTwitter: z.string().optional(),
+  organizerInstagram: z.string().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
