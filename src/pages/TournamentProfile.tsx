@@ -37,6 +37,9 @@ const TournamentProfile = () => {
     </div>;
   }
 
+  // Check if tournament is cancelled
+  const isTournamentCancelled = tournament.tournament_status === 'cancelled';
+
   return (
     <>
       <Header />
@@ -51,6 +54,25 @@ const TournamentProfile = () => {
                 </Button>
               )}
             </div>
+            
+            {/* Tournament Cancelled Banner */}
+            {isTournamentCancelled && (
+              <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium">This tournament has been cancelled</p>
+                    {tournament.cancellation_reason && (
+                      <p className="mt-1 text-sm">{tournament.cancellation_reason}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
             
             {/* Profile Info */}
             <div className="relative px-6 pt-16 pb-6">
@@ -73,16 +95,24 @@ const TournamentProfile = () => {
                 </div>
                 
                 <div className="mt-4 md:mt-0 flex space-x-2">
-                  <Button className="btn-primary" onClick={() => {
-                    if (currentUserId) {
-                      // Show registration modal
-                    } else {
-                      navigate('/login');
-                    }
-                  }}>Register Team</Button>
-                  <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
-                    Contact
-                  </Button>
+                  {!isTournamentCancelled ? (
+                    <>
+                      <Button className="btn-primary" onClick={() => {
+                        if (currentUserId) {
+                          // Show registration modal
+                        } else {
+                          navigate('/login');
+                        }
+                      }}>Register Team</Button>
+                      <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
+                        Contact
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
+                      Contact Organizer
+                    </Button>
+                  )}
                 </div>
               </div>
               
@@ -97,6 +127,12 @@ const TournamentProfile = () => {
               {/* Tournament Details */}
               <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-sport-gray">Status</p>
+                  <p className={`text-lg font-semibold ${isTournamentCancelled ? 'text-red-600' : ''}`}>
+                    {isTournamentCancelled ? 'Cancelled' : 'Active'}
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-sport-gray">Dates</p>
                   <p className="text-lg font-semibold">
                     {tournament.start_date && tournament.end_date ? 
@@ -109,61 +145,61 @@ const TournamentProfile = () => {
                   <p className="text-lg font-semibold">{teams.length}/{tournament.teams_allowed}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-sport-gray">Location</p>
-                  <p className="text-lg font-semibold">{tournament.location || "TBD"}</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-sport-gray">Format</p>
                   <p className="text-lg font-semibold">{tournament.format}</p>
                 </div>
               </div>
               
               {/* Schedule */}
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Tournament Schedule</h2>
-                
-                <div className="space-y-4">
-                  {tournament.start_date ? (
-                    <>
-                      <div className="border-l-4 border-sport-purple pl-4 pb-4">
-                        <div className="flex items-center">
-                          <Calendar className="w-5 h-5 text-sport-purple mr-2" />
-                          <span className="text-sm text-sport-gray">
-                            {new Date(tournament.start_date).toLocaleDateString()}
-                          </span>
+              {!isTournamentCancelled && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold mb-4">Tournament Schedule</h2>
+                  
+                  <div className="space-y-4">
+                    {tournament.start_date ? (
+                      <>
+                        <div className="border-l-4 border-sport-purple pl-4 pb-4">
+                          <div className="flex items-center">
+                            <Calendar className="w-5 h-5 text-sport-purple mr-2" />
+                            <span className="text-sm text-sport-gray">
+                              {new Date(tournament.start_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <h3 className="text-lg font-semibold mt-1">Opening Ceremony & Group Stage</h3>
+                          <div className="flex items-center mt-1">
+                            <Clock className="w-4 h-4 text-sport-gray mr-1" />
+                            <span className="text-sm text-sport-gray">9:00 AM - 8:00 PM</span>
+                          </div>
                         </div>
-                        <h3 className="text-lg font-semibold mt-1">Opening Ceremony & Group Stage</h3>
-                        <div className="flex items-center mt-1">
-                          <Clock className="w-4 h-4 text-sport-gray mr-1" />
-                          <span className="text-sm text-sport-gray">9:00 AM - 8:00 PM</span>
+                        
+                        <div className="border-l-4 border-sport-purple pl-4 pb-4">
+                          <div className="flex items-center">
+                            <Calendar className="w-5 h-5 text-sport-purple mr-2" />
+                            <span className="text-sm text-sport-gray">
+                              {tournament.end_date && new Date(tournament.end_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <h3 className="text-lg font-semibold mt-1">Finals & Award Ceremony</h3>
+                          <div className="flex items-center mt-1">
+                            <Clock className="w-4 h-4 text-sport-gray mr-1" />
+                            <span className="text-sm text-sport-gray">3:00 PM - 9:00 PM</span>
+                          </div>
                         </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-sport-gray">
+                        Schedule will be announced soon
                       </div>
-                      
-                      <div className="border-l-4 border-sport-purple pl-4 pb-4">
-                        <div className="flex items-center">
-                          <Calendar className="w-5 h-5 text-sport-purple mr-2" />
-                          <span className="text-sm text-sport-gray">
-                            {tournament.end_date && new Date(tournament.end_date).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <h3 className="text-lg font-semibold mt-1">Finals & Award Ceremony</h3>
-                        <div className="flex items-center mt-1">
-                          <Clock className="w-4 h-4 text-sport-gray mr-1" />
-                          <span className="text-sm text-sport-gray">3:00 PM - 9:00 PM</span>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-sport-gray">
-                      Schedule will be announced soon
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Participating Teams */}
               <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Registered Teams</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  {isTournamentCancelled ? 'Registered Teams (Before Cancellation)' : 'Registered Teams'}
+                </h2>
                 
                 {teams.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -180,7 +216,10 @@ const TournamentProfile = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-sport-gray">
-                    No teams registered yet. Be the first one to register!
+                    {isTournamentCancelled 
+                      ? 'No teams were registered before cancellation.'
+                      : 'No teams registered yet. Be the first one to register!'
+                    }
                   </div>
                 )}
                 
@@ -194,30 +233,34 @@ const TournamentProfile = () => {
               </div>
               
               {/* Sponsors */}
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Sponsors</h2>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="bg-gray-50 p-4 rounded-lg h-24 flex items-center justify-center">
-                    <span className="font-bold text-xl text-sport-gray">Sponsor A</span>
+              {!isTournamentCancelled && (
+                <>
+                  <div className="mt-8">
+                    <h2 className="text-xl font-semibold mb-4">Sponsors</h2>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      <div className="bg-gray-50 p-4 rounded-lg h-24 flex items-center justify-center">
+                        <span className="font-bold text-xl text-sport-gray">Sponsor A</span>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg h-24 flex items-center justify-center">
+                        <span className="font-bold text-xl text-sport-gray">Sponsor B</span>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg h-24 flex items-center justify-center">
+                        <span className="font-bold text-xl text-sport-gray">Sponsor C</span>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg h-24 flex items-center justify-center">
+                        <span className="font-bold text-xl text-sport-gray">Sponsor D</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 text-center">
+                      <Button variant="outline" className="border-sport-blue text-sport-blue hover:bg-sport-soft-blue">
+                        Become a Sponsor
+                      </Button>
+                    </div>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg h-24 flex items-center justify-center">
-                    <span className="font-bold text-xl text-sport-gray">Sponsor B</span>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg h-24 flex items-center justify-center">
-                    <span className="font-bold text-xl text-sport-gray">Sponsor C</span>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg h-24 flex items-center justify-center">
-                    <span className="font-bold text-xl text-sport-gray">Sponsor D</span>
-                  </div>
-                </div>
-                
-                <div className="mt-4 text-center">
-                  <Button variant="outline" className="border-sport-blue text-sport-blue hover:bg-sport-soft-blue">
-                    Become a Sponsor
-                  </Button>
-                </div>
-              </div>
+                </>
+              )}
               
               {/* Contact & Social Media */}
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
