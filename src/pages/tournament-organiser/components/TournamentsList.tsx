@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { Trophy, Calendar, MapPin, Users } from "lucide-react";
 
@@ -23,6 +23,7 @@ const TournamentsList = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const fetchOrganizerTournaments = async () => {
@@ -74,6 +75,10 @@ const TournamentsList = () => {
     navigate(`/tournament/${tournamentId}`);
   };
 
+  const handleCreateNewTournament = () => {
+    setSearchParams({ tab: 'create' });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -88,7 +93,7 @@ const TournamentsList = () => {
         <Trophy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
         <h3 className="text-xl font-semibold mb-2">No tournaments yet</h3>
         <p className="text-gray-600 mb-6">You haven't created any tournaments. Get started by creating your first tournament!</p>
-        <Button className="btn-primary">
+        <Button className="btn-primary" onClick={handleCreateNewTournament}>
           Create Your First Tournament
         </Button>
       </div>
@@ -99,7 +104,7 @@ const TournamentsList = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Tournaments</h2>
-        <Button className="btn-primary">
+        <Button className="btn-primary" onClick={handleCreateNewTournament}>
           Create New Tournament
         </Button>
       </div>
