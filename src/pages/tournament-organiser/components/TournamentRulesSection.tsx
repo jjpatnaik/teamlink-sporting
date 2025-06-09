@@ -13,10 +13,10 @@ import { useTournamentFormSubmission } from "./form/useTournamentFormSubmission"
 import { FormValues } from "./form/tournamentFormSchema";
 
 const rulesSchema = z.object({
-  generalRules: z.string().min(10, "General rules should be at least 10 characters"),
+  generalRules: z.string().optional(),
   tiebreakers: z.string().optional(),
   pointSystem: z.string().optional(),
-  termsConditions: z.string().min(10, "Terms & conditions should be at least 10 characters"),
+  termsConditions: z.string().optional(),
 });
 
 type RulesFormValues = z.infer<typeof rulesSchema>;
@@ -72,10 +72,10 @@ const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false, tour
     const fullTournamentData = {
       ...tournamentFormData,
       rules: {
-        generalRules: rulesData.generalRules,
-        tiebreakers: rulesData.tiebreakers,
-        pointSystem: rulesData.pointSystem,
-        termsConditions: rulesData.termsConditions,
+        generalRules: rulesData.generalRules || "",
+        tiebreakers: rulesData.tiebreakers || "",
+        pointSystem: rulesData.pointSystem || "",
+        termsConditions: rulesData.termsConditions || "",
       }
     };
     
@@ -83,9 +83,13 @@ const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false, tour
     submitTournament(fullTournamentData);
   };
 
+  // Show Create Tournament button if tournament form data is available
+  const showCreateButton = !!tournamentFormData;
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-6">Tournament Rules</h2>
+      <p className="text-gray-600 mb-6">Define the rules for your tournament. You can create the tournament now or add rules later.</p>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSaveRules)} className="space-y-6">
@@ -186,7 +190,7 @@ const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false, tour
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline">Preview</Button>
             <Button type="submit" className="bg-sport-purple hover:bg-sport-dark-purple">Save Rules</Button>
-            {showFinalSubmit && (
+            {showCreateButton && (
               <Button 
                 type="button" 
                 className="bg-green-600 hover:bg-green-700 text-white"
@@ -201,7 +205,7 @@ const TournamentRulesSection = ({ onRulesComplete, showFinalSubmit = false, tour
       
       {/* Debug information */}
       <div className="mt-4 p-4 bg-gray-100 rounded text-sm">
-        <p>Debug: showFinalSubmit = {showFinalSubmit.toString()}</p>
+        <p>Debug: showCreateButton = {showCreateButton.toString()}</p>
         <p>Debug: tournamentFormData = {tournamentFormData ? "Available" : "Not available"}</p>
       </div>
     </div>
