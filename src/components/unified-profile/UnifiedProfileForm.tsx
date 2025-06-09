@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -69,18 +70,21 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
   const [profileType, setProfileType] = useState<string>(initialData?.profile_type || 'player');
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm({
-    resolver: zodResolver(baseProfileSchema),
-    defaultValues: {
-      profile_type: initialData?.profile_type || 'player',
-      display_name: initialData?.display_name || '',
-      bio: initialData?.bio || '',
-      city: initialData?.city || '',
-      country: initialData?.country || '',
-    }
+  // Helper function to get base profile defaults
+  const getBaseProfileDefaults = () => ({
+    profile_type: initialData?.profile_type || 'player',
+    display_name: initialData?.display_name || '',
+    bio: initialData?.bio || '',
+    city: initialData?.city || '',
+    country: initialData?.country || '',
   });
 
-  // Create a single form for specific data based on profile type
+  const form = useForm({
+    resolver: zodResolver(baseProfileSchema),
+    defaultValues: getBaseProfileDefaults()
+  });
+
+  // Helper function to get specific form schema
   const getSpecificFormSchema = () => {
     switch (profileType) {
       case 'player':
@@ -94,6 +98,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
     }
   };
 
+  // Helper function to get specific form defaults
   const getSpecificDefaultValues = () => {
     if (!initialData) return {};
     
@@ -145,18 +150,41 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
     defaultValues: getSpecificDefaultValues()
   });
 
+  // Reset forms when initialData changes
+  useEffect(() => {
+    console.log('Initial data changed:', initialData);
+    
+    // Reset main form
+    const baseDefaults = getBaseProfileDefaults();
+    console.log('Resetting main form with:', baseDefaults);
+    form.reset(baseDefaults);
+    
+    // Update profile type if it changed
+    if (initialData?.profile_type && initialData.profile_type !== profileType) {
+      setProfileType(initialData.profile_type);
+    }
+  }, [initialData]);
+
   // Reset specific form when profile type changes or initial data changes
   useEffect(() => {
-    specificForm.reset(getSpecificDefaultValues());
+    const specificDefaults = getSpecificDefaultValues();
+    console.log('Resetting specific form with:', specificDefaults);
+    console.log('Profile type:', profileType);
+    
+    // Recreate form with new schema and defaults
+    specificForm.reset(specificDefaults);
   }, [profileType, initialData]);
 
   const handleSubmit = async (data: any) => {
     setIsLoading(true);
     try {
       const specificData = specificForm.getValues();
+      console.log('Submitting profile data:', data);
+      console.log('Submitting specific data:', specificData);
+      
       const result = await onSubmit(data, specificData);
       if (result.success) {
-        // Handle success (navigation, etc.)
+        console.log('Profile submission successful');
       }
     } catch (error) {
       console.error('Form submission error:', error);
