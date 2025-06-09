@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ChevronDown, User, LogOut, Settings } from 'lucide-react';
+import { ChevronDown, User, LogOut, Settings, Users, Calendar } from 'lucide-react';
 
 interface AuthButtonsProps {
   isAuthenticated: boolean;
@@ -86,6 +86,14 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
     navigate("/createprofile");
   };
 
+  const handleCreateTeam = () => {
+    navigate("/team/create");
+  };
+
+  const handleOrganizeTournament = () => {
+    navigate("/organiser/tournament");
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="flex items-center space-x-2">
@@ -115,6 +123,14 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
         <DropdownMenuItem onClick={handleEditProfile} className="flex items-center space-x-2 cursor-pointer">
           <Settings className="h-4 w-4" />
           <span>Edit Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleCreateTeam} className="flex items-center space-x-2 cursor-pointer">
+          <Users className="h-4 w-4" />
+          <span>Create Team</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleOrganizeTournament} className="flex items-center space-x-2 cursor-pointer">
+          <Calendar className="h-4 w-4" />
+          <span>Organize Tournament</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout} className="flex items-center space-x-2 cursor-pointer text-red-600">
           <LogOut className="h-4 w-4" />
