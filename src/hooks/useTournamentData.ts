@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ interface Tournament {
   cancellation_reason: string | null;
   registration_deadline: string | null;
   fixture_generation_status: string | null;
+  organizer_id: string;
 }
 
 interface Team {
@@ -36,14 +38,22 @@ export const useTournamentData = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const fetchTournamentData = async () => {
-    if (!tournamentId) return;
+    if (!tournamentId) {
+      console.error("No tournament ID provided");
+      setLoading(false);
+      return;
+    }
+
+    console.log("Fetching tournament data for ID:", tournamentId);
 
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
+      console.log("Current user:", user?.id);
       setCurrentUserId(user?.id || null);
 
       // Fetch tournament details
+      console.log("Fetching tournament details...");
       const { data: tournamentData, error: tournamentError } = await supabase
         .from('tournaments')
         .select('*')
@@ -52,18 +62,29 @@ export const useTournamentData = () => {
 
       if (tournamentError) {
         console.error("Error fetching tournament:", tournamentError);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to fetch tournament details",
-        });
+        if (tournamentError.code === 'PGRST116') {
+          toast({
+            variant: "destructive",
+            title: "Tournament Not Found",
+            description: "The tournament you're looking for doesn't exist or has been removed.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch tournament details",
+          });
+        }
+        setLoading(false);
         return;
       }
 
+      console.log("Tournament data:", tournamentData);
       setTournament(tournamentData);
       setIsOrganizer(user?.id === tournamentData.organizer_id);
 
       // Fetch teams
+      console.log("Fetching teams...");
       const { data: teamsData, error: teamsError } = await supabase
         .from('tournament_teams')
         .select('*')
@@ -76,10 +97,10 @@ export const useTournamentData = () => {
           title: "Error",
           description: "Failed to fetch tournament teams",
         });
-        return;
+      } else {
+        console.log("Teams data:", teamsData);
+        setTeams(teamsData || []);
       }
-
-      setTeams(teamsData || []);
     } catch (error) {
       console.error("Error in fetchTournamentData:", error);
       toast({
@@ -133,6 +154,7 @@ export const useTournamentData = () => {
   };
 
   useEffect(() => {
+    console.log("useEffect triggered with tournamentId:", tournamentId);
     fetchTournamentData();
   }, [tournamentId]);
 

@@ -24,17 +24,30 @@ const TournamentProfile = () => {
   const { tournament, teams, loading, isOrganizer, currentUserId, addTeam } = useTournamentData();
   const navigate = useNavigate();
 
+  console.log("TournamentProfile render - loading:", loading, "tournament:", tournament);
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-sport-purple"></div>
-    </div>;
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-sport-purple"></div>
+        </div>
+      </>
+    );
   }
 
   if (!tournament) {
-    return <div className="min-h-screen flex flex-col items-center justify-center">
-      <h1 className="text-2xl font-bold mb-4">Tournament not found</h1>
-      <Button onClick={() => navigate('/')}>Return to Home</Button>
-    </div>;
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex flex-col items-center justify-center">
+          <h1 className="text-2xl font-bold mb-4">Tournament not found</h1>
+          <p className="text-gray-600 mb-4">The tournament you're looking for doesn't exist or may have been removed.</p>
+          <Button onClick={() => navigate('/')}>Return to Home</Button>
+        </div>
+      </>
+    );
   }
 
   // Check if tournament is cancelled
