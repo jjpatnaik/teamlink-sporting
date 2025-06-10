@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { Trophy, Calendar, MapPin, Users, MoreVertical, Trash2 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import TournamentCard from "./TournamentCard";
+import TournamentCardActions from "./TournamentCardActions";
+import TournamentsLoadingState from "./TournamentsLoadingState";
+import TournamentsEmptyState from "./TournamentsEmptyState";
 import TournamentCancellationDialog from "./TournamentCancellationDialog";
 
 interface Tournament {
@@ -35,7 +36,6 @@ const TournamentsList = () => {
     tournamentName: ''
   });
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const fetchOrganizerTournaments = async () => {
     try {
@@ -96,46 +96,15 @@ const TournamentsList = () => {
   };
 
   const handleCancellationComplete = () => {
-    // Refresh the tournaments list
     fetchOrganizerTournaments();
   };
 
-  const getStatusBadge = (tournament: Tournament) => {
-    if (tournament.tournament_status === 'cancelled') {
-      return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          Cancelled
-        </span>
-      );
-    }
-    
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-        tournament.tournament_status === 'active' 
-          ? 'bg-green-100 text-green-800' 
-          : 'bg-gray-100 text-gray-800'
-      }`}>
-        {tournament.tournament_status || 'Draft'}
-      </span>
-    );
-  };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sport-purple"></div>
-      </div>
-    );
+    return <TournamentsLoadingState />;
   }
 
   if (tournaments.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <Trophy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold mb-2">No tournaments yet</h3>
-        <p className="text-gray-600 mb-6">You haven't created any tournaments. Get started by creating your first tournament!</p>
-      </div>
-    );
+    return <TournamentsEmptyState />;
   }
 
   return (
@@ -146,79 +115,12 @@ const TournamentsList = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {tournaments.map((tournament) => (
-          <Card key={tournament.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-sport-purple" />
-                    {tournament.name}
-                  </CardTitle>
-                  <p className="text-sm text-gray-600">{tournament.sport}</p>
-                </div>
-                
-                {tournament.tournament_status !== 'cancelled' && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
-                        className="text-red-600 focus:text-red-600"
-                        onClick={() => handleCancelTournament(tournament.id, tournament.name)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Cancel Tournament
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 mb-4">
-                {tournament.location && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin className="h-4 w-4" />
-                    {tournament.location}
-                  </div>
-                )}
-                
-                {tournament.start_date && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(tournament.start_date).toLocaleDateString()}
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Users className="h-4 w-4" />
-                  Up to {tournament.teams_allowed} teams
-                </div>
-                
-                {tournament.tournament_status === 'cancelled' && tournament.cancellation_reason && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
-                    <p className="font-medium text-red-800">Cancellation Reason:</p>
-                    <p className="text-red-700">{tournament.cancellation_reason}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-between items-center">
-                {getStatusBadge(tournament)}
-                
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleViewTournament(tournament.id)}
-                >
-                  View Details
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <TournamentCard
+            key={tournament.id}
+            tournament={tournament}
+            onViewTournament={handleViewTournament}
+            onCancelTournament={handleCancelTournament}
+          />
         ))}
       </div>
 
