@@ -120,7 +120,7 @@ export const useUnifiedSearch = () => {
         return;
       }
 
-      // Search tournaments
+      // Search tournaments - simplified query without the problematic join
       let tournamentQuery = supabase
         .from('tournaments')
         .select(`
@@ -132,10 +132,7 @@ export const useUnifiedSearch = () => {
           end_date,
           description,
           tournament_status,
-          organizer_id,
-          profiles!tournaments_organizer_id_fkey (
-            display_name
-          )
+          organizer_id
         `)
         .neq('tournament_status', 'cancelled'); // Only show active tournaments
 
@@ -163,6 +160,39 @@ export const useUnifiedSearch = () => {
       console.log('Profile search result:', { data: profileData, error: profileError });
       console.log('Tournament search result:', { data: tournamentData, error: tournamentError });
 
+      // If we have tournaments, fetch organizer names separately
+      let tournamentsWithOrganizers: SearchTournament[] = [];
+      if (tournamentData && tournamentData.length > 0) {
+        const organizerIds = [...new Set(tournamentData.map(t => t.organizer_id))];
+        
+        // Fetch organizer names
+        const { data: organizerData } = await supabase
+          .from('profiles')
+          .select('user_id, display_name')
+          .in('user_id', organizerIds);
+
+        // Create a map of organizer IDs to names
+        const organizerMap = new Map();
+        if (organizerData) {
+          organizerData.forEach(org => {
+            organizerMap.set(org.user_id, org.display_name);
+          });
+        }
+
+        // Transform tournament data with organizer names
+        tournamentsWithOrganizers = tournamentData.map((tournament: any) => ({
+          id: tournament.id,
+          name: tournament.name,
+          sport: tournament.sport,
+          location: tournament.location,
+          start_date: tournament.start_date,
+          end_date: tournament.end_date,
+          description: tournament.description,
+          tournament_status: tournament.tournament_status,
+          organizer_name: organizerMap.get(tournament.organizer_id) || 'Unknown Organizer',
+        }));
+      }
+
       // Transform profile data
       const transformedProfiles: SearchProfile[] = (profileData || []).map((profile: any) => ({
         id: profile.user_id,
@@ -177,19 +207,6 @@ export const useUnifiedSearch = () => {
         company_name: profile.sponsor_profiles?.[0]?.company_name,
       }));
 
-      // Transform tournament data
-      const transformedTournaments: SearchTournament[] = (tournamentData || []).map((tournament: any) => ({
-        id: tournament.id,
-        name: tournament.name,
-        sport: tournament.sport,
-        location: tournament.location,
-        start_date: tournament.start_date,
-        end_date: tournament.end_date,
-        description: tournament.description,
-        tournament_status: tournament.tournament_status,
-        organizer_name: tournament.profiles?.display_name || 'Unknown Organizer',
-      }));
-
       // Additional sport filter for profiles
       let filteredProfiles = transformedProfiles;
       if (filters.sport && filters.sport !== 'any_sport') {
@@ -199,10 +216,10 @@ export const useUnifiedSearch = () => {
       }
 
       console.log('Final filtered profiles:', filteredProfiles);
-      console.log('Final filtered tournaments:', transformedTournaments);
+      console.log('Final filtered tournaments:', tournamentsWithOrganizers);
       
       setProfiles(filteredProfiles);
-      setTournaments(transformedTournaments);
+      setTournaments(tournamentsWithOrganizers);
     } catch (error) {
       console.error('Search error:', error);
       toast.error('Error searching profiles and tournaments');
