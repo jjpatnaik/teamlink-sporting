@@ -18,7 +18,7 @@ const SearchPage = () => {
   const [profileType, setProfileType] = useState('all');
   const navigate = useNavigate();
   
-  const { profiles, loading, searchProfiles } = useUnifiedSearch();
+  const { profiles, tournaments, loading, searchProfiles } = useUnifiedSearch();
 
   useEffect(() => {
     handleSearch();
@@ -63,6 +63,12 @@ const SearchPage = () => {
     }
   };
 
+  const handleTournamentClick = (tournamentId: string) => {
+    console.log('=== TOURNAMENT CLICK NAVIGATION ===');
+    console.log('Clicked tournament ID:', tournamentId);
+    navigate(`/tournament/${tournamentId}`);
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -80,7 +86,7 @@ const SearchPage = () => {
               Discover Sports Community
             </h1>
             <p className="text-sport-gray text-lg">
-              Connect with players, teams, organizers, and sponsors
+              Connect with players, teams, organizers, and discover tournaments
             </p>
           </div>
 
@@ -147,7 +153,9 @@ const SearchPage = () => {
           {/* Search Results */}
           <UnifiedSearchResults
             profiles={profiles}
+            tournaments={tournaments}
             handleItemClick={handleItemClick}
+            handleTournamentClick={handleTournamentClick}
             loading={loading}
             searchFilters={{
               selectedSport,

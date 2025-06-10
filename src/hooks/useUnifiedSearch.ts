@@ -16,8 +16,26 @@ export interface SearchProfile {
   company_name?: string;
 }
 
+export interface SearchTournament {
+  id: string;
+  name: string;
+  sport: string;
+  location: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  description: string | null;
+  tournament_status: string | null;
+  organizer_name?: string;
+}
+
+export interface UnifiedSearchResults {
+  profiles: SearchProfile[];
+  tournaments: SearchTournament[];
+}
+
 export const useUnifiedSearch = () => {
   const [profiles, setProfiles] = useState<SearchProfile[]>([]);
+  const [tournaments, setTournaments] = useState<SearchTournament[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -49,7 +67,8 @@ export const useUnifiedSearch = () => {
       console.log('Search filters:', filters);
       console.log('Current user ID:', currentUserId);
 
-      let query = supabase
+      // Search profiles
+      let profileQuery = supabase
         .from('profiles')
         .select(`
           id,
@@ -74,39 +93,79 @@ export const useUnifiedSearch = () => {
 
       // Exclude current user's profile
       if (currentUserId) {
-        query = query.neq('user_id', currentUserId);
+        profileQuery = profileQuery.neq('user_id', currentUserId);
       }
 
-      // Apply filters
+      // Apply filters to profiles
       if (filters.searchTerm) {
-        query = query.ilike('display_name', `%${filters.searchTerm}%`);
+        profileQuery = profileQuery.ilike('display_name', `%${filters.searchTerm}%`);
       }
 
       if (filters.profileType && filters.profileType !== 'all') {
-        // Ensure the profile type is one of the valid enum values
         const validProfileTypes = ['player', 'team_captain', 'tournament_organizer', 'sponsor'];
         if (validProfileTypes.includes(filters.profileType)) {
-          query = query.eq('profile_type', filters.profileType as 'player' | 'team_captain' | 'tournament_organizer' | 'sponsor');
+          profileQuery = profileQuery.eq('profile_type', filters.profileType as 'player' | 'team_captain' | 'tournament_organizer' | 'sponsor');
         }
       }
 
       if (filters.city) {
-        query = query.ilike('city', `%${filters.city}%`);
+        profileQuery = profileQuery.ilike('city', `%${filters.city}%`);
       }
 
-      const { data, error } = await query;
+      const { data: profileData, error: profileError } = await profileQuery;
 
-      console.log('Search query result:', { data, error });
-
-      if (error) {
-        console.error('Search error:', error);
+      if (profileError) {
+        console.error('Profile search error:', profileError);
         toast.error('Error searching profiles');
         return;
       }
 
-      // Transform data to flatten the related profile information
-      const transformedProfiles: SearchProfile[] = (data || []).map((profile: any) => ({
-        id: profile.user_id, // Use user_id for routing instead of profile.id
+      // Search tournaments
+      let tournamentQuery = supabase
+        .from('tournaments')
+        .select(`
+          id,
+          name,
+          sport,
+          location,
+          start_date,
+          end_date,
+          description,
+          tournament_status,
+          organizer_id,
+          profiles!tournaments_organizer_id_fkey (
+            display_name
+          )
+        `)
+        .neq('tournament_status', 'cancelled'); // Only show active tournaments
+
+      // Apply filters to tournaments
+      if (filters.searchTerm) {
+        tournamentQuery = tournamentQuery.ilike('name', `%${filters.searchTerm}%`);
+      }
+
+      if (filters.sport && filters.sport !== 'any_sport') {
+        tournamentQuery = tournamentQuery.ilike('sport', `%${filters.sport}%`);
+      }
+
+      if (filters.city) {
+        tournamentQuery = tournamentQuery.ilike('location', `%${filters.city}%`);
+      }
+
+      const { data: tournamentData, error: tournamentError } = await tournamentQuery;
+
+      if (tournamentError) {
+        console.error('Tournament search error:', tournamentError);
+        // Don't fail the entire search if tournaments fail
+        console.log('Tournament search failed, continuing with profiles only');
+      }
+
+      console.log('Profile search result:', { data: profileData, error: profileError });
+      console.log('Tournament search result:', { data: tournamentData, error: tournamentError });
+
+      // Transform profile data
+      const transformedProfiles: SearchProfile[] = (profileData || []).map((profile: any) => ({
+        id: profile.user_id,
         display_name: profile.display_name,
         profile_type: profile.profile_type,
         bio: profile.bio,
@@ -118,9 +177,20 @@ export const useUnifiedSearch = () => {
         company_name: profile.sponsor_profiles?.[0]?.company_name,
       }));
 
-      console.log('Transformed profiles:', transformedProfiles);
+      // Transform tournament data
+      const transformedTournaments: SearchTournament[] = (tournamentData || []).map((tournament: any) => ({
+        id: tournament.id,
+        name: tournament.name,
+        sport: tournament.sport,
+        location: tournament.location,
+        start_date: tournament.start_date,
+        end_date: tournament.end_date,
+        description: tournament.description,
+        tournament_status: tournament.tournament_status,
+        organizer_name: tournament.profiles?.display_name || 'Unknown Organizer',
+      }));
 
-      // Additional sport filter for player and team profiles
+      // Additional sport filter for profiles
       let filteredProfiles = transformedProfiles;
       if (filters.sport && filters.sport !== 'any_sport') {
         filteredProfiles = transformedProfiles.filter(profile => 
@@ -129,10 +199,13 @@ export const useUnifiedSearch = () => {
       }
 
       console.log('Final filtered profiles:', filteredProfiles);
+      console.log('Final filtered tournaments:', transformedTournaments);
+      
       setProfiles(filteredProfiles);
+      setTournaments(transformedTournaments);
     } catch (error) {
       console.error('Search error:', error);
-      toast.error('Error searching profiles');
+      toast.error('Error searching profiles and tournaments');
     } finally {
       setLoading(false);
     }
@@ -151,6 +224,7 @@ export const useUnifiedSearch = () => {
 
   return {
     profiles,
+    tournaments,
     loading,
     searchProfiles,
     getAllProfiles
