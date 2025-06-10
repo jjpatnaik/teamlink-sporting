@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,7 +88,29 @@ const TournamentsList = () => {
   };
 
   const handleCreateNewTournament = () => {
-    setSearchParams({ tab: 'create' });
+    console.log("Create New Tournament button clicked");
+    console.log("Current search params:", searchParams.toString());
+    
+    const currentTab = searchParams.get('tab');
+    console.log("Current tab:", currentTab);
+    
+    if (currentTab === 'create') {
+      // If already on create tab, provide feedback and scroll to top
+      toast({
+        title: "Already on Create Tournament",
+        description: "You're already on the tournament creation form below.",
+      });
+      
+      // Scroll to the top of the page to show the form
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // Navigate to create tab
+      setSearchParams({ tab: 'create' });
+      toast({
+        title: "Navigating to Create Tournament",
+        description: "Opening the tournament creation form...",
+      });
+    }
   };
 
   const handleCancelTournament = (tournamentId: string, tournamentName: string) => {
