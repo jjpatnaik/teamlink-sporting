@@ -87,32 +87,6 @@ const TournamentsList = () => {
     navigate(`/tournament/${tournamentId}`);
   };
 
-  const handleCreateNewTournament = () => {
-    console.log("Create New Tournament button clicked");
-    console.log("Current search params:", searchParams.toString());
-    
-    const currentTab = searchParams.get('tab');
-    console.log("Current tab:", currentTab);
-    
-    if (currentTab === 'create') {
-      // If already on create tab, provide feedback and scroll to top
-      toast({
-        title: "Already on Create Tournament",
-        description: "You're already on the tournament creation form below.",
-      });
-      
-      // Scroll to the top of the page to show the form
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      // Navigate to create tab
-      setSearchParams({ tab: 'create' });
-      toast({
-        title: "Navigating to Create Tournament",
-        description: "Opening the tournament creation form...",
-      });
-    }
-  };
-
   const handleCancelTournament = (tournamentId: string, tournamentName: string) => {
     setCancellationDialog({
       isOpen: true,
@@ -160,9 +134,6 @@ const TournamentsList = () => {
         <Trophy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
         <h3 className="text-xl font-semibold mb-2">No tournaments yet</h3>
         <p className="text-gray-600 mb-6">You haven't created any tournaments. Get started by creating your first tournament!</p>
-        <Button className="btn-primary" onClick={handleCreateNewTournament}>
-          Create Your First Tournament
-        </Button>
       </div>
     );
   }
@@ -171,9 +142,6 @@ const TournamentsList = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Tournaments</h2>
-        <Button className="btn-primary" onClick={handleCreateNewTournament}>
-          Create New Tournament
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
