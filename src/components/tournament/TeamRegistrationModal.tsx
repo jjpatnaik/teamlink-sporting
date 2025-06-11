@@ -1,0 +1,269 @@
+
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { X, DollarSign } from 'lucide-react';
+
+interface TeamRegistrationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  tournament: {
+    id: string;
+    name: string;
+    entry_fee: number;
+    sport: string;
+  };
+  onRegistrationSuccess: () => void;
+}
+
+const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
+  isOpen,
+  onClose,
+  tournament,
+  onRegistrationSuccess
+}) => {
+  const [formData, setFormData] = useState({
+    team_name: '',
+    captain_name: '',
+    contact_email: '',
+    contact_phone: '',
+    social_media_links: {
+      facebook: '',
+      instagram: '',
+      twitter: ''
+    }
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSocialMediaChange = (platform: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      social_media_links: {
+        ...prev.social_media_links,
+        [platform]: value
+      }
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.team_name.trim() || !formData.captain_name.trim() || !formData.contact_email.trim()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('You must be logged in to register a team');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check if team name already exists for this tournament
+      const { data: existingTeam } = await supabase
+        .from('tournament_teams')
+        .select('id')
+        .eq('tournament_id', tournament.id)
+        .eq('team_name', formData.team_name.trim())
+        .single();
+
+      if (existingTeam) {
+        toast.error('A team with this name is already registered for this tournament');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Register the team
+      const { error } = await supabase
+        .from('tournament_teams')
+        .insert({
+          tournament_id: tournament.id,
+          team_name: formData.team_name.trim(),
+          contact_email: formData.contact_email.trim(),
+          contact_phone: formData.contact_phone.trim() || null,
+          captain_name: formData.captain_name.trim(),
+          social_media_links: formData.social_media_links,
+          status: 'registered',
+          registered_by: user.id
+        });
+
+      if (error) {
+        console.error('Registration error:', error);
+        toast.error('Failed to register team. Please try again.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      toast.success(`Team "${formData.team_name}" successfully registered!`);
+      onRegistrationSuccess();
+      onClose();
+      
+      // Reset form
+      setFormData({
+        team_name: '',
+        captain_name: '',
+        contact_email: '',
+        contact_phone: '',
+        social_media_links: {
+          facebook: '',
+          instagram: '',
+          twitter: ''
+        }
+      });
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            Register Team for {tournament.name}
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogTitle>
+          <DialogDescription>
+            Fill in the details below to register your team for this {tournament.sport} tournament.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Entry Fee Display */}
+          {tournament.entry_fee > 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <DollarSign className="w-5 h-5 text-yellow-600 mr-2" />
+                <span className="text-yellow-800 font-medium">
+                  Registration Fee: ${tournament.entry_fee}
+                </span>
+              </div>
+              <p className="text-sm text-yellow-700 mt-1">
+                Payment will be coordinated by the tournament organizer after registration.
+              </p>
+            </div>
+          )}
+
+          {/* Required Fields */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="team_name">Team Name *</Label>
+                <Input
+                  id="team_name"
+                  value={formData.team_name}
+                  onChange={(e) => handleInputChange('team_name', e.target.value)}
+                  placeholder="Enter team name"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="captain_name">Captain Name *</Label>
+                <Input
+                  id="captain_name"
+                  value={formData.captain_name}
+                  onChange={(e) => handleInputChange('captain_name', e.target.value)}
+                  placeholder="Enter captain's name"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="contact_email">Contact Email *</Label>
+                <Input
+                  id="contact_email"
+                  type="email"
+                  value={formData.contact_email}
+                  onChange={(e) => handleInputChange('contact_email', e.target.value)}
+                  placeholder="team@example.com"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="contact_phone">Contact Phone</Label>
+                <Input
+                  id="contact_phone"
+                  type="tel"
+                  value={formData.contact_phone}
+                  onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Optional Social Media Links */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-700">Social Media Links (Optional)</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <Label htmlFor="facebook">Facebook</Label>
+                <Input
+                  id="facebook"
+                  value={formData.social_media_links.facebook}
+                  onChange={(e) => handleSocialMediaChange('facebook', e.target.value)}
+                  placeholder="https://facebook.com/yourteam"
+                />
+              </div>
+              <div>
+                <Label htmlFor="instagram">Instagram</Label>
+                <Input
+                  id="instagram"
+                  value={formData.social_media_links.instagram}
+                  onChange={(e) => handleSocialMediaChange('instagram', e.target.value)}
+                  placeholder="https://instagram.com/yourteam"
+                />
+              </div>
+              <div>
+                <Label htmlFor="twitter">Twitter</Label>
+                <Input
+                  id="twitter"
+                  value={formData.social_media_links.twitter}
+                  onChange={(e) => handleSocialMediaChange('twitter', e.target.value)}
+                  placeholder="https://twitter.com/yourteam"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting} className="btn-primary">
+              {isSubmitting ? 'Registering...' : 'Register Team'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default TeamRegistrationModal;

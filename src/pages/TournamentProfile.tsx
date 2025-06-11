@@ -1,8 +1,8 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import { useTournamentData } from "@/hooks/useTournamentData";
+import TeamRegistrationModal from "@/components/tournament/TeamRegistrationModal";
 import { 
   Trophy,
   MapPin,
@@ -21,8 +21,9 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 const TournamentProfile = () => {
-  const { tournament, teams, loading, isOrganizer, currentUserId, addTeam } = useTournamentData();
+  const { tournament, teams, loading, isOrganizer, currentUserId, refreshData } = useTournamentData();
   const navigate = useNavigate();
+  const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
 
   console.log("TournamentProfile render - loading:", loading, "tournament:", tournament);
 
@@ -52,6 +53,18 @@ const TournamentProfile = () => {
 
   // Check if tournament is cancelled
   const isTournamentCancelled = tournament.tournament_status === 'cancelled';
+
+  const handleRegisterClick = () => {
+    if (currentUserId) {
+      setIsRegistrationModalOpen(true);
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleRegistrationSuccess = () => {
+    refreshData();
+  };
 
   return (
     <>
@@ -110,13 +123,9 @@ const TournamentProfile = () => {
                 <div className="mt-4 md:mt-0 flex space-x-2">
                   {!isTournamentCancelled ? (
                     <>
-                      <Button className="btn-primary" onClick={() => {
-                        if (currentUserId) {
-                          // Show registration modal
-                        } else {
-                          navigate('/login');
-                        }
-                      }}>Register Team</Button>
+                      <Button className="btn-primary" onClick={handleRegisterClick}>
+                        Register Team
+                      </Button>
                       <Button variant="outline" className="border-sport-purple text-sport-purple hover:bg-sport-light-purple">
                         Contact
                       </Button>
@@ -319,6 +328,21 @@ const TournamentProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Team Registration Modal */}
+      {tournament && (
+        <TeamRegistrationModal
+          isOpen={isRegistrationModalOpen}
+          onClose={() => setIsRegistrationModalOpen(false)}
+          tournament={{
+            id: tournament.id,
+            name: tournament.name,
+            entry_fee: tournament.entry_fee || 0,
+            sport: tournament.sport
+          }}
+          onRegistrationSuccess={handleRegistrationSuccess}
+        />
+      )}
     </>
   );
 };
