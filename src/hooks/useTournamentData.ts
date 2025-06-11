@@ -94,19 +94,15 @@ export const useTournamentData = () => {
       const isOrganizerUser = user?.id === tournamentData.organizer_id;
       setIsOrganizer(isOrganizerUser);
 
-      // Fetch teams - show ALL teams to organizers, only approved teams to public
+      // Fetch teams - ALWAYS show only approved teams for tournament profile page
       console.log("Fetching teams...");
       let teamsQuery = supabase
         .from('tournament_teams')
         .select('*')
         .eq('tournament_id', tournamentId)
         .eq('status', 'registered')
+        .eq('approval_status', 'approved') // Always filter to approved teams only
         .order('created_at', { ascending: true });
-
-      // If not organizer, only show approved teams (explicitly exclude rejected teams)
-      if (!isOrganizerUser) {
-        teamsQuery = teamsQuery.eq('approval_status', 'approved');
-      }
 
       const { data: teamsData, error: teamsError } = await teamsQuery;
 
@@ -119,12 +115,8 @@ export const useTournamentData = () => {
         });
         setTeams([]);
       } else {
-        console.log("Teams data fetched:", teamsData);
-        // Additional client-side filtering to ensure rejected teams are never shown to public
-        const filteredTeams = isOrganizerUser 
-          ? (teamsData || [])
-          : (teamsData || []).filter(team => team.approval_status === 'approved');
-        setTeams(filteredTeams);
+        console.log("Teams data fetched (approved only):", teamsData);
+        setTeams(teamsData || []);
       }
     } catch (error) {
       console.error("Error in fetchTournamentData:", error);
