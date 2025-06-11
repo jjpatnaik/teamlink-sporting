@@ -10,9 +10,18 @@ const FixtureManagementTool = () => {
   const { tournament, teams, isOrganizer, loading, refreshData } = useTournamentData();
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Filter to only show approved teams - moved to top for clarity
+  const approvedTeams = teams.filter(team => team.approval_status === 'approved');
+  
+  console.log('FixtureManagementTool - All teams:', teams.length);
+  console.log('FixtureManagementTool - Approved teams:', approvedTeams.length);
+  console.log('FixtureManagementTool - Team approval statuses:', teams.map(t => ({ name: t.team_name, status: t.approval_status })));
+
   // Set up real-time subscription specifically for this component
   useEffect(() => {
     if (!tournament?.id) return;
+
+    console.log('Setting up real-time subscription for tournament:', tournament.id);
 
     const channel = supabase
       .channel('fixture-management-teams')
@@ -26,6 +35,7 @@ const FixtureManagementTool = () => {
         },
         (payload) => {
           console.log('Team approval status changed in fixture management:', payload);
+          console.log('Refreshing tournament data...');
           // Force refresh the data when team approval status changes
           refreshData();
         }
@@ -33,6 +43,7 @@ const FixtureManagementTool = () => {
       .subscribe();
 
     return () => {
+      console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [tournament?.id, refreshData]);
@@ -226,9 +237,6 @@ const FixtureManagementTool = () => {
     );
   }
 
-  // Filter to only show approved teams - this will now update in real-time
-  const approvedTeams = teams.filter(team => team.approval_status === 'approved');
-  
   const canGenerateFixtures = tournament?.fixture_generation_status === 'pending' && approvedTeams.length >= 2;
   const fixturesGenerated = tournament?.fixture_generation_status === 'completed';
 
