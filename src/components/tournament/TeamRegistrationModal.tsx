@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { X, DollarSign } from 'lucide-react';
+import { X, DollarSign, CreditCard } from 'lucide-react';
 
 interface TeamRegistrationModalProps {
   isOpen: boolean;
@@ -38,6 +37,8 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
     }
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const entryFee = tournament.entry_fee || 0;
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -136,6 +137,10 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
     }
   };
 
+  const handlePaymentClick = () => {
+    toast.info('Payment integration will be added soon with Stripe');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -153,19 +158,34 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Entry Fee Display */}
-          {tournament.entry_fee > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className={`border rounded-lg p-4 ${entryFee > 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'}`}>
+            <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <DollarSign className="w-5 h-5 text-yellow-600 mr-2" />
-                <span className="text-yellow-800 font-medium">
-                  Registration Fee: ${tournament.entry_fee}
+                <DollarSign className={`w-5 h-5 mr-2 ${entryFee > 0 ? 'text-yellow-600' : 'text-green-600'}`} />
+                <span className={`font-medium ${entryFee > 0 ? 'text-yellow-800' : 'text-green-800'}`}>
+                  Registration Fee: ${entryFee}
                 </span>
               </div>
-              <p className="text-sm text-yellow-700 mt-1">
-                Payment will be coordinated by the tournament organizer after registration.
-              </p>
+              {entryFee > 0 && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handlePaymentClick}
+                  className="ml-4"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Pay Registration Fee
+                </Button>
+              )}
             </div>
-          )}
+            <p className={`text-sm mt-1 ${entryFee > 0 ? 'text-yellow-700' : 'text-green-700'}`}>
+              {entryFee > 0 
+                ? 'Payment will be coordinated by the tournament organizer after registration.'
+                : 'This tournament has no registration fee.'
+              }
+            </p>
+          </div>
 
           {/* Required Fields */}
           <div className="space-y-4">
