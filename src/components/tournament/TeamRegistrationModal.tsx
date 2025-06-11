@@ -155,10 +155,8 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
       // Call success callback to refresh data
       onRegistrationSuccess();
       
-      // Close modal after a short delay to let user see the success message
-      setTimeout(() => {
-        onClose();
-      }, 1000);
+      // Close modal
+      onClose();
 
     } catch (error) {
       console.error('Unexpected registration error:', error);

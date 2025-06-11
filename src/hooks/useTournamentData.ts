@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -27,8 +28,12 @@ interface Team {
   tournament_id: string;
   team_name: string;
   contact_email: string | null;
+  contact_phone: string | null;
+  captain_name: string | null;
   status: string;
   created_at: string;
+  registered_by: string | null;
+  social_media_links: any;
 }
 
 export const useTournamentData = () => {

@@ -478,25 +478,37 @@ export type Database = {
       }
       tournament_teams: {
         Row: {
+          captain_name: string | null
           contact_email: string | null
+          contact_phone: string | null
           created_at: string
           id: string
+          registered_by: string | null
+          social_media_links: Json | null
           status: string
           team_name: string
           tournament_id: string
         }
         Insert: {
+          captain_name?: string | null
           contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           id?: string
+          registered_by?: string | null
+          social_media_links?: Json | null
           status?: string
           team_name: string
           tournament_id: string
         }
         Update: {
+          captain_name?: string | null
           contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           id?: string
+          registered_by?: string | null
+          social_media_links?: Json | null
           status?: string
           team_name?: string
           tournament_id?: string
