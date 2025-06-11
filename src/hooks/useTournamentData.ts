@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -25,13 +24,10 @@ interface Tournament {
 
 interface Team {
   id: string;
+  tournament_id: string;
   team_name: string;
   contact_email: string | null;
-  contact_phone: string | null;
-  captain_name: string | null;
-  social_media_links: any;
   status: string;
-  registered_by: string | null;
   created_at: string;
 }
 
