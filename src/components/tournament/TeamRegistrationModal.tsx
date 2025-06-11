@@ -91,7 +91,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Get current user
+      // Get current user first
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
@@ -105,7 +105,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
         return;
       }
 
-      console.log('Current user:', user.id);
+      console.log('Current user ID:', user.id);
       console.log('Registering team for tournament:', tournament.id);
 
       // Check if team name already exists for this tournament
@@ -138,7 +138,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
         return;
       }
 
-      // Register the team with all required fields
+      // Register the team with the registered_by field properly set
       const teamData = {
         tournament_id: tournament.id,
         team_name: formData.team_name.trim(),
@@ -147,7 +147,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
         captain_name: formData.captain_name.trim(),
         social_media_links: formData.social_media_links,
         status: 'registered',
-        registered_by: user.id
+        registered_by: user.id // This is crucial for RLS policies
       };
 
       console.log('Inserting team data:', teamData);

@@ -124,47 +124,6 @@ export const useTournamentData = () => {
     }
   };
 
-  const addTeam = async (teamName: string, contactEmail: string) => {
-    if (!tournamentId || !currentUserId) return;
-
-    try {
-      const { error } = await supabase
-        .from('tournament_teams')
-        .insert({
-          tournament_id: tournamentId,
-          team_name: teamName,
-          contact_email: contactEmail,
-          status: 'registered',
-          registered_by: currentUserId
-        });
-
-      if (error) {
-        console.error("Error adding team:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to register team",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "Team registered successfully",
-      });
-
-      // Refresh teams data
-      fetchTournamentData();
-    } catch (error) {
-      console.error("Error in addTeam:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred",
-      });
-    }
-  };
-
   useEffect(() => {
     console.log("useEffect triggered with tournamentId:", tournamentId);
     fetchTournamentData();
@@ -176,7 +135,6 @@ export const useTournamentData = () => {
     loading,
     isOrganizer,
     currentUserId,
-    addTeam,
     refreshData: fetchTournamentData
   };
 };
