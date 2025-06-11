@@ -48,6 +48,7 @@ export const useTournamentFormSubmission = () => {
       console.log("Original teamsAllowed (string):", data.teamsAllowed, "Type:", typeof data.teamsAllowed);
       console.log("Original entryFee (string):", data.entryFee, "Type:", typeof data.entryFee);
       console.log("Original teamSize (string):", data.teamSize, "Type:", typeof data.teamSize);
+      console.log("Format value:", data.format, "Type:", typeof data.format);
       
       // Convert string numbers to integers with validation
       const teamsAllowed = parseInt(data.teamsAllowed);
@@ -63,6 +64,18 @@ export const useTournamentFormSubmission = () => {
         toast({
           title: "Validation Error",
           description: "Please enter a valid number of teams allowed",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate format field against allowed values
+      const allowedFormats = ['knockout', 'round_robin', 'league', 'swiss'];
+      if (!allowedFormats.includes(data.format)) {
+        console.error("❌ Invalid format value:", data.format);
+        toast({
+          title: "Validation Error",
+          description: "Please select a valid tournament format",
           variant: "destructive",
         });
         return;
@@ -102,65 +115,27 @@ export const useTournamentFormSubmission = () => {
       
       console.log("Step 4: Attempting database insert...");
       
-      // Save tournament to database with retry logic
-      let tournament;
-      let error;
-      let retryCount = 0;
-      const maxRetries = 3;
+      // Save tournament to database
+      console.log("Sending query to Supabase...");
       
-      while (retryCount < maxRetries) {
-        try {
-          console.log(`Database insert attempt ${retryCount + 1}/${maxRetries}`);
-          console.log("Sending query to Supabase...");
-          
-          const result = await supabase
-            .from('tournaments')
-            .insert(tournamentData)
-            .select()
-            .single();
-            
-          tournament = result.data;
-          error = result.error;
-          
-          console.log("Supabase response received:");
-          console.log("- Data:", tournament);
-          console.log("- Error:", error);
-          
-          if (!error) {
-            console.log("✅ Tournament created successfully in database!");
-            console.log("Created tournament details:", JSON.stringify(tournament, null, 2));
-            break;
-          } else {
-            console.error(`❌ Insert attempt ${retryCount + 1} failed:`, error);
-            console.error("Error details:", {
-              message: error.message,
-              code: error.code,
-              details: error.details,
-              hint: error.hint
-            });
-            throw error;
-          }
-        } catch (insertError) {
-          console.error(`❌ Insert attempt ${retryCount + 1} failed with exception:`, insertError);
-          error = insertError;
-          retryCount++;
-          
-          if (retryCount < maxRetries) {
-            console.log(`Retrying in 1 second... (attempt ${retryCount + 1}/${maxRetries})`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-      }
+      const { data: tournament, error } = await supabase
+        .from('tournaments')
+        .insert(tournamentData)
+        .select()
+        .single();
         
+      console.log("Supabase response received:");
+      console.log("- Data:", tournament);
+      console.log("- Error:", error);
+      
       if (error) {
-        console.error("❌ Final error after all retries:", error);
-        console.error("Error analysis:");
-        console.error("- Type:", typeof error);
-        console.error("- Constructor:", error.constructor?.name);
-        console.error("- Message:", error.message);
-        console.error("- Code:", error.code);
-        console.error("- Details:", error.details);
-        console.error("- Stack:", error.stack);
+        console.error("❌ Database insert failed:", error);
+        console.error("Error details:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         
         let errorMessage = "Failed to create tournament";
         
