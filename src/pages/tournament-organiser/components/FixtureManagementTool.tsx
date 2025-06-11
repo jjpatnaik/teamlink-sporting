@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Rocket, Calendar, Users } from "lucide-react";
@@ -8,8 +7,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTournamentData } from "@/hooks/useTournamentData";
 
 const FixtureManagementTool = () => {
-  const { tournament, teams, isOrganizer, loading } = useTournamentData();
+  const { tournament, teams, isOrganizer, loading, refreshData } = useTournamentData();
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Set up real-time subscription specifically for this component
+  useEffect(() => {
+    if (!tournament?.id) return;
+
+    const channel = supabase
+      .channel('fixture-management-teams')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tournament_teams',
+          filter: `tournament_id=eq.${tournament.id}`
+        },
+        (payload) => {
+          console.log('Team approval status changed in fixture management:', payload);
+          // Force refresh the data when team approval status changes
+          refreshData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tournament?.id, refreshData]);
 
   const handleManualFixtures = () => {
     // In a real app, this would navigate to the fixture builder page
@@ -29,14 +55,14 @@ const FixtureManagementTool = () => {
       const fixtures = [];
       let matchNumber = 1;
       
-      for (let i = 0; i < teams.length; i++) {
-        for (let j = i + 1; j < teams.length; j++) {
+      for (let i = 0; i < approvedTeams.length; i++) {
+        for (let j = i + 1; j < approvedTeams.length; j++) {
           fixtures.push({
             tournament_id: tournament.id,
             round_number: 1, // Round robin has only one round with multiple matches
             match_number: matchNumber++,
-            team_1_id: teams[i].id,
-            team_2_id: teams[j].id,
+            team_1_id: approvedTeams[i].id,
+            team_2_id: approvedTeams[j].id,
             status: 'scheduled',
           });
         }
@@ -82,7 +108,7 @@ const FixtureManagementTool = () => {
       
       // For knockout, we need to create the first round
       // Number of teams must be a power of 2 for perfect bracket
-      const teamCount = teams.length;
+      const teamCount = approvedTeams.length;
       const fixtures = [];
       let matchNumber = 1;
       
@@ -93,8 +119,8 @@ const FixtureManagementTool = () => {
             tournament_id: tournament.id,
             round_number: 1,
             match_number: matchNumber++,
-            team_1_id: teams[i].id,
-            team_2_id: teams[i + 1].id,
+            team_1_id: approvedTeams[i].id,
+            team_2_id: approvedTeams[i + 1].id,
             status: 'scheduled',
           });
         }
@@ -133,7 +159,7 @@ const FixtureManagementTool = () => {
   };
 
   const handleAIFixtures = async () => {
-    if (!tournament || teams.length < 2) {
+    if (!tournament || approvedTeams.length < 2) {
       toast({
         title: "Insufficient Teams",
         description: "You need at least 2 approved teams to generate fixtures",
@@ -200,11 +226,14 @@ const FixtureManagementTool = () => {
     );
   }
 
-  const canGenerateFixtures = tournament?.fixture_generation_status === 'pending' && teams.length >= 2;
+  // Filter to only show approved teams - this will now update in real-time
+  const approvedTeams = teams.filter(team => team.approval_status === 'approved');
+  
+  const canGenerateFixtures = tournament?.fixture_generation_status === 'pending' && approvedTeams.length >= 2;
   const fixturesGenerated = tournament?.fixture_generation_status === 'completed';
 
-  // Filter to only show approved teams
-  const approvedTeams = teams.filter(team => team.approval_status === 'approved');
+  console.log('Approved teams in fixture management:', approvedTeams);
+  console.log('All teams in fixture management:', teams);
 
   return (
     <div>
