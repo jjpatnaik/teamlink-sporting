@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,12 @@ interface Team {
   id: string;
   team_name: string;
   contact_email: string | null;
+  contact_phone: string | null;
+  captain_name: string | null;
+  social_media_links: any;
   status: string;
+  registered_by: string | null;
+  created_at: string;
 }
 
 export const useTournamentData = () => {
@@ -83,12 +89,13 @@ export const useTournamentData = () => {
       setTournament(tournamentData);
       setIsOrganizer(user?.id === tournamentData.organizer_id);
 
-      // Fetch teams
+      // Fetch teams with all fields
       console.log("Fetching teams...");
       const { data: teamsData, error: teamsError } = await supabase
         .from('tournament_teams')
         .select('*')
-        .eq('tournament_id', tournamentId);
+        .eq('tournament_id', tournamentId)
+        .order('created_at', { ascending: true });
 
       if (teamsError) {
         console.error("Error fetching teams:", teamsError);

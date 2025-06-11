@@ -6,11 +6,9 @@ import { ArrowRight, Rocket, Calendar, Users } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTournamentData } from "@/hooks/useTournamentData";
-import { useParams } from "react-router-dom";
 
 const FixtureManagementTool = () => {
-  const { id: tournamentId } = useParams();
-  const { tournament, teams, isOrganizer } = useTournamentData();
+  const { tournament, teams, isOrganizer, loading } = useTournamentData();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleManualFixtures = () => {
@@ -22,7 +20,7 @@ const FixtureManagementTool = () => {
   };
 
   const generateRoundRobinFixtures = async () => {
-    if (!tournament || !tournamentId) return;
+    if (!tournament || !tournament.id) return;
     
     try {
       setIsGenerating(true);
@@ -34,7 +32,7 @@ const FixtureManagementTool = () => {
       for (let i = 0; i < teams.length; i++) {
         for (let j = i + 1; j < teams.length; j++) {
           fixtures.push({
-            tournament_id: tournamentId,
+            tournament_id: tournament.id,
             round_number: 1, // Round robin has only one round with multiple matches
             match_number: matchNumber++,
             team_1_id: teams[i].id,
@@ -57,7 +55,7 @@ const FixtureManagementTool = () => {
           fixture_generation_status: 'completed',
           tournament_status: 'fixtures_generated'
         })
-        .eq('id', tournamentId);
+        .eq('id', tournament.id);
       
       toast({
         title: "Fixtures Generated",
@@ -77,7 +75,7 @@ const FixtureManagementTool = () => {
   };
 
   const generateKnockoutFixtures = async () => {
-    if (!tournament || !tournamentId) return;
+    if (!tournament || !tournament.id) return;
     
     try {
       setIsGenerating(true);
@@ -92,7 +90,7 @@ const FixtureManagementTool = () => {
       for (let i = 0; i < teamCount; i += 2) {
         if (i + 1 < teamCount) {
           fixtures.push({
-            tournament_id: tournamentId,
+            tournament_id: tournament.id,
             round_number: 1,
             match_number: matchNumber++,
             team_1_id: teams[i].id,
@@ -115,7 +113,7 @@ const FixtureManagementTool = () => {
           fixture_generation_status: 'completed',
           tournament_status: 'fixtures_generated'
         })
-        .eq('id', tournamentId);
+        .eq('id', tournament.id);
       
       toast({
         title: "Fixtures Generated",
@@ -186,6 +184,14 @@ const FixtureManagementTool = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sport-purple"></div>
+      </div>
+    );
+  }
+
   if (!isOrganizer) {
     return (
       <div className="text-center py-8">
@@ -226,6 +232,44 @@ const FixtureManagementTool = () => {
               <div className="text-sm text-gray-600">Current Status</div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Registered Teams Section */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Users className="mr-2 h-5 w-5" />
+            Registered Teams ({teams.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {teams.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {teams.map((team, index) => (
+                <div key={team.id} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-sport-purple text-white rounded-full flex items-center justify-center text-sm font-medium mr-3">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{team.team_name}</h4>
+                      {team.captain_name && (
+                        <p className="text-sm text-gray-600">Captain: {team.captain_name}</p>
+                      )}
+                      {team.contact_email && (
+                        <p className="text-sm text-gray-600">{team.contact_email}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-600">
+              No teams registered yet. Teams will appear here once they register for the tournament.
+            </div>
+          )}
         </CardContent>
       </Card>
       
