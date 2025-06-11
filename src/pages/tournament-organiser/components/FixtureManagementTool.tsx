@@ -203,6 +203,9 @@ const FixtureManagementTool = () => {
   const canGenerateFixtures = tournament?.fixture_generation_status === 'pending' && teams.length >= 2;
   const fixturesGenerated = tournament?.fixture_generation_status === 'completed';
 
+  // Filter to only show approved teams
+  const approvedTeams = teams.filter(team => team.approval_status === 'approved');
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-6">Fixture Management</h2>
@@ -218,7 +221,7 @@ const FixtureManagementTool = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-sport-purple">{teams.length}</div>
+              <div className="text-2xl font-bold text-sport-purple">{approvedTeams.length}</div>
               <div className="text-sm text-gray-600">Approved Teams</div>
             </div>
             <div className="text-center">
@@ -240,13 +243,13 @@ const FixtureManagementTool = () => {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Users className="mr-2 h-5 w-5" />
-            Approved Teams ({teams.length})
+            Approved Teams ({approvedTeams.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {teams.length > 0 ? (
+          {approvedTeams.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {teams.map((team, index) => (
+              {approvedTeams.map((team, index) => (
                 <div key={team.id} className="border rounded-lg p-4 bg-gray-50">
                   <div className="flex items-center">
                     <div className="w-8 h-8 bg-sport-purple text-white rounded-full flex items-center justify-center text-sm font-medium mr-3">
@@ -338,7 +341,7 @@ const FixtureManagementTool = () => {
             {!canGenerateFixtures && !fixturesGenerated && (
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-yellow-700 text-sm">
-                  {teams.length < 2 
+                  {approvedTeams.length < 2 
                     ? "Need at least 2 approved teams to generate fixtures" 
                     : "Wait for registration to close before generating fixtures"}
                 </p>
