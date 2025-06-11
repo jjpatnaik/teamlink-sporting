@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -102,7 +103,7 @@ export const useTournamentData = () => {
         .eq('status', 'registered')
         .order('created_at', { ascending: true });
 
-      // If not organizer, only show approved teams
+      // If not organizer, only show approved teams (explicitly exclude rejected teams)
       if (!isOrganizerUser) {
         teamsQuery = teamsQuery.eq('approval_status', 'approved');
       }
@@ -119,7 +120,11 @@ export const useTournamentData = () => {
         setTeams([]);
       } else {
         console.log("Teams data fetched:", teamsData);
-        setTeams(teamsData || []);
+        // Additional client-side filtering to ensure rejected teams are never shown to public
+        const filteredTeams = isOrganizerUser 
+          ? (teamsData || [])
+          : (teamsData || []).filter(team => team.approval_status === 'approved');
+        setTeams(filteredTeams);
       }
     } catch (error) {
       console.error("Error in fetchTournamentData:", error);
@@ -136,6 +141,31 @@ export const useTournamentData = () => {
   useEffect(() => {
     console.log("useEffect triggered with tournamentId:", tournamentId);
     fetchTournamentData();
+
+    // Set up real-time subscription for team changes
+    if (tournamentId) {
+      const channel = supabase
+        .channel('tournament-teams-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'tournament_teams',
+            filter: `tournament_id=eq.${tournamentId}`
+          },
+          (payload) => {
+            console.log('Team data changed:', payload);
+            // Refresh data when team approval status changes
+            fetchTournamentData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [tournamentId]);
 
   return {
