@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,20 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
     }));
   };
 
+  const resetForm = () => {
+    setFormData({
+      team_name: '',
+      captain_name: '',
+      contact_email: '',
+      contact_phone: '',
+      social_media_links: {
+        facebook: '',
+        instagram: '',
+        twitter: ''
+      }
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -69,21 +84,32 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
 
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      if (!user) {
+      if (userError || !user) {
+        console.error('User error:', userError);
         toast.error('You must be logged in to register a team');
         setIsSubmitting(false);
         return;
       }
 
+      console.log('Registering team for tournament:', tournament.id);
+      console.log('Form data:', formData);
+
       // Check if team name already exists for this tournament
-      const { data: existingTeam } = await supabase
+      const { data: existingTeam, error: checkError } = await supabase
         .from('tournament_teams')
         .select('id')
         .eq('tournament_id', tournament.id)
         .eq('team_name', formData.team_name.trim())
-        .single();
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing team:', checkError);
+        toast.error('Error checking team name availability');
+        setIsSubmitting(false);
+        return;
+      }
 
       if (existingTeam) {
         toast.error('A team with this name is already registered for this tournament');
@@ -91,46 +117,51 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
         return;
       }
 
-      // Register the team
-      const { error } = await supabase
-        .from('tournament_teams')
-        .insert({
-          tournament_id: tournament.id,
-          team_name: formData.team_name.trim(),
-          contact_email: formData.contact_email.trim(),
-          contact_phone: formData.contact_phone.trim() || null,
-          captain_name: formData.captain_name.trim(),
-          social_media_links: formData.social_media_links,
-          status: 'registered',
-          registered_by: user.id
-        });
+      // Register the team with all required fields
+      const teamData = {
+        tournament_id: tournament.id,
+        team_name: formData.team_name.trim(),
+        contact_email: formData.contact_email.trim(),
+        contact_phone: formData.contact_phone.trim() || null,
+        captain_name: formData.captain_name.trim(),
+        social_media_links: formData.social_media_links,
+        status: 'registered',
+        registered_by: user.id
+      };
 
-      if (error) {
-        console.error('Registration error:', error);
-        toast.error('Failed to register team. Please try again.');
+      console.log('Inserting team data:', teamData);
+
+      const { data: insertedTeam, error: insertError } = await supabase
+        .from('tournament_teams')
+        .insert(teamData)
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Registration error:', insertError);
+        toast.error(`Failed to register team: ${insertError.message}`);
         setIsSubmitting(false);
         return;
       }
 
-      toast.success(`Team "${formData.team_name}" successfully registered!`);
-      onRegistrationSuccess();
-      onClose();
+      console.log('Team registered successfully:', insertedTeam);
+      
+      // Show success message
+      toast.success(`Team "${formData.team_name}" successfully registered for ${tournament.name}!`);
       
       // Reset form
-      setFormData({
-        team_name: '',
-        captain_name: '',
-        contact_email: '',
-        contact_phone: '',
-        social_media_links: {
-          facebook: '',
-          instagram: '',
-          twitter: ''
-        }
-      });
+      resetForm();
+      
+      // Call success callback to refresh data
+      onRegistrationSuccess();
+      
+      // Close modal after a short delay to let user see the success message
+      setTimeout(() => {
+        onClose();
+      }, 1000);
 
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Unexpected registration error:', error);
       toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -141,13 +172,18 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
     toast.info('Payment integration will be added soon with Stripe');
   };
 
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             Register Team for {tournament.name}
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button variant="ghost" size="icon" onClick={handleClose}>
               <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
@@ -198,6 +234,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
                   onChange={(e) => handleInputChange('team_name', e.target.value)}
                   placeholder="Enter team name"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               <div>
@@ -208,6 +245,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
                   onChange={(e) => handleInputChange('captain_name', e.target.value)}
                   placeholder="Enter captain's name"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -222,6 +260,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
                   onChange={(e) => handleInputChange('contact_email', e.target.value)}
                   placeholder="team@example.com"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               <div>
@@ -232,6 +271,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
                   value={formData.contact_phone}
                   onChange={(e) => handleInputChange('contact_phone', e.target.value)}
                   placeholder="+1 (555) 123-4567"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -248,6 +288,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
                   value={formData.social_media_links.facebook}
                   onChange={(e) => handleSocialMediaChange('facebook', e.target.value)}
                   placeholder="https://facebook.com/yourteam"
+                  disabled={isSubmitting}
                 />
               </div>
               <div>
@@ -257,6 +298,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
                   value={formData.social_media_links.instagram}
                   onChange={(e) => handleSocialMediaChange('instagram', e.target.value)}
                   placeholder="https://instagram.com/yourteam"
+                  disabled={isSubmitting}
                 />
               </div>
               <div>
@@ -266,6 +308,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
                   value={formData.social_media_links.twitter}
                   onChange={(e) => handleSocialMediaChange('twitter', e.target.value)}
                   placeholder="https://twitter.com/yourteam"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -273,7 +316,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
 
           {/* Submit Button */}
           <div className="flex justify-end space-x-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting} className="btn-primary">
