@@ -87,6 +87,10 @@ const TournamentsList = () => {
     navigate(`/tournament/${tournamentId}`);
   };
 
+  const handleManageTournament = (tournamentId: string) => {
+    navigate(`/organiser/tournament/${tournamentId}?tab=fixtures`);
+  };
+
   const handleCancelTournament = (tournamentId: string, tournamentName: string) => {
     setCancellationDialog({
       isOpen: true,
@@ -119,6 +123,7 @@ const TournamentsList = () => {
             key={tournament.id}
             tournament={tournament}
             onViewTournament={handleViewTournament}
+            onManageTournament={handleManageTournament}
             onCancelTournament={handleCancelTournament}
           />
         ))}

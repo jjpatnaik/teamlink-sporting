@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Calendar, MapPin, Users } from "lucide-react";
+import { Trophy, Calendar, MapPin, Users, Settings } from "lucide-react";
 import TournamentCardActions from './TournamentCardActions';
 
 interface Tournament {
@@ -23,9 +23,10 @@ interface TournamentCardProps {
   tournament: Tournament;
   onViewTournament: (tournamentId: string) => void;
   onCancelTournament: (tournamentId: string, tournamentName: string) => void;
+  onManageTournament?: (tournamentId: string) => void;
 }
 
-const TournamentCard = ({ tournament, onViewTournament, onCancelTournament }: TournamentCardProps) => {
+const TournamentCard = ({ tournament, onViewTournament, onCancelTournament, onManageTournament }: TournamentCardProps) => {
   const getStatusBadge = (tournament: Tournament) => {
     if (tournament.tournament_status === 'cancelled') {
       return (
@@ -94,16 +95,30 @@ const TournamentCard = ({ tournament, onViewTournament, onCancelTournament }: To
           )}
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center gap-2">
           {getStatusBadge(tournament)}
           
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => onViewTournament(tournament.id)}
-          >
-            View Details
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onViewTournament(tournament.id)}
+            >
+              View Details
+            </Button>
+            
+            {onManageTournament && tournament.tournament_status !== 'cancelled' && (
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => onManageTournament(tournament.id)}
+                className="bg-sport-purple hover:bg-sport-purple/90"
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                Manage
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -36,6 +36,7 @@ function App() {
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/organiser/tournament" element={<TournamentOrganiserPanel />} />
+        <Route path="/organiser/tournament/:tournamentId" element={<TournamentOrganiserPanel />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
