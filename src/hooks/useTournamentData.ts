@@ -52,6 +52,7 @@ export const useTournamentData = () => {
     }
 
     console.log("Fetching tournament data for ID:", tournamentId);
+    setLoading(true);
 
     try {
       // Get current user
@@ -96,6 +97,7 @@ export const useTournamentData = () => {
         .from('tournament_teams')
         .select('*')
         .eq('tournament_id', tournamentId)
+        .eq('status', 'registered')
         .order('created_at', { ascending: true });
 
       if (teamsError) {
@@ -105,8 +107,9 @@ export const useTournamentData = () => {
           title: "Error",
           description: "Failed to fetch tournament teams",
         });
+        setTeams([]);
       } else {
-        console.log("Teams data:", teamsData);
+        console.log("Teams data fetched:", teamsData);
         setTeams(teamsData || []);
       }
     } catch (error) {
@@ -131,7 +134,8 @@ export const useTournamentData = () => {
           tournament_id: tournamentId,
           team_name: teamName,
           contact_email: contactEmail,
-          status: 'registered'
+          status: 'registered',
+          registered_by: currentUserId
         });
 
       if (error) {

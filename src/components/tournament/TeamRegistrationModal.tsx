@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { X, DollarSign, CreditCard } from 'lucide-react';
 
 interface TeamRegistrationModalProps {
@@ -75,8 +75,16 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submission started');
+    console.log('Form data:', formData);
+    
     if (!formData.team_name.trim() || !formData.captain_name.trim() || !formData.contact_email.trim()) {
-      toast.error('Please fill in all required fields');
+      console.log('Validation failed - missing required fields');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill in all required fields"
+      });
       return;
     }
 
@@ -88,13 +96,17 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
       
       if (userError || !user) {
         console.error('User error:', userError);
-        toast.error('You must be logged in to register a team');
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "You must be logged in to register a team"
+        });
         setIsSubmitting(false);
         return;
       }
 
+      console.log('Current user:', user.id);
       console.log('Registering team for tournament:', tournament.id);
-      console.log('Form data:', formData);
 
       // Check if team name already exists for this tournament
       const { data: existingTeam, error: checkError } = await supabase
@@ -106,13 +118,22 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
 
       if (checkError) {
         console.error('Error checking existing team:', checkError);
-        toast.error('Error checking team name availability');
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Error checking team name availability"
+        });
         setIsSubmitting(false);
         return;
       }
 
       if (existingTeam) {
-        toast.error('A team with this name is already registered for this tournament');
+        console.log('Team name already exists');
+        toast({
+          variant: "destructive",
+          title: "Team Name Taken",
+          description: "A team with this name is already registered for this tournament"
+        });
         setIsSubmitting(false);
         return;
       }
@@ -139,7 +160,11 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
 
       if (insertError) {
         console.error('Registration error:', insertError);
-        toast.error(`Failed to register team: ${insertError.message}`);
+        toast({
+          variant: "destructive",
+          title: "Registration Failed",
+          description: `Failed to register team: ${insertError.message}`
+        });
         setIsSubmitting(false);
         return;
       }
@@ -147,7 +172,10 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
       console.log('Team registered successfully:', insertedTeam);
       
       // Show success message
-      toast.success(`Team "${formData.team_name}" successfully registered for ${tournament.name}!`);
+      toast({
+        title: "Success",
+        description: `Team "${formData.team_name}" successfully registered for ${tournament.name}!`
+      });
       
       // Reset form
       resetForm();
@@ -160,14 +188,21 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
 
     } catch (error) {
       console.error('Unexpected registration error:', error);
-      toast.error('An unexpected error occurred. Please try again.');
+      toast({
+        variant: "destructive",
+        title: "Unexpected Error",
+        description: "An unexpected error occurred. Please try again."
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handlePaymentClick = () => {
-    toast.info('Payment integration will be added soon with Stripe');
+    toast({
+      title: "Payment Information",
+      description: "Payment integration will be added soon with Stripe"
+    });
   };
 
   const handleClose = () => {
