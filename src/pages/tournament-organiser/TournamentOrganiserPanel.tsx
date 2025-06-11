@@ -23,13 +23,13 @@ const TournamentOrganiserPanel = () => {
           <h1 className="text-3xl font-bold mb-8">Tournament Organiser Panel</h1>
           
           <Tabs defaultValue={isManagingTournament ? "approvals" : "tournaments"} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className={`grid w-full ${isManagingTournament ? 'grid-cols-5' : 'grid-cols-2'}`}>
               <TabsTrigger value="tournaments">My Tournaments</TabsTrigger>
               <TabsTrigger value="create">Create Tournament</TabsTrigger>
               {isManagingTournament && (
                 <>
                   <TabsTrigger value="approvals">Team Approvals</TabsTrigger>
-                  <TabsTrigger value="fixtures">Fixture Management</TabsTrigger>
+                  <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
                   <TabsTrigger value="updates">Updates</TabsTrigger>
                 </>
               )}

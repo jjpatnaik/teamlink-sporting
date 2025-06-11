@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { X, DollarSign, CreditCard } from 'lucide-react';
+import { X, DollarSign, CreditCard, AlertCircle } from 'lucide-react';
 
 interface TeamRegistrationModalProps {
   isOpen: boolean;
@@ -174,8 +174,8 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
       
       // Show success message with pending approval notice
       toast({
-        title: "Registration Submitted",
-        description: `Team "${formData.team_name}" has been submitted for approval. You'll be notified once the organizer reviews your application.`
+        title: "Registration Submitted Successfully!",
+        description: `Team "${formData.team_name}" has been submitted for approval. The tournament organizer will review your application and notify you once approved.`
       });
       
       // Reset form
@@ -226,6 +226,19 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
             Your registration will be reviewed by the tournament organizer.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Approval Process Notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="flex items-start">
+            <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium text-blue-800 mb-1">Registration Review Process</h3>
+              <p className="text-sm text-blue-700">
+                All team registrations require approval from the tournament organizer. You'll receive an email notification once your application has been reviewed. This process typically takes 1-2 business days.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Entry Fee Display */}
@@ -355,7 +368,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting} className="btn-primary">
-              {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
+              {isSubmitting ? 'Submitting Application...' : 'Submit for Approval'}
             </Button>
           </div>
         </form>

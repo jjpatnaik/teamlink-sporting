@@ -90,19 +90,24 @@ export const useTournamentData = () => {
 
       console.log("Tournament data:", tournamentData);
       setTournament(tournamentData);
-      setIsOrganizer(user?.id === tournamentData.organizer_id);
-
-      // Fetch teams with all fields - only show approved teams on public view
-      console.log("Fetching teams...");
       const isOrganizerUser = user?.id === tournamentData.organizer_id;
-      
-      const { data: teamsData, error: teamsError } = await supabase
+      setIsOrganizer(isOrganizerUser);
+
+      // Fetch teams - show ALL teams to organizers, only approved teams to public
+      console.log("Fetching teams...");
+      let teamsQuery = supabase
         .from('tournament_teams')
         .select('*')
         .eq('tournament_id', tournamentId)
         .eq('status', 'registered')
-        .eq(isOrganizerUser ? 'approval_status' : 'approval_status', isOrganizerUser ? 'approved' : 'approved')
         .order('created_at', { ascending: true });
+
+      // If not organizer, only show approved teams
+      if (!isOrganizerUser) {
+        teamsQuery = teamsQuery.eq('approval_status', 'approved');
+      }
+
+      const { data: teamsData, error: teamsError } = await teamsQuery;
 
       if (teamsError) {
         console.error("Error fetching teams:", teamsError);
