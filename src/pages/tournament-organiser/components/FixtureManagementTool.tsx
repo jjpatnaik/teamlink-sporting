@@ -254,9 +254,6 @@ const FixtureManagementTool = () => {
                     </div>
                     <div>
                       <h4 className="font-medium">{team.team_name}</h4>
-                      {team.captain_name && (
-                        <p className="text-sm text-gray-600">Captain: {team.captain_name}</p>
-                      )}
                       {team.contact_email && (
                         <p className="text-sm text-gray-600">{team.contact_email}</p>
                       )}
