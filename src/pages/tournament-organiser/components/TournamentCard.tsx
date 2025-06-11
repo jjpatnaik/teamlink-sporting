@@ -95,10 +95,10 @@ const TournamentCard = ({ tournament, onViewTournament, onCancelTournament, onMa
           )}
         </div>
 
-        <div className="flex justify-between items-center gap-2">
+        <div className="flex justify-between items-center">
           {getStatusBadge(tournament)}
           
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <Button 
               variant="outline" 
               size="sm"
