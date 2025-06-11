@@ -478,36 +478,48 @@ export type Database = {
       }
       tournament_teams: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           captain_name: string | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
           id: string
           registered_by: string | null
+          rejection_reason: string | null
           social_media_links: Json | null
           status: string
           team_name: string
           tournament_id: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           captain_name?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
           id?: string
           registered_by?: string | null
+          rejection_reason?: string | null
           social_media_links?: Json | null
           status?: string
           team_name: string
           tournament_id: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           captain_name?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
           id?: string
           registered_by?: string | null
+          rejection_reason?: string | null
           social_media_links?: Json | null
           status?: string
           team_name?: string

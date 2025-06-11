@@ -138,7 +138,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
         return;
       }
 
-      // Register the team with the registered_by field properly set
+      // Register the team with pending approval status
       const teamData = {
         tournament_id: tournament.id,
         team_name: formData.team_name.trim(),
@@ -147,7 +147,8 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
         captain_name: formData.captain_name.trim(),
         social_media_links: formData.social_media_links,
         status: 'registered',
-        registered_by: user.id // This is crucial for RLS policies
+        approval_status: 'pending',
+        registered_by: user.id
       };
 
       console.log('Inserting team data:', teamData);
@@ -171,10 +172,10 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
 
       console.log('Team registered successfully:', insertedTeam);
       
-      // Show success message
+      // Show success message with pending approval notice
       toast({
-        title: "Success",
-        description: `Team "${formData.team_name}" successfully registered for ${tournament.name}!`
+        title: "Registration Submitted",
+        description: `Team "${formData.team_name}" has been submitted for approval. You'll be notified once the organizer reviews your application.`
       });
       
       // Reset form
@@ -222,6 +223,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
           </DialogTitle>
           <DialogDescription>
             Fill in the details below to register your team for this {tournament.sport} tournament.
+            Your registration will be reviewed by the tournament organizer.
           </DialogDescription>
         </DialogHeader>
 
@@ -250,7 +252,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
             </div>
             <p className={`text-sm mt-1 ${entryFee > 0 ? 'text-yellow-700' : 'text-green-700'}`}>
               {entryFee > 0 
-                ? 'Payment will be coordinated by the tournament organizer after registration.'
+                ? 'Payment will be coordinated by the tournament organizer after registration approval.'
                 : 'This tournament has no registration fee.'
               }
             </p>
@@ -353,7 +355,7 @@ const TeamRegistrationModal: React.FC<TeamRegistrationModalProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting} className="btn-primary">
-              {isSubmitting ? 'Registering...' : 'Register Team'}
+              {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
             </Button>
           </div>
         </form>

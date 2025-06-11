@@ -136,7 +136,7 @@ const FixtureManagementTool = () => {
     if (!tournament || teams.length < 2) {
       toast({
         title: "Insufficient Teams",
-        description: "You need at least 2 teams to generate fixtures",
+        description: "You need at least 2 approved teams to generate fixtures",
         variant: "destructive",
       });
       return;
@@ -219,7 +219,7 @@ const FixtureManagementTool = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-sport-purple">{teams.length}</div>
-              <div className="text-sm text-gray-600">Registered Teams</div>
+              <div className="text-sm text-gray-600">Approved Teams</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-sport-blue">{tournament?.teams_allowed || 0}</div>
@@ -235,12 +235,12 @@ const FixtureManagementTool = () => {
         </CardContent>
       </Card>
 
-      {/* Registered Teams Section */}
+      {/* Approved Teams Section */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center">
             <Users className="mr-2 h-5 w-5" />
-            Registered Teams ({teams.length})
+            Approved Teams ({teams.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -264,7 +264,7 @@ const FixtureManagementTool = () => {
             </div>
           ) : (
             <div className="text-center py-8 text-gray-600">
-              No teams registered yet. Teams will appear here once they register for the tournament.
+              No approved teams yet. Teams need to be approved before fixtures can be generated.
             </div>
           )}
         </CardContent>
@@ -339,7 +339,7 @@ const FixtureManagementTool = () => {
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-yellow-700 text-sm">
                   {teams.length < 2 
-                    ? "Need at least 2 teams to generate fixtures" 
+                    ? "Need at least 2 approved teams to generate fixtures" 
                     : "Wait for registration to close before generating fixtures"}
                 </p>
               </div>

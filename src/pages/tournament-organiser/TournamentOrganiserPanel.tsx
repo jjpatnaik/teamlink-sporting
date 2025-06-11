@@ -1,108 +1,64 @@
 
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
-import CreateTournamentForm from "./components/CreateTournamentForm";
-import TournamentRulesSection from "./components/TournamentRulesSection";
-import FixtureManagementTool from "./components/FixtureManagementTool";
-import UpdatesPanel from "./components/UpdatesPanel";
-import PaymentGateway from "./components/PaymentGateway";
 import TournamentsList from "./components/TournamentsList";
-import { Card } from "@/components/ui/card";
-import { FormValues } from "./components/form/tournamentFormSchema";
+import CreateTournamentForm from "./components/CreateTournamentForm";
+import FixtureManagementTool from "./components/FixtureManagementTool";
+import TeamApprovalPanel from "./components/TeamApprovalPanel";
+import UpdatesPanel from "./components/UpdatesPanel";
+import { useParams } from "react-router-dom";
 
 const TournamentOrganiserPanel = () => {
-  const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState("tournaments");
-  const [tournamentFormCompleted, setTournamentFormCompleted] = useState(false);
-  const [rulesCompleted, setRulesCompleted] = useState(false);
-  const [tournamentFormData, setTournamentFormData] = useState<FormValues | null>(null);
-
-  useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'create') {
-      setActiveTab('create');
-    }
-  }, [searchParams]);
-
-  const handleFormCompletion = (formData: FormValues) => {
-    console.log("Form completion received:", formData);
-    setTournamentFormData(formData);
-    setTournamentFormCompleted(true);
-    setActiveTab('rules');
-  };
-
-  const handleRulesCompletion = () => {
-    console.log("Rules completion received");
-    setRulesCompleted(true);
-  };
-
-  const resetCreationFlow = () => {
-    setTournamentFormCompleted(false);
-    setRulesCompleted(false);
-    setTournamentFormData(null);
-  };
+  const { tournamentId } = useParams();
+  
+  // If we have a tournamentId, we're in tournament management mode
+  const isManagingTournament = !!tournamentId;
 
   return (
     <>
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2 text-sport-purple">Tournament Organiser Panel</h1>
-          <p className="text-gray-600 mb-6">Create and manage your sports tournaments</p>
+          <h1 className="text-3xl font-bold mb-8">Tournament Organiser Panel</h1>
           
-          <Card className="p-1">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-6 mb-4">
-                <TabsTrigger value="tournaments" onClick={resetCreationFlow}>My Tournaments</TabsTrigger>
-                <TabsTrigger value="create">Create Tournament</TabsTrigger>
-                <TabsTrigger 
-                  value="rules" 
-                  disabled={!tournamentFormCompleted}
-                  className={!tournamentFormCompleted ? "opacity-50 cursor-not-allowed" : ""}
-                >
-                  Rules
-                </TabsTrigger>
-                <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
-                <TabsTrigger value="updates">Updates</TabsTrigger>
-                <TabsTrigger value="payments">Payments</TabsTrigger>
-              </TabsList>
-              
-              <div className="p-4">
-                <TabsContent value="tournaments" className="mt-0">
-                  <TournamentsList />
+          <Tabs defaultValue={isManagingTournament ? "approvals" : "tournaments"} className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="tournaments">My Tournaments</TabsTrigger>
+              <TabsTrigger value="create">Create Tournament</TabsTrigger>
+              {isManagingTournament && (
+                <>
+                  <TabsTrigger value="approvals">Team Approvals</TabsTrigger>
+                  <TabsTrigger value="fixtures">Fixture Management</TabsTrigger>
+                  <TabsTrigger value="updates">Updates</TabsTrigger>
+                </>
+              )}
+            </TabsList>
+            
+            <TabsContent value="tournaments" className="mt-6">
+              <TournamentsList />
+            </TabsContent>
+            
+            <TabsContent value="create" className="mt-6">
+              <CreateTournamentForm />
+            </TabsContent>
+            
+            {isManagingTournament && (
+              <>
+                <TabsContent value="approvals" className="mt-6">
+                  <TeamApprovalPanel />
                 </TabsContent>
                 
-                <TabsContent value="create" className="mt-0">
-                  <CreateTournamentForm 
-                    onFormComplete={handleFormCompletion}
-                    showSubmitButton={false}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="rules" className="mt-0">
-                  <TournamentRulesSection 
-                    onRulesComplete={handleRulesCompletion}
-                    showFinalSubmit={tournamentFormCompleted && rulesCompleted}
-                    tournamentFormData={tournamentFormData}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="fixtures" className="mt-0">
+                <TabsContent value="fixtures" className="mt-6">
                   <FixtureManagementTool />
                 </TabsContent>
                 
-                <TabsContent value="updates" className="mt-0">
+                <TabsContent value="updates" className="mt-6">
                   <UpdatesPanel />
                 </TabsContent>
-                
-                <TabsContent value="payments" className="mt-0">
-                  <PaymentGateway />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </Card>
+              </>
+            )}
+          </Tabs>
         </div>
       </div>
     </>

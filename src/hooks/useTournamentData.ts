@@ -31,6 +31,7 @@ interface Team {
   contact_phone: string | null;
   captain_name: string | null;
   status: string;
+  approval_status: string;
   created_at: string;
   registered_by: string | null;
   social_media_links: any;
@@ -91,13 +92,16 @@ export const useTournamentData = () => {
       setTournament(tournamentData);
       setIsOrganizer(user?.id === tournamentData.organizer_id);
 
-      // Fetch teams with all fields
+      // Fetch teams with all fields - only show approved teams on public view
       console.log("Fetching teams...");
+      const isOrganizerUser = user?.id === tournamentData.organizer_id;
+      
       const { data: teamsData, error: teamsError } = await supabase
         .from('tournament_teams')
         .select('*')
         .eq('tournament_id', tournamentId)
         .eq('status', 'registered')
+        .eq(isOrganizerUser ? 'approval_status' : 'approval_status', isOrganizerUser ? 'approved' : 'approved')
         .order('created_at', { ascending: true });
 
       if (teamsError) {
