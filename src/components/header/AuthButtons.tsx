@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -126,7 +125,7 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleCreateTeam} className="flex items-center space-x-2 cursor-pointer">
           <Users className="h-4 w-4" />
-          <span>Create Team</span>
+          <span>My Team</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleOrganizeTournament} className="flex items-center space-x-2 cursor-pointer">
           <Calendar className="h-4 w-4" />
