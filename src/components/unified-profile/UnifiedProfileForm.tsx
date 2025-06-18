@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,9 +37,6 @@ const teamSchema = z.object({
   team_size: z.number().min(1).optional(),
   league_division: z.string().optional(),
   home_ground: z.string().optional(),
-  contact_email: z.string().email().optional(),
-  contact_phone: z.string().optional(),
-  website_url: z.string().url().optional(),
 });
 
 const sponsorSchema = z.object({
@@ -123,9 +119,6 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
           team_size: initialData.teamProfile?.team_size || undefined,
           league_division: initialData.teamProfile?.league_division || '',
           home_ground: initialData.teamProfile?.home_ground || '',
-          contact_email: initialData.teamProfile?.contact_email || '',
-          contact_phone: initialData.teamProfile?.contact_phone || '',
-          website_url: initialData.teamProfile?.website_url || '',
         };
       case 'sponsor':
         return {
