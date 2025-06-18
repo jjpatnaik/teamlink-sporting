@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -14,6 +15,7 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   const navigate = useNavigate();
   const [userDisplayName, setUserDisplayName] = useState<string>('User');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showTeamDialog, setShowTeamDialog] = useState(false);
 
   useEffect(() => {
     const fetchUserDisplayName = async () => {
@@ -85,8 +87,37 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
     navigate("/createprofile");
   };
 
-  const handleCreateTeam = () => {
-    navigate("/team/create");
+  const handleMyTeam = async () => {
+    if (!currentUserId) {
+      toast.error("Unable to access team profile");
+      return;
+    }
+
+    try {
+      // Check if user has a team profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, profile_type')
+        .eq('user_id', currentUserId)
+        .eq('profile_type', 'team_captain')
+        .maybeSingle();
+
+      if (profileData) {
+        // User has a team profile, navigate to it
+        navigate(`/team/${profileData.id}`);
+      } else {
+        // No team profile found, show dialog
+        setShowTeamDialog(true);
+      }
+    } catch (error) {
+      console.error('Error checking team profile:', error);
+      toast.error('Error accessing team profile');
+    }
+  };
+
+  const handleCreateTeamProfile = () => {
+    setShowTeamDialog(false);
+    navigate("/createprofile?type=team");
   };
 
   const handleOrganizeTournament = () => {
@@ -107,36 +138,62 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center space-x-2">
-          <span>{userDisplayName}</span>
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 bg-white border border-gray-200 shadow-lg">
-        <DropdownMenuItem onClick={handleMyProfile} className="flex items-center space-x-2 cursor-pointer">
-          <User className="h-4 w-4" />
-          <span>My Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleEditProfile} className="flex items-center space-x-2 cursor-pointer">
-          <Settings className="h-4 w-4" />
-          <span>Edit Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCreateTeam} className="flex items-center space-x-2 cursor-pointer">
-          <Users className="h-4 w-4" />
-          <span>My Team</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleOrganizeTournament} className="flex items-center space-x-2 cursor-pointer">
-          <Calendar className="h-4 w-4" />
-          <span>Organize Tournament</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleLogout} className="flex items-center space-x-2 cursor-pointer text-red-600">
-          <LogOut className="h-4 w-4" />
-          <span>Sign Out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="flex items-center space-x-2">
+            <span>{userDisplayName}</span>
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48 bg-white border border-gray-200 shadow-lg">
+          <DropdownMenuItem onClick={handleMyProfile} className="flex items-center space-x-2 cursor-pointer">
+            <User className="h-4 w-4" />
+            <span>My Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleEditProfile} className="flex items-center space-x-2 cursor-pointer">
+            <Settings className="h-4 w-4" />
+            <span>Edit Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleMyTeam} className="flex items-center space-x-2 cursor-pointer">
+            <Users className="h-4 w-4" />
+            <span>My Team</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOrganizeTournament} className="flex items-center space-x-2 cursor-pointer">
+            <Calendar className="h-4 w-4" />
+            <span>Organize Tournament</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout} className="flex items-center space-x-2 cursor-pointer text-red-600">
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Team Profile Dialog */}
+      {showTeamDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">No Team Profile Available</h3>
+            <p className="text-gray-600 mb-6">
+              You don't have a team profile yet. Would you like to create your team profile?
+            </p>
+            <div className="flex space-x-4">
+              <Button onClick={handleCreateTeamProfile} className="flex-1">
+                Yes, Create Team Profile
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowTeamDialog(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
