@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 import BaseProfileForm from './BaseProfileForm';
 import PlayerProfileForm from './PlayerProfileForm';
 import TeamProfileForm from './TeamProfileForm';
@@ -64,15 +66,58 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
 }) => {
   const [profileType, setProfileType] = useState<string>(initialData?.profile_type || 'player');
   const [isLoading, setIsLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Check if we're creating a team profile specifically
+  const isTeamCreation = profileType === 'team_captain' && !isEditing;
+
+  // Fetch current user's profile for prepopulation
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (isTeamCreation) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('display_name, city, bio')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            
+            if (profile) {
+              setUserProfile(profile);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [isTeamCreation]);
 
   // Helper function to get base profile defaults
-  const getBaseProfileDefaults = () => ({
-    profile_type: initialData?.profile_type || 'player',
-    display_name: initialData?.display_name || '',
-    bio: initialData?.bio || '',
-    city: initialData?.city || '',
-    country: initialData?.country || '',
-  });
+  const getBaseProfileDefaults = () => {
+    // If creating a team profile and we have user profile data, use it for prepopulation
+    if (isTeamCreation && userProfile) {
+      return {
+        profile_type: 'team_captain',
+        display_name: userProfile.display_name || '',
+        bio: userProfile.bio || '',
+        city: userProfile.city || '',
+        country: initialData?.country || '',
+      };
+    }
+    
+    return {
+      profile_type: initialData?.profile_type || 'player',
+      display_name: initialData?.display_name || '',
+      bio: initialData?.bio || '',
+      city: initialData?.city || '',
+      country: initialData?.country || '',
+    };
+  };
 
   const form = useForm({
     resolver: zodResolver(baseProfileSchema),
@@ -142,9 +187,10 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
     defaultValues: getSpecificDefaultValues()
   });
 
-  // Reset forms when initialData changes
+  // Reset forms when initialData changes or userProfile is loaded
   useEffect(() => {
     console.log('Initial data changed:', initialData);
+    console.log('User profile loaded:', userProfile);
     
     // Reset main form
     const baseDefaults = getBaseProfileDefaults();
@@ -155,7 +201,7 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
     if (initialData?.profile_type && initialData.profile_type !== profileType) {
       setProfileType(initialData.profile_type);
     }
-  }, [initialData]);
+  }, [initialData, userProfile]);
 
   // Reset specific form when profile type changes or initial data changes
   useEffect(() => {
