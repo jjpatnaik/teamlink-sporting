@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -65,21 +66,44 @@ const CreateProfilePage = () => {
         throw new Error('User not authenticated');
       }
 
-      // Create profile record
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: user.id,
-          profile_type: profileData.profile_type,
-          display_name: profileData.display_name,
-          bio: profileData.bio,
-          city: profileData.city,
-          country: profileData.country,
-        })
-        .select()
-        .single();
+      let profile;
 
-      if (profileError) throw profileError;
+      // Check if we're updating an existing profile (for team creation)
+      if (profileData.existingProfileId) {
+        // Update existing profile to team_captain type
+        const { data: updatedProfile, error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            profile_type: profileData.profile_type,
+            display_name: profileData.display_name,
+            bio: profileData.bio,
+            city: profileData.city,
+            country: profileData.country,
+          })
+          .eq('id', profileData.existingProfileId)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        profile = updatedProfile;
+      } else {
+        // Create new profile record
+        const { data: newProfile, error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            profile_type: profileData.profile_type,
+            display_name: profileData.display_name,
+            bio: profileData.bio,
+            city: profileData.city,
+            country: profileData.country,
+          })
+          .select()
+          .single();
+
+        if (profileError) throw profileError;
+        profile = newProfile;
+      }
 
       // Create specific profile based on type
       if (profileData.profile_type === 'player') {

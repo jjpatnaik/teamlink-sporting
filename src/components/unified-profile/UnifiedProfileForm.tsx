@@ -67,25 +67,32 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
   const [profileType, setProfileType] = useState<string>(initialData?.profile_type || 'player');
   const [isLoading, setIsLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [existingProfile, setExistingProfile] = useState<any>(null);
 
   // Check if we're creating a team profile specifically
   const isTeamCreation = profileType === 'team_captain' && !isEditing;
 
-  // Fetch current user's profile for prepopulation
+  // Fetch current user's profile for prepopulation and check for existing profiles
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (isTeamCreation) {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { data: profile } = await supabase
+            // Check for existing profile
+            const { data: existingProf } = await supabase
               .from('profiles')
-              .select('display_name, city, bio')
+              .select('*')
               .eq('user_id', user.id)
               .maybeSingle();
             
-            if (profile) {
-              setUserProfile(profile);
+            if (existingProf) {
+              setExistingProfile(existingProf);
+              setUserProfile({
+                display_name: existingProf.display_name,
+                city: existingProf.city,
+                bio: existingProf.bio
+              });
             }
           }
         } catch (error) {
@@ -219,10 +226,19 @@ const UnifiedProfileForm: React.FC<UnifiedProfileFormProps> = ({
       const specificData = specificForm.getValues();
       console.log('Submitting profile data:', data);
       console.log('Submitting specific data:', specificData);
+      console.log('Existing profile:', existingProfile);
       
-      const result = await onSubmit(data, specificData);
-      if (result.success) {
-        console.log('Profile submission successful');
+      // If we have an existing profile and we're creating a team, update the profile type
+      if (existingProfile && isTeamCreation) {
+        const result = await onSubmit({ ...data, existingProfileId: existingProfile.id }, specificData);
+        if (result.success) {
+          console.log('Team profile creation successful');
+        }
+      } else {
+        const result = await onSubmit(data, specificData);
+        if (result.success) {
+          console.log('Profile submission successful');
+        }
       }
     } catch (error) {
       console.error('Form submission error:', error);
