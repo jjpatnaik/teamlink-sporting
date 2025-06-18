@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Trophy, Building2, User } from 'lucide-react';
 import Header from "@/components/Header";
 import UnifiedProfileForm from '@/components/unified-profile/UnifiedProfileForm';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const CreateProfilePage = () => {
   const navigate = useNavigate();
@@ -57,7 +58,74 @@ const CreateProfilePage = () => {
     }
   ];
 
+  const handleProfileSubmit = async (profileData: any, specificData: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create profile record
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: user.id,
+          profile_type: profileData.profile_type,
+          display_name: profileData.display_name,
+          bio: profileData.bio,
+          city: profileData.city,
+          country: profileData.country,
+        })
+        .select()
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Create specific profile based on type
+      if (profileData.profile_type === 'player') {
+        const { error: playerError } = await supabase
+          .from('player_profiles')
+          .insert({
+            profile_id: profile.id,
+            ...specificData
+          });
+        if (playerError) throw playerError;
+      } else if (profileData.profile_type === 'team_captain') {
+        const { error: teamError } = await supabase
+          .from('team_profiles')
+          .insert({
+            profile_id: profile.id,
+            ...specificData
+          });
+        if (teamError) throw teamError;
+      } else if (profileData.profile_type === 'sponsor') {
+        const { error: sponsorError } = await supabase
+          .from('sponsor_profiles')
+          .insert({
+            profile_id: profile.id,
+            ...specificData
+          });
+        if (sponsorError) throw sponsorError;
+      }
+
+      toast.success('Profile created successfully!');
+      navigate('/');
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error creating profile:', error);
+      toast.error(error.message || 'Error creating profile');
+      return { success: false, error: error.message };
+    }
+  };
+
   if (selectedType) {
+    const getProfileTitle = () => {
+      if (selectedType === 'team_captain') {
+        return 'Create Your Team Profile';
+      }
+      return `Create Your ${profileTypes.find(p => p.type === selectedType)?.title} Profile`;
+    };
+
     return (
       <>
         <Header />
@@ -73,7 +141,7 @@ const CreateProfilePage = () => {
                   ← Back to Profile Types
                 </Button>
                 <h1 className="text-3xl font-bold text-center mb-2">
-                  Create Your {profileTypes.find(p => p.type === selectedType)?.title} Profile
+                  {getProfileTitle()}
                 </h1>
                 <p className="text-gray-600 text-center">
                   Fill in your details to get started
@@ -81,9 +149,9 @@ const CreateProfilePage = () => {
               </div>
               
               <UnifiedProfileForm 
-                profileType={selectedType}
-                onSuccess={() => navigate('/')}
-                onCancel={() => navigate('/')}
+                onSubmit={handleProfileSubmit}
+                initialData={{ profile_type: selectedType }}
+                isEditing={false}
               />
             </div>
           </div>
