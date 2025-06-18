@@ -20,6 +20,9 @@ const BaseProfileForm: React.FC<BaseProfileFormProps> = ({
   setProfileType,
   isEditing
 }) => {
+  // Check if we're creating a team profile specifically
+  const isTeamCreation = profileType === 'team_captain' && !isEditing;
+
   return (
     <Card>
       <CardHeader>
@@ -28,36 +31,38 @@ const BaseProfileForm: React.FC<BaseProfileFormProps> = ({
       <CardContent>
         <Form {...form}>
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="profile_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Profile Type</FormLabel>
-                  <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      setProfileType(value);
-                    }} 
-                    value={field.value}
-                    disabled={isEditing}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="player">Sports Enthusiast/Player</SelectItem>
-                      <SelectItem value="team_captain">Team Captain/Organizer</SelectItem>
-                      <SelectItem value="tournament_organizer">Tournament Organizer</SelectItem>
-                      <SelectItem value="sponsor">Sponsor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isTeamCreation && (
+              <FormField
+                control={form.control}
+                name="profile_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Profile Type</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setProfileType(value);
+                      }} 
+                      value={field.value}
+                      disabled={isEditing}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="player">Sports Enthusiast/Player</SelectItem>
+                        <SelectItem value="team_captain">Team Captain/Organizer</SelectItem>
+                        <SelectItem value="tournament_organizer">Tournament Organizer</SelectItem>
+                        <SelectItem value="sponsor">Sponsor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
