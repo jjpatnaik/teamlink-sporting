@@ -13,6 +13,7 @@ import SponsorProfile from "@/pages/SponsorProfile";
 import ConnectionsPage from "@/pages/ConnectionsPage";
 import SearchPage from "@/pages/SearchPage";
 import NotFound from "@/pages/NotFound";
+import TeamsManagement from "@/pages/TeamsManagement";
 import { Toaster } from "@/components/ui/toaster";
 import TournamentOrganiserPanel from "./pages/tournament-organiser/TournamentOrganiserPanel";
 
@@ -31,6 +32,7 @@ function App() {
         <Route path="/players" element={<SearchPage />} />
         <Route path="/profile/:id" element={<PlayerProfile />} />
         <Route path="/team/:id" element={<TeamProfile />} />
+        <Route path="/teams" element={<TeamsManagement />} />
         <Route path="/tournament/:tournamentId" element={<TournamentProfile />} />
         <Route path="/sponsor/:id" element={<SponsorProfile />} />
         <Route path="/connections" element={<ConnectionsPage />} />
