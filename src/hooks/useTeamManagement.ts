@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -10,6 +9,8 @@ export interface Team {
   owner_id: string;
   created_at: string;
   updated_at: string;
+  userRole?: string;
+  memberCount?: number;
 }
 
 export interface TeamMember {
@@ -94,28 +95,35 @@ export const useTeamManagement = () => {
 
   const fetchTeamMembers = async (teamId: string) => {
     try {
-      const { data, error } = await supabase
+      // First get team members
+      const { data: membersData, error: membersError } = await supabase
         .from('team_members')
-        .select(`
-          *,
-          profiles (
-            display_name,
-            profile_type
-          )
-        `)
+        .select('*')
         .eq('team_id', teamId)
         .order('joined_at', { ascending: true });
 
-      if (error) throw error;
-      
-      const members = data?.map(member => ({
-        ...member,
-        profile: member.profiles
-      })) || [];
+      if (membersError) throw membersError;
+
+      // Then get profile information for each member
+      const membersWithProfiles = await Promise.all(
+        (membersData || []).map(async (member) => {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('display_name, profile_type')
+            .eq('user_id', member.user_id)
+            .single();
+
+          return {
+            ...member,
+            role: member.role as 'owner' | 'admin' | 'member',
+            profile: profileData || { display_name: 'Unknown User', profile_type: 'User' }
+          };
+        })
+      );
 
       setTeamMembers(prev => ({
         ...prev,
-        [teamId]: members
+        [teamId]: membersWithProfiles
       }));
     } catch (error: any) {
       console.error('Error fetching team members:', error);
@@ -130,13 +138,7 @@ export const useTeamManagement = () => {
 
       let query = supabase
         .from('team_join_requests')
-        .select(`
-          *,
-          profiles (
-            display_name,
-            profile_type
-          )
-        `)
+        .select('*')
         .order('requested_at', { ascending: false });
 
       if (teamId) {
@@ -146,12 +148,24 @@ export const useTeamManagement = () => {
       const { data, error } = await query;
       if (error) throw error;
 
-      const requests = data?.map(request => ({
-        ...request,
-        profile: request.profiles
-      })) || [];
+      // Get profile information for each request
+      const requestsWithProfiles = await Promise.all(
+        (data || []).map(async (request) => {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('display_name, profile_type')
+            .eq('user_id', request.user_id)
+            .single();
 
-      setJoinRequests(requests);
+          return {
+            ...request,
+            status: request.status as 'pending' | 'approved' | 'rejected',
+            profile: profileData || { display_name: 'Unknown User', profile_type: 'User' }
+          };
+        })
+      );
+
+      setJoinRequests(requestsWithProfiles);
     } catch (error: any) {
       console.error('Error fetching join requests:', error);
       toast.error('Failed to fetch join requests');

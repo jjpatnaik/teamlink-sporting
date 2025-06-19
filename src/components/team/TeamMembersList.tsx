@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Crown, Shield, Trash2 } from 'lucide-react';
+import { User, Crown, Shield, Trash2, Users } from 'lucide-react';
 import { TeamMember } from '@/hooks/useTeamManagement';
 
 interface TeamMembersListProps {

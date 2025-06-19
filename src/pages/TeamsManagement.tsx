@@ -31,6 +31,7 @@ const TeamsManagement = () => {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [selectedTeamForJoin, setSelectedTeamForJoin] = useState<{ id: string; name: string } | null>(null);
+  const [activeTab, setActiveTab] = useState('discover');
 
   useEffect(() => {
     if (selectedTeam) {
@@ -56,6 +57,7 @@ const TeamsManagement = () => {
 
   const handleViewTeam = (teamId: string) => {
     setSelectedTeam(teamId);
+    setActiveTab('manage');
   };
 
   const currentUserRole = selectedTeam 
@@ -63,6 +65,10 @@ const TeamsManagement = () => {
     : null;
 
   const pendingRequests = joinRequests.filter(r => r.status === 'pending');
+
+  const handleDiscoverTeamsClick = () => {
+    setActiveTab('discover');
+  };
 
   return (
     <>
@@ -77,7 +83,7 @@ const TeamsManagement = () => {
             <CreateTeamModal onTeamCreated={refetch} />
           </div>
 
-          <Tabs defaultValue="discover" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="discover">Discover Teams</TabsTrigger>
               <TabsTrigger value="my-teams">My Teams ({userTeams.length})</TabsTrigger>
@@ -146,7 +152,7 @@ const TeamsManagement = () => {
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-gray-500 mb-4">You haven't joined any teams yet</p>
-                      <Button onClick={() => document.querySelector('[value="discover"]')?.click()}>
+                      <Button onClick={handleDiscoverTeamsClick}>
                         Discover Teams
                       </Button>
                     </div>
