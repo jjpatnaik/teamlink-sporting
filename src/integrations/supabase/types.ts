@@ -342,6 +342,7 @@ export type Database = {
           id: string
           profile_picture_url: string | null
           profile_type: Database["public"]["Enums"]["profile_type"]
+          roles: string[]
           updated_at: string | null
           user_id: string
         }
@@ -355,6 +356,7 @@ export type Database = {
           id?: string
           profile_picture_url?: string | null
           profile_type: Database["public"]["Enums"]["profile_type"]
+          roles?: string[]
           updated_at?: string | null
           user_id: string
         }
@@ -368,6 +370,7 @@ export type Database = {
           id?: string
           profile_picture_url?: string | null
           profile_type?: Database["public"]["Enums"]["profile_type"]
+          roles?: string[]
           updated_at?: string | null
           user_id?: string
         }

@@ -5,14 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import CreateTeamModal from '@/components/team/CreateTeamModal';
 import TeamCard from '@/components/team/TeamCard';
 import TeamMembersList from '@/components/team/TeamMembersList';
 import JoinRequestModal from '@/components/team/JoinRequestModal';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
+import { useAuth } from '@/hooks/useAuth';
 import { Users, UserPlus, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 const TeamsManagement = () => {
+  const { hasRole } = useAuth();
   const {
     teams,
     userTeams,
@@ -70,27 +73,33 @@ const TeamsManagement = () => {
     setActiveTab('discover');
   };
 
+  // Show different tabs based on user roles
+  const showManageTab = hasRole('team_admin') || hasRole('player');
+  const showRequestsTab = hasRole('team_admin');
+
   return (
-    <>
+    <ProtectedRoute requiredRole="player">
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold">Team Management</h1>
-              <p className="text-gray-600 mt-2">Create, join, and manage teams</p>
+              <p className="text-gray-600 mt-2">
+                {hasRole('team_admin') ? 'Create, join, and manage teams' : 'Discover and join teams'}
+              </p>
             </div>
-            <CreateTeamModal onTeamCreated={refetch} />
+            {hasRole('team_admin') && <CreateTeamModal onTeamCreated={refetch} />}
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="discover">Discover Teams</TabsTrigger>
               <TabsTrigger value="my-teams">My Teams ({userTeams.length})</TabsTrigger>
-              <TabsTrigger value="manage" disabled={!selectedTeam}>
+              <TabsTrigger value="manage" disabled={!selectedTeam || !showManageTab}>
                 Manage Team
               </TabsTrigger>
-              <TabsTrigger value="requests">
+              <TabsTrigger value="requests" disabled={!showRequestsTab}>
                 Requests {pendingRequests.length > 0 && (
                   <Badge variant="secondary" className="ml-1">
                     {pendingRequests.length}
@@ -265,7 +274,7 @@ const TeamsManagement = () => {
         teamName={selectedTeamForJoin?.name || ''}
         onSubmit={handleJoinRequest}
       />
-    </>
+    </ProtectedRoute>
   );
 };
 

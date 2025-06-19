@@ -1,49 +1,32 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Menu, X } from 'lucide-react';
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
-// Import our new components
+// Import our components
 import Logo from './header/Logo';
 import NavigationIcons from './header/NavigationIcons';
-import AuthButtons from './header/AuthButtons';
 import MobileMenu from './header/MobileMenu';
 import ChatWindow from './chat/ChatWindow';
+import RoleBasedNavigation from './header/RoleBasedNavigation';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
-    };
-    
-    checkAuth();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-    });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   const handleQuickSearch = (searchType: string) => {
     navigate(`/search?type=${searchType}&area=local`);
   };
 
   const handleChatToggle = () => {
-    if (isAuthenticated) {
+    if (user) {
       setIsChatOpen(!isChatOpen);
     } else {
-      navigate('/login');
+      navigate('/auth');
     }
   };
 
@@ -66,7 +49,7 @@ const Header = () => {
                 How It Works
               </a>
               
-              <AuthButtons isAuthenticated={isAuthenticated} />
+              <RoleBasedNavigation />
             </div>
 
             <div className="md:hidden">
@@ -83,7 +66,7 @@ const Header = () => {
 
           <MobileMenu 
             isOpen={mobileMenuOpen} 
-            isAuthenticated={isAuthenticated}
+            isAuthenticated={!!user}
           />
         </div>
       </header>
