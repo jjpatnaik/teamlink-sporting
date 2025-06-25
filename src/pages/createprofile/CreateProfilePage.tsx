@@ -12,6 +12,7 @@ import ProfileTypeSelector from '@/components/profile/ProfileTypeSelector';
 import BasicInfoForm from '@/components/profile/BasicInfoForm';
 import UnifiedProfileForm from '@/components/unified-profile/UnifiedProfileForm';
 import { useProfileUpdate } from '@/hooks/useProfileUpdate';
+import { useUnifiedProfile } from '@/hooks/useUnifiedProfile';
 
 const basicProfileSchema = z.object({
   display_name: z.string().min(1, 'Display name is required'),
@@ -28,6 +29,7 @@ const CreateProfilePage = () => {
   const [selectedType, setSelectedType] = useState<string>('');
   const navigate = useNavigate();
   const { updateProfile, isUpdating } = useProfileUpdate();
+  const { createProfile } = useUnifiedProfile();
 
   const form = useForm<BasicProfileForm>({
     resolver: zodResolver(basicProfileSchema),
@@ -65,8 +67,12 @@ const CreateProfilePage = () => {
     }
   };
 
-  const handleDetailedComplete = () => {
-    navigate('/');
+  const handleDetailedProfileSubmit = async (profileData: any, specificData: any) => {
+    const result = await createProfile(profileData, specificData);
+    if (result.success) {
+      navigate('/');
+    }
+    return result;
   };
 
   return (
@@ -117,8 +123,8 @@ const CreateProfilePage = () => {
             </div>
 
             <UnifiedProfileForm 
-              onComplete={handleDetailedComplete}
-              profileType="player"
+              onSubmit={handleDetailedProfileSubmit}
+              isEditing={false}
             />
           </div>
         )}

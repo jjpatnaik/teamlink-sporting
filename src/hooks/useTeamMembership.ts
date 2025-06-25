@@ -27,32 +27,61 @@ export const useTeamMembership = (teamId?: string) => {
     
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // First get team members
+      const { data: teamMembersData, error: teamMembersError } = await supabase
         .from('team_members')
-        .select(`
-          *,
-          profiles!team_members_user_id_fkey(display_name, profile_picture_url)
-        `)
+        .select('*')
         .eq('team_id', teamId)
         .order('joined_at', { ascending: false });
 
-      if (error) throw error;
+      if (teamMembersError) throw teamMembersError;
 
-      const membersWithProfiles = data?.map(member => ({
-        id: member.id,
-        team_id: member.team_id || '',
-        user_id: member.user_id || '',
-        role: member.role as 'admin' | 'member',
-        status: 'accepted' as const, // Default status since team_members table doesn't have status
-        joined_at: member.joined_at || new Date().toISOString(),
-        user_profile: member.profiles ? {
-          display_name: member.profiles.display_name,
-          profile_picture_url: member.profiles.profile_picture_url
-        } : undefined
-      })) || [];
+      if (!teamMembersData || teamMembersData.length === 0) {
+        setMembers([]);
+        return;
+      }
+
+      // Get user IDs to fetch profiles
+      const userIds = teamMembersData.map(member => member.user_id).filter(Boolean);
+      
+      let profilesData: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, profile_picture_url')
+          .in('user_id', userIds);
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+        } else {
+          profilesData = profiles || [];
+        }
+      }
+
+      // Combine team members with their profile data
+      const membersWithProfiles = teamMembersData.map(member => {
+        const profile = profilesData.find(p => p.user_id === member.user_id);
+        
+        return {
+          id: member.id,
+          team_id: member.team_id || '',
+          user_id: member.user_id || '',
+          role: member.role as 'admin' | 'member',
+          status: 'accepted' as const, // Default status since team_members table doesn't have status
+          joined_at: member.joined_at || new Date().toISOString(),
+          user_profile: profile ? {
+            display_name: profile.display_name || 'Unknown User',
+            profile_picture_url: profile.profile_picture_url
+          } : {
+            display_name: 'Unknown User'
+          }
+        };
+      });
 
       setMembers(membersWithProfiles);
     } catch (error: any) {
+      console.error('Error fetching team members:', error);
       toast.error('Failed to fetch team members');
     } finally {
       setLoading(false);
