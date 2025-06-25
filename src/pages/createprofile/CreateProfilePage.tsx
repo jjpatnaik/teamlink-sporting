@@ -10,7 +10,7 @@ import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import ProfileTypeSelector from '@/components/profile/ProfileTypeSelector';
 import BasicInfoForm from '@/components/profile/BasicInfoForm';
-import { UnifiedProfileForm } from '@/components/unified-profile/UnifiedProfileForm';
+import UnifiedProfileForm from '@/components/unified-profile/UnifiedProfileForm';
 import { useProfileUpdate } from '@/hooks/useProfileUpdate';
 
 const basicProfileSchema = z.object({
@@ -48,7 +48,11 @@ const CreateProfilePage = () => {
 
   const handleBasicInfo = async (data: BasicProfileForm) => {
     const success = await updateProfile({
-      ...data,
+      display_name: data.display_name,
+      bio: data.bio,
+      city: data.city,
+      country: data.country,
+      profile_type: data.profile_type,
       roles: [data.profile_type, 'enthusiast']
     });
     

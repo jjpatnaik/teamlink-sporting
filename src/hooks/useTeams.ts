@@ -28,7 +28,11 @@ export const useTeams = () => {
       const { data, error } = await supabase
         .from('teams')
         .select(`
-          *,
+          id,
+          name,
+          description,
+          created_at,
+          owner_id,
           team_members(count)
         `)
         .order('created_at', { ascending: false });
@@ -36,7 +40,13 @@ export const useTeams = () => {
       if (error) throw error;
 
       const teamsWithCount = data?.map(team => ({
-        ...team,
+        id: team.id,
+        name: team.name,
+        sport: 'General', // Default sport since teams table doesn't have sport column
+        location: 'Not specified', // Default location since teams table doesn't have location column
+        description: team.description || '',
+        created_by: team.owner_id || '',
+        created_at: team.created_at,
         member_count: team.team_members?.[0]?.count || 0
       })) || [];
 

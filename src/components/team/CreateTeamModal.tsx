@@ -1,19 +1,19 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 
 interface CreateTeamModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   onTeamCreated?: () => void;
 }
 
-const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ onTeamCreated }) => {
-  const [open, setOpen] = useState(false);
+const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ isOpen, onClose, onTeamCreated }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: ''
@@ -34,7 +34,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ onTeamCreated }) => {
 
       if (result.success) {
         setFormData({ name: '', description: '' });
-        setOpen(false);
+        onClose();
         onTeamCreated?.();
       }
     } finally {
@@ -43,13 +43,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ onTeamCreated }) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Create Team
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
@@ -76,7 +70,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ onTeamCreated }) => {
             />
           </div>
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting || !formData.name.trim()}>

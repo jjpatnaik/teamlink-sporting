@@ -40,7 +40,17 @@ export const useProfileData = () => {
         throw error;
       }
 
-      setProfileData(data);
+      if (data) {
+        // Map database profile types to our interface types
+        const mappedProfileType = data.profile_type === 'team_captain' ? 'team' : 
+                                 data.profile_type === 'tournament_organizer' ? 'organizer' : 
+                                 data.profile_type;
+
+        setProfileData({
+          ...data,
+          profile_type: mappedProfileType
+        });
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -26,11 +26,17 @@ export const useProfileUpdate = () => {
     try {
       setIsUpdating(true);
 
+      // Map our profile types to database profile types
+      const dbProfileType = profileData.profile_type === 'team' ? 'team_captain' : 
+                           profileData.profile_type === 'organizer' ? 'tournament_organizer' : 
+                           profileData.profile_type;
+
       const { error } = await supabase
         .from('profiles')
         .upsert({
           user_id: user.id,
           ...profileData,
+          profile_type: dbProfileType,
           updated_at: new Date().toISOString()
         });
 
