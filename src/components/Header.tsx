@@ -2,25 +2,21 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Menu, X } from 'lucide-react';
+import { Menu, X, MessageCircle } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth";
 
 // Import our components
 import Logo from './header/Logo';
-import NavigationIcons from './header/NavigationIcons';
 import MobileMenu from './header/MobileMenu';
 import ChatWindow from './chat/ChatWindow';
-import RoleBasedNavigation from './header/RoleBasedNavigation';
+import SearchDropdown from './header/SearchDropdown';
+import UserActionsDropdown from './header/UserActionsDropdown';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-
-  const handleQuickSearch = (searchType: string) => {
-    navigate(`/search?type=${searchType}&area=local`);
-  };
 
   const handleChatToggle = () => {
     if (user) {
@@ -39,17 +35,24 @@ const Header = () => {
               <Logo />
             </div>
 
-            <div className="hidden md:flex items-center space-x-8">
-              <NavigationIcons 
-                handleQuickSearch={handleQuickSearch} 
-                onChatToggle={handleChatToggle}
-              />
+            <div className="hidden md:flex items-center space-x-6">
+              <SearchDropdown />
               
               <a href="/how-it-works" className="nav-link">
                 How It Works
               </a>
               
-              <RoleBasedNavigation />
+              <Button 
+                variant="ghost" 
+                onClick={handleChatToggle}
+                className="flex items-center space-x-1"
+                aria-label="Chat"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span className="hidden lg:inline">Chat</span>
+              </Button>
+              
+              <UserActionsDropdown />
             </div>
 
             <div className="md:hidden">
