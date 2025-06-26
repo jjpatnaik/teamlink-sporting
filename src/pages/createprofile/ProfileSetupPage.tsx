@@ -38,6 +38,7 @@ const ProfileSetupPage = () => {
 
     // If profile exists, populate form with existing data
     if (profile) {
+      console.log('Populating form with existing profile:', profile);
       setFormData({
         display_name: profile.display_name || '',
         bio: profile.bio || '',
@@ -61,30 +62,75 @@ const ProfileSetupPage = () => {
     e.preventDefault();
     if (!user) return;
 
+    console.log('Starting profile update with data:', formData);
     setLoading(true);
     
     try {
-      const { error } = await supabase
+      // Check if profile already exists
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
-        .upsert({
-          id: profile?.id || undefined,
-          user_id: user.id,
-          display_name: formData.display_name,
-          bio: formData.bio,
-          city: formData.city,
-          country: formData.country,
-          roles: formData.roles,
-          profile_type: 'player', // Default for compatibility
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (fetchError) {
+        console.error('Error checking existing profile:', fetchError);
+        throw fetchError;
+      }
 
+      console.log('Existing profile check:', existingProfile);
+
+      let result;
+      
+      if (existingProfile) {
+        // Update existing profile
+        console.log('Updating existing profile with ID:', existingProfile.id);
+        result = await supabase
+          .from('profiles')
+          .update({
+            display_name: formData.display_name,
+            bio: formData.bio,
+            city: formData.city,
+            country: formData.country,
+            roles: formData.roles,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingProfile.id)
+          .select();
+      } else {
+        // Create new profile
+        console.log('Creating new profile for user:', user.id);
+        result = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            display_name: formData.display_name,
+            bio: formData.bio,
+            city: formData.city,
+            country: formData.country,
+            roles: formData.roles,
+            profile_type: 'player', // Default for compatibility
+          })
+          .select();
+      }
+
+      console.log('Database operation result:', result);
+
+      if (result.error) {
+        console.error('Database operation error:', result.error);
+        throw result.error;
+      }
+
+      console.log('Profile operation successful, refreshing profile...');
       await refreshProfile();
-      toast.success('Profile updated successfully!');
+      
+      toast.success(existingProfile ? 'Profile updated successfully!' : 'Profile created successfully!');
+      
+      // Navigate to home page after successful update
       navigate('/');
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast.error(error.message || 'Error updating profile');
+      toast.error(error.message || 'Error updating profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -92,6 +138,10 @@ const ProfileSetupPage = () => {
 
   const handleSkip = () => {
     navigate('/');
+  };
+
+  const handleAdvancedEdit = () => {
+    navigate('/edit-profile');
   };
 
   return (
@@ -182,6 +232,17 @@ const ProfileSetupPage = () => {
                     </Button>
                   )}
                 </div>
+
+                {profile && (
+                  <div className="text-center pt-4 border-t">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Need to add sport details, team information, or sponsorship details?
+                    </p>
+                    <Button type="button" variant="outline" onClick={handleAdvancedEdit}>
+                      Advanced Profile Editor
+                    </Button>
+                  </div>
+                )}
               </form>
             </CardContent>
           </Card>

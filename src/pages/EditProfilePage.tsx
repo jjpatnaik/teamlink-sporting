@@ -21,6 +21,7 @@ const EditProfilePage = () => {
 
   useEffect(() => {
     if (!user) {
+      console.log('No user found, redirecting to auth');
       navigate('/auth');
       return;
     }
@@ -32,6 +33,7 @@ const EditProfilePage = () => {
     if (!user) return;
 
     try {
+      console.log('Fetching profile data for user:', user.id);
       setLoading(true);
       
       // Fetch main profile
@@ -41,9 +43,15 @@ const EditProfilePage = () => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (profileError) throw profileError;
+      console.log('Main profile fetch result:', { profile, profileError });
+
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        throw profileError;
+      }
 
       if (!profile) {
+        console.log('No profile found, redirecting to create profile');
         // No profile found, redirect to create profile
         navigate('/createprofile');
         return;
@@ -52,33 +60,53 @@ const EditProfilePage = () => {
       let specificProfile = null;
 
       // Fetch specific profile data based on profile type
+      console.log('Fetching specific profile for type:', profile.profile_type);
+      
       switch (profile.profile_type) {
         case 'player':
-          const { data: playerProfile } = await supabase
+          const { data: playerProfile, error: playerError } = await supabase
             .from('player_profiles')
             .select('*')
             .eq('profile_id', profile.id)
             .maybeSingle();
+          
+          if (playerError) {
+            console.error('Player profile fetch error:', playerError);
+          }
           specificProfile = playerProfile;
+          console.log('Player profile data:', playerProfile);
           break;
         
         case 'team_captain':
-          const { data: teamProfile } = await supabase
+          const { data: teamProfile, error: teamError } = await supabase
             .from('team_profiles')
             .select('*')
             .eq('profile_id', profile.id)
             .maybeSingle();
+            
+          if (teamError) {
+            console.error('Team profile fetch error:', teamError);
+          }
           specificProfile = teamProfile;
+          console.log('Team profile data:', teamProfile);
           break;
         
         case 'sponsor':
-          const { data: sponsorProfile } = await supabase
+          const { data: sponsorProfile, error: sponsorError } = await supabase
             .from('sponsor_profiles')
             .select('*')
             .eq('profile_id', profile.id)
             .maybeSingle();
+            
+          if (sponsorError) {
+            console.error('Sponsor profile fetch error:', sponsorError);
+          }
           specificProfile = sponsorProfile;
+          console.log('Sponsor profile data:', sponsorProfile);
           break;
+          
+        default:
+          console.log('Unknown or unsupported profile type:', profile.profile_type);
       }
 
       setProfileData({
@@ -87,21 +115,45 @@ const EditProfilePage = () => {
         teamProfile: profile.profile_type === 'team_captain' ? specificProfile : null,
         sponsorProfile: profile.profile_type === 'sponsor' ? specificProfile : null,
       });
+      
+      console.log('Final profile data structure:', {
+        ...profile,
+        playerProfile: profile.profile_type === 'player' ? specificProfile : null,
+        teamProfile: profile.profile_type === 'team_captain' ? specificProfile : null,
+        sponsorProfile: profile.profile_type === 'sponsor' ? specificProfile : null,
+      });
     } catch (error) {
       console.error('Error fetching profile data:', error);
-      toast.error('Failed to load profile data');
+      toast.error('Failed to load profile data. Please try refreshing the page.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleProfileUpdate = async (profileData: any, specificData: any) => {
-    const result = await updateProfile(profileData, specificData);
-    if (result.success) {
-      toast.success('Profile updated successfully!');
-      navigate('/');
+    console.log('Starting profile update process');
+    console.log('Profile data to update:', profileData);
+    console.log('Specific data to update:', specificData);
+    
+    try {
+      const result = await updateProfile(profileData, specificData);
+      console.log('Update profile result:', result);
+      
+      if (result.success) {
+        toast.success('Profile updated successfully!');
+        // Refresh the profile data to reflect changes
+        await fetchProfileData();
+        navigate('/');
+      } else {
+        console.error('Profile update failed:', result.error);
+        toast.error(result.error || 'Failed to update profile. Please try again.');
+      }
+      return result;
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+      return { success: false, error: 'An unexpected error occurred' };
     }
-    return result;
   };
 
   if (loading) {
@@ -109,7 +161,10 @@ const EditProfilePage = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-grow flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Loading your profile...</p>
+          </div>
         </main>
         <Footer />
       </div>
@@ -125,13 +180,22 @@ const EditProfilePage = () => {
             <CardHeader>
               <CardTitle>Profile Not Found</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="text-center">
               <p className="text-gray-600 mb-4">
                 We couldn't find your profile. Would you like to create one?
               </p>
-              <Button onClick={() => navigate('/createprofile')} className="w-full">
-                Create Profile
-              </Button>
+              <div className="space-y-2">
+                <Button onClick={() => navigate('/createprofile')} className="w-full">
+                  Create Profile
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.reload()} 
+                  className="w-full"
+                >
+                  Refresh Page
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </main>

@@ -32,19 +32,30 @@ const UserActionsDropdown = () => {
     }
 
     try {
+      console.log('Checking profile for navigation...');
       // Check if user has a profile
-      const { data: profileData } = await supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('id, display_name')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      if (error) {
+        console.error('Error checking profile:', error);
+        // Default to create profile page if there's an error
+        navigate('/createprofile');
+        return;
+      }
+
       if (profileData) {
+        console.log('Profile found, navigating to player profile');
         // User has a profile, navigate to it
         navigate(`/player/${user.id}`);
       } else {
+        console.log('No profile found, navigating to create profile');
         // No profile found, redirect to create profile
         navigate('/createprofile');
+        toast.info('Please complete your profile setup');
       }
     } catch (error) {
       console.error('Error checking profile:', error);
@@ -54,6 +65,12 @@ const UserActionsDropdown = () => {
   };
 
   const handleEditProfile = () => {
+    if (!profile) {
+      console.log('No profile found, redirecting to basic setup');
+      navigate('/createprofile');
+      toast.info('Please complete your basic profile setup first');
+      return;
+    }
     navigate('/edit-profile');
   };
 
