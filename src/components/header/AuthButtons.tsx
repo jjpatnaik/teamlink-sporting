@@ -103,7 +103,7 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   };
 
   const handleEditProfile = () => {
-    navigate("/createprofile");
+    navigate("/edit-profile");
   };
 
   const handleMyTeam = async () => {

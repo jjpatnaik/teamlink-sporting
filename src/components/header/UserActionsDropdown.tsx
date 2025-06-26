@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ChevronDown, User, Users, Calendar, LogOut } from 'lucide-react';
+import { ChevronDown, User, Users, Calendar, LogOut, Settings } from 'lucide-react';
 
 const UserActionsDropdown = () => {
   const { user, profile, signOut, hasRole } = useAuth();
@@ -53,6 +53,10 @@ const UserActionsDropdown = () => {
     }
   };
 
+  const handleEditProfile = () => {
+    navigate('/edit-profile');
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -66,6 +70,11 @@ const UserActionsDropdown = () => {
         <DropdownMenuItem onClick={handleMyProfile} className="flex items-center space-x-2 cursor-pointer">
           <User className="h-4 w-4" />
           <span>My Profile</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={handleEditProfile} className="flex items-center space-x-2 cursor-pointer">
+          <Settings className="h-4 w-4" />
+          <span>Edit Profile</span>
         </DropdownMenuItem>
         
         {hasRole('player') && (

@@ -6,6 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "@/pages/Index";
 import AuthPage from "@/pages/auth/AuthPage";
 import ProfileSetupPage from "@/pages/createprofile/ProfileSetupPage";
+import EditProfilePage from "@/pages/EditProfilePage";
 import HowItWorksPage from "@/pages/HowItWorksPage";
 import PlayerProfile from "@/pages/PlayerProfile";
 import TeamProfile from "@/pages/TeamProfile";
@@ -33,6 +34,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfileSetupPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Profile editing - authenticated and requires profile */}
+          <Route 
+            path="/edit-profile" 
+            element={
+              <ProtectedRoute>
+                <EditProfilePage />
               </ProtectedRoute>
             } 
           />
