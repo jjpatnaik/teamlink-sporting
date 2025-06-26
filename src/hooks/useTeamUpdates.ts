@@ -29,32 +29,55 @@ export const useTeamUpdates = (teamId?: string) => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      const { data: updatesData, error: updatesError } = await supabase
         .from('team_updates')
-        .select(`
-          *,
-          author_profile:profiles!team_updates_author_id_fkey(display_name, profile_picture_url)
-        `)
+        .select('*')
         .eq('team_id', teamId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (updatesError) throw updatesError;
 
-      const formattedUpdates = (data || []).map(update => ({
-        id: update.id,
-        team_id: update.team_id,
-        author_id: update.author_id,
-        title: update.title,
-        content: update.content,
-        created_at: update.created_at,
-        updated_at: update.updated_at,
-        author_profile: update.author_profile ? {
-          display_name: update.author_profile.display_name || 'Unknown User',
-          profile_picture_url: update.author_profile.profile_picture_url
-        } : {
-          display_name: 'Unknown User'
+      if (!updatesData || updatesData.length === 0) {
+        setUpdates([]);
+        return;
+      }
+
+      // Fetch author profiles
+      const authorIds = updatesData.map(update => update.author_id).filter(Boolean);
+      let authorProfiles: any[] = [];
+
+      if (authorIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, profile_picture_url')
+          .in('user_id', authorIds);
+
+        if (profilesError) {
+          console.error('Error fetching author profiles:', profilesError);
+        } else {
+          authorProfiles = profiles || [];
         }
-      }));
+      }
+
+      const formattedUpdates = updatesData.map(update => {
+        const authorProfile = authorProfiles.find(p => p.user_id === update.author_id);
+
+        return {
+          id: update.id,
+          team_id: update.team_id,
+          author_id: update.author_id,
+          title: update.title,
+          content: update.content,
+          created_at: update.created_at,
+          updated_at: update.updated_at,
+          author_profile: authorProfile ? {
+            display_name: authorProfile.display_name || 'Unknown User',
+            profile_picture_url: authorProfile.profile_picture_url
+          } : {
+            display_name: 'Unknown User'
+          }
+        };
+      });
 
       setUpdates(formattedUpdates);
     } catch (error: any) {

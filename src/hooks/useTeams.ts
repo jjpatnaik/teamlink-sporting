@@ -29,16 +29,33 @@ export const useTeams = () => {
     try {
       setLoading(true);
       
-      // Fetch all teams with member counts
+      // Fetch all teams
       const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
-        .select(`
-          *,
-          team_members(count)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (teamsError) throw teamsError;
+
+      // Fetch member counts for each team
+      const teamIds = teamsData?.map(team => team.id) || [];
+      let memberCounts: { [key: string]: number } = {};
+
+      if (teamIds.length > 0) {
+        const { data: membersData, error: membersError } = await supabase
+          .from('team_members')
+          .select('team_id')
+          .in('team_id', teamIds);
+
+        if (membersError) {
+          console.error('Error fetching member counts:', membersError);
+        } else {
+          // Count members for each team
+          membersData?.forEach(member => {
+            memberCounts[member.team_id] = (memberCounts[member.team_id] || 0) + 1;
+          });
+        }
+      }
 
       const formattedTeams = (teamsData || []).map(team => ({
         id: team.id,
@@ -51,7 +68,7 @@ export const useTeams = () => {
         achievements: team.achievements,
         created_by: team.owner_id || '',
         created_at: team.created_at,
-        member_count: Array.isArray(team.team_members) ? team.team_members.length : (team.team_members?.[0]?.count || 0)
+        member_count: memberCounts[team.id] || 0
       }));
 
       setTeams(formattedTeams);
@@ -67,20 +84,37 @@ export const useTeams = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const { data: membershipData, error: membershipError } = await supabase
         .from('team_members')
         .select(`
           role,
-          teams (
-            *,
-            team_members(count)
-          )
+          team_id,
+          teams (*)
         `)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (membershipError) throw membershipError;
 
-      const formattedUserTeams = (data || []).map(item => ({
+      // Get member counts for user teams
+      const userTeamIds = membershipData?.map(item => item.team_id).filter(Boolean) || [];
+      let memberCounts: { [key: string]: number } = {};
+
+      if (userTeamIds.length > 0) {
+        const { data: membersData, error: membersError } = await supabase
+          .from('team_members')
+          .select('team_id')
+          .in('team_id', userTeamIds);
+
+        if (membersError) {
+          console.error('Error fetching user team member counts:', membersError);
+        } else {
+          membersData?.forEach(member => {
+            memberCounts[member.team_id] = (memberCounts[member.team_id] || 0) + 1;
+          });
+        }
+      }
+
+      const formattedUserTeams = (membershipData || []).map(item => ({
         id: item.teams.id,
         name: item.teams.name,
         sport: item.teams.sport || 'General',
@@ -91,7 +125,7 @@ export const useTeams = () => {
         achievements: item.teams.achievements,
         created_by: item.teams.owner_id || '',
         created_at: item.teams.created_at,
-        member_count: Array.isArray(item.teams.team_members) ? item.teams.team_members.length : (item.teams.team_members?.[0]?.count || 0),
+        member_count: memberCounts[item.team_id] || 0,
         user_role: item.role
       }));
 

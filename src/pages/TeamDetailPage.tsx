@@ -49,14 +49,24 @@ const TeamDetailPage = () => {
       // Fetch team details
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
-        .select(`
-          *,
-          team_members(count)
-        `)
+        .select('*')
         .eq('id', teamId)
         .single();
 
       if (teamError) throw teamError;
+
+      // Get member count
+      const { data: membersData, error: membersError } = await supabase
+        .from('team_members')
+        .select('id')
+        .eq('team_id', teamId);
+
+      let memberCount = 0;
+      if (membersError) {
+        console.error('Error fetching member count:', membersError);
+      } else {
+        memberCount = membersData?.length || 0;
+      }
 
       // Get user's role in the team if authenticated
       let userRole = undefined;
@@ -81,7 +91,7 @@ const TeamDetailPage = () => {
         achievements: teamData.achievements,
         owner_id: teamData.owner_id,
         created_at: teamData.created_at,
-        member_count: Array.isArray(teamData.team_members) ? teamData.team_members.length : (teamData.team_members?.[0]?.count || 0),
+        member_count: memberCount,
         user_role: userRole
       };
 

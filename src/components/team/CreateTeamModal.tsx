@@ -41,7 +41,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({ isOpen, onClose, onTe
       achievements: formData.achievements.trim() || undefined
     });
 
-    if (result?.success) {
+    if (result && typeof result === 'object' && result.success) {
       setFormData({
         name: '',
         sport: '',

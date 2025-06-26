@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -107,35 +106,79 @@ export const useTeamMembership = (teamId?: string) => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const { data: invitationsData, error: invitationsError } = await supabase
         .from('team_invitations')
-        .select(`
-          *,
-          sender_profile:profiles!team_invitations_sender_id_fkey(display_name),
-          team:teams(name)
-        `)
+        .select('*')
         .eq('receiver_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (invitationsError) throw invitationsError;
 
-      const formattedInvitations = (data || []).map(inv => ({
-        id: inv.id,
-        team_id: inv.team_id,
-        sender_id: inv.sender_id,
-        receiver_id: inv.receiver_id,
-        status: inv.status as 'pending' | 'accepted' | 'rejected',
-        message: inv.message,
-        created_at: inv.created_at,
-        processed_at: inv.processed_at,
-        sender_profile: inv.sender_profile ? {
-          display_name: inv.sender_profile.display_name || 'Unknown User'
-        } : undefined,
-        team: inv.team ? {
-          name: inv.team.name
-        } : undefined
-      }));
+      if (!invitationsData || invitationsData.length === 0) {
+        setInvitations([]);
+        return;
+      }
+
+      // Fetch sender profiles
+      const senderIds = invitationsData.map(inv => inv.sender_id).filter(Boolean);
+      let senderProfiles: any[] = [];
+      
+      if (senderIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, display_name')
+          .in('user_id', senderIds);
+
+        if (profilesError) {
+          console.error('Error fetching sender profiles:', profilesError);
+        } else {
+          senderProfiles = profiles || [];
+        }
+      }
+
+      // Fetch team names
+      const teamIds = invitationsData.map(inv => inv.team_id).filter(Boolean);
+      let teamsData: any[] = [];
+      
+      if (teamIds.length > 0) {
+        const { data: teams, error: teamsError } = await supabase
+          .from('teams')
+          .select('id, name')
+          .in('id', teamIds);
+
+        if (teamsError) {
+          console.error('Error fetching teams:', teamsError);
+        } else {
+          teamsData = teams || [];
+        }
+      }
+
+      const formattedInvitations = invitationsData.map(inv => {
+        const senderProfile = senderProfiles.find(p => p.user_id === inv.sender_id);
+        const team = teamsData.find(t => t.id === inv.team_id);
+
+        return {
+          id: inv.id,
+          team_id: inv.team_id,
+          sender_id: inv.sender_id,
+          receiver_id: inv.receiver_id,
+          status: inv.status as 'pending' | 'accepted' | 'rejected',
+          message: inv.message,
+          created_at: inv.created_at,
+          processed_at: inv.processed_at,
+          sender_profile: senderProfile ? {
+            display_name: senderProfile.display_name || 'Unknown User'
+          } : {
+            display_name: 'Unknown User'
+          },
+          team: team ? {
+            name: team.name
+          } : {
+            name: 'Unknown Team'
+          }
+        };
+      });
 
       setInvitations(formattedInvitations);
     } catch (error: any) {
@@ -147,7 +190,7 @@ export const useTeamMembership = (teamId?: string) => {
     if (!user || !teamId) return false;
 
     try {
-      // First find the user by email
+      // First find the user by email/name
       const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select('user_id')
