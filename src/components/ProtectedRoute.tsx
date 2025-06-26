@@ -20,12 +20,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
         return;
       }
 
-      if (!profile) {
-        navigate('/createprofile');
+      // Only redirect to create profile if we're on a route that specifically requires a profile
+      // and the user doesn't have one. Let other routes handle their own profile checks.
+      if (!profile && window.location.pathname.startsWith('/createprofile')) {
+        // User is already on the create profile page, let them stay
         return;
       }
 
       if (requiredRole && !hasRole(requiredRole)) {
+        // If user doesn't have required role, redirect to home instead of create profile
         navigate('/');
         return;
       }
@@ -40,7 +43,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     );
   }
 
-  if (!user || (requiredRole && !hasRole(requiredRole))) {
+  if (!user) {
+    return null;
+  }
+
+  if (requiredRole && !hasRole(requiredRole)) {
     return null;
   }
 

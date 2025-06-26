@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -73,12 +74,31 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
     }
   };
 
-  const handleMyProfile = () => {
-    if (currentUserId) {
-      navigate(`/player/${currentUserId}`);
-    } else {
-      // Fallback to the general profile route that will determine the user
-      navigate("/player/profile");
+  const handleMyProfile = async () => {
+    if (!currentUserId) {
+      toast.error("Unable to access profile");
+      return;
+    }
+
+    try {
+      // Check if user has a profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+      if (profileData) {
+        // User has a profile, navigate to it
+        navigate(`/player/${currentUserId}`);
+      } else {
+        // No profile found, redirect to create profile
+        navigate('/createprofile');
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      // Default to create profile page if there's an error
+      navigate('/createprofile');
     }
   };
 
@@ -126,10 +146,10 @@ const AuthButtons = ({ isAuthenticated }: AuthButtonsProps) => {
   if (!isAuthenticated) {
     return (
       <div className="flex items-center space-x-2">
-        <Button variant="ghost" onClick={() => navigate("/login")}>
+        <Button variant="ghost" onClick={() => navigate("/auth")}>
           Sign In
         </Button>
-        <Button onClick={() => navigate("/signup")}>
+        <Button onClick={() => navigate("/auth")}>
           Sign Up
         </Button>
       </div>

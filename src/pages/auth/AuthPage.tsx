@@ -24,7 +24,7 @@ const AuthPage = () => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        navigate('/createprofile');
+        navigate('/');
       }
     };
     checkAuth();
@@ -43,7 +43,7 @@ const AuthPage = () => {
       if (error) throw error;
       
       toast.success('Signed in successfully!');
-      navigate('/createprofile');
+      navigate('/');
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -66,7 +66,7 @@ const AuthPage = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/createprofile`
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -88,7 +88,7 @@ const AuthPage = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/createprofile`
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -110,7 +110,7 @@ const AuthPage = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/createprofile`
+          redirectTo: `${window.location.origin}/`
         }
       });
 
