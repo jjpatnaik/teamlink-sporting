@@ -9,63 +9,111 @@ export interface Team {
   sport: string;
   location: string;
   description: string;
+  introduction?: string;
+  established_year?: number;
+  achievements?: string;
   created_by: string;
   created_at: string;
   member_count?: number;
+  user_role?: string;
 }
 
 export const useTeams = () => {
   const [teams, setTeams] = useState<Team[]>([]);
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   const fetchTeams = async () => {
-    if (!user) return;
-    
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch all teams with member counts
+      const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
         .select(`
-          id,
-          name,
-          description,
-          created_at,
-          owner_id,
+          *,
           team_members(count)
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (teamsError) throw teamsError;
 
-      const teamsWithCount = data?.map(team => ({
+      const formattedTeams = (teamsData || []).map(team => ({
         id: team.id,
         name: team.name,
-        sport: 'General', // Default sport since teams table doesn't have sport column
-        location: 'Not specified', // Default location since teams table doesn't have location column
+        sport: team.sport || 'General',
+        location: 'Not specified',
         description: team.description || '',
+        introduction: team.introduction,
+        established_year: team.established_year,
+        achievements: team.achievements,
         created_by: team.owner_id || '',
         created_at: team.created_at,
-        member_count: team.team_members?.[0]?.count || 0
-      })) || [];
+        member_count: Array.isArray(team.team_members) ? team.team_members.length : (team.team_members?.[0]?.count || 0)
+      }));
 
-      setTeams(teamsWithCount);
+      setTeams(formattedTeams);
     } catch (err: any) {
+      console.error('Error fetching teams:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchUserTeams = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select(`
+          role,
+          teams (
+            *,
+            team_members(count)
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const formattedUserTeams = (data || []).map(item => ({
+        id: item.teams.id,
+        name: item.teams.name,
+        sport: item.teams.sport || 'General',
+        location: 'Not specified',
+        description: item.teams.description || '',
+        introduction: item.teams.introduction,
+        established_year: item.teams.established_year,
+        achievements: item.teams.achievements,
+        created_by: item.teams.owner_id || '',
+        created_at: item.teams.created_at,
+        member_count: Array.isArray(item.teams.team_members) ? item.teams.team_members.length : (item.teams.team_members?.[0]?.count || 0),
+        user_role: item.role
+      }));
+
+      setUserTeams(formattedUserTeams);
+    } catch (err: any) {
+      console.error('Error fetching user teams:', err);
+    }
+  };
+
   useEffect(() => {
     fetchTeams();
+    fetchUserTeams();
   }, [user]);
 
   return {
     teams,
+    userTeams,
     loading,
     error,
-    refetch: fetchTeams
+    refetch: () => {
+      fetchTeams();
+      fetchUserTeams();
+    }
   };
 };

@@ -426,6 +426,47 @@ export type Database = {
           },
         ]
       }
+      team_invitations: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string | null
+          processed_at: string | null
+          receiver_id: string | null
+          sender_id: string | null
+          status: string
+          team_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          processed_at?: string | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          status?: string
+          team_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          processed_at?: string | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          status?: string
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_join_requests: {
         Row: {
           id: string
@@ -552,29 +593,79 @@ export type Database = {
           },
         ]
       }
-      teams: {
+      team_updates: {
         Row: {
+          author_id: string | null
+          content: string
           created_at: string | null
-          description: string | null
           id: string
-          name: string
-          owner_id: string | null
+          team_id: string | null
+          title: string
           updated_at: string | null
         }
         Insert: {
+          author_id?: string | null
+          content: string
           created_at?: string | null
-          description?: string | null
           id?: string
-          name: string
-          owner_id?: string | null
+          team_id?: string | null
+          title: string
           updated_at?: string | null
         }
         Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          team_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_updates_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          achievements: string | null
+          created_at: string | null
+          description: string | null
+          established_year: number | null
+          id: string
+          introduction: string | null
+          name: string
+          owner_id: string | null
+          sport: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          achievements?: string | null
           created_at?: string | null
           description?: string | null
+          established_year?: number | null
           id?: string
+          introduction?: string | null
+          name: string
+          owner_id?: string | null
+          sport?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          achievements?: string | null
+          created_at?: string | null
+          description?: string | null
+          established_year?: number | null
+          id?: string
+          introduction?: string | null
           name?: string
           owner_id?: string | null
+          sport?: string | null
           updated_at?: string | null
         }
         Relationships: []

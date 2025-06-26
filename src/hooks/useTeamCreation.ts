@@ -9,6 +9,9 @@ export interface CreateTeamData {
   sport: string;
   location: string;
   description: string;
+  introduction?: string;
+  established_year?: number;
+  achievements?: string;
 }
 
 export const useTeamCreation = () => {
@@ -27,31 +30,36 @@ export const useTeamCreation = () => {
       const { data: team, error: teamError } = await supabase
         .from('teams')
         .insert({
-          ...teamData,
-          created_by: user.id
+          name: teamData.name,
+          description: teamData.description,
+          introduction: teamData.introduction,
+          sport: teamData.sport,
+          established_year: teamData.established_year,
+          achievements: teamData.achievements,
+          owner_id: user.id
         })
         .select()
         .single();
 
       if (teamError) throw teamError;
 
-      // Add creator as team admin
+      // Add creator as team owner
       const { error: memberError } = await supabase
         .from('team_members')
         .insert({
           team_id: team.id,
           user_id: user.id,
-          role: 'admin',
-          status: 'accepted'
+          role: 'owner'
         });
 
       if (memberError) throw memberError;
 
       toast.success('Team created successfully!');
-      return true;
+      return { success: true, team };
     } catch (error: any) {
+      console.error('Error creating team:', error);
       toast.error(error.message || 'Failed to create team');
-      return false;
+      return { success: false, error: error.message };
     } finally {
       setIsCreating(false);
     }
