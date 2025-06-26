@@ -29,7 +29,7 @@ const CreateProfilePage = () => {
   const [selectedType, setSelectedType] = useState<string>('');
   const navigate = useNavigate();
   const { updateProfile, isUpdating } = useProfileUpdate();
-  const { createProfile } = useUnifiedProfile();
+  const { updateProfile: createProfile } = useUnifiedProfile();
 
   const form = useForm<BasicProfileForm>({
     resolver: zodResolver(basicProfileSchema),

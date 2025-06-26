@@ -110,60 +110,121 @@ export const useUnifiedProfile = () => {
           ...specificData
         };
 
-        let specificTableName = '';
+        // Handle each profile type explicitly to avoid TypeScript issues
         switch (profileData.profile_type) {
           case 'player':
-            specificTableName = 'player_profiles';
+            console.log('Handling player profile');
+            const { data: existingPlayer, error: playerFetchError } = await supabase
+              .from('player_profiles')
+              .select('id')
+              .eq('profile_id', profileId)
+              .maybeSingle();
+
+            if (playerFetchError) {
+              console.error('Error checking existing player profile:', playerFetchError);
+              throw playerFetchError;
+            }
+
+            if (existingPlayer) {
+              const { error: playerUpdateError } = await supabase
+                .from('player_profiles')
+                .update(specificData)
+                .eq('id', existingPlayer.id);
+
+              if (playerUpdateError) {
+                console.error('Error updating player profile:', playerUpdateError);
+                throw playerUpdateError;
+              }
+              console.log('Updated player profile successfully');
+            } else {
+              const { error: playerCreateError } = await supabase
+                .from('player_profiles')
+                .insert(specificProfileData);
+
+              if (playerCreateError) {
+                console.error('Error creating player profile:', playerCreateError);
+                throw playerCreateError;
+              }
+              console.log('Created player profile successfully');
+            }
             break;
+
           case 'team_captain':
-            specificTableName = 'team_profiles';
+            console.log('Handling team profile');
+            const { data: existingTeam, error: teamFetchError } = await supabase
+              .from('team_profiles')
+              .select('id')
+              .eq('profile_id', profileId)
+              .maybeSingle();
+
+            if (teamFetchError) {
+              console.error('Error checking existing team profile:', teamFetchError);
+              throw teamFetchError;
+            }
+
+            if (existingTeam) {
+              const { error: teamUpdateError } = await supabase
+                .from('team_profiles')
+                .update(specificData)
+                .eq('id', existingTeam.id);
+
+              if (teamUpdateError) {
+                console.error('Error updating team profile:', teamUpdateError);
+                throw teamUpdateError;
+              }
+              console.log('Updated team profile successfully');
+            } else {
+              const { error: teamCreateError } = await supabase
+                .from('team_profiles')
+                .insert(specificProfileData);
+
+              if (teamCreateError) {
+                console.error('Error creating team profile:', teamCreateError);
+                throw teamCreateError;
+              }
+              console.log('Created team profile successfully');
+            }
             break;
+
           case 'sponsor':
-            specificTableName = 'sponsor_profiles';
+            console.log('Handling sponsor profile');
+            const { data: existingSponsor, error: sponsorFetchError } = await supabase
+              .from('sponsor_profiles')
+              .select('id')
+              .eq('profile_id', profileId)
+              .maybeSingle();
+
+            if (sponsorFetchError) {
+              console.error('Error checking existing sponsor profile:', sponsorFetchError);
+              throw sponsorFetchError;
+            }
+
+            if (existingSponsor) {
+              const { error: sponsorUpdateError } = await supabase
+                .from('sponsor_profiles')
+                .update(specificData)
+                .eq('id', existingSponsor.id);
+
+              if (sponsorUpdateError) {
+                console.error('Error updating sponsor profile:', sponsorUpdateError);
+                throw sponsorUpdateError;
+              }
+              console.log('Updated sponsor profile successfully');
+            } else {
+              const { error: sponsorCreateError } = await supabase
+                .from('sponsor_profiles')
+                .insert(specificProfileData);
+
+              if (sponsorCreateError) {
+                console.error('Error creating sponsor profile:', sponsorCreateError);
+                throw sponsorCreateError;
+              }
+              console.log('Created sponsor profile successfully');
+            }
             break;
+
           default:
             console.log('No specific profile table for type:', profileData.profile_type);
-        }
-
-        if (specificTableName) {
-          // Check if specific profile exists
-          const { data: existingSpecific, error: specificFetchError } = await supabase
-            .from(specificTableName)
-            .select('id')
-            .eq('profile_id', profileId)
-            .maybeSingle();
-
-          if (specificFetchError) {
-            console.error('Error checking existing specific profile:', specificFetchError);
-            throw specificFetchError;
-          }
-
-          if (existingSpecific) {
-            // Update existing specific profile
-            console.log('Updating existing specific profile:', existingSpecific.id);
-            const { error: specificUpdateError } = await supabase
-              .from(specificTableName)
-              .update(specificData)
-              .eq('id', existingSpecific.id);
-
-            if (specificUpdateError) {
-              console.error('Error updating specific profile:', specificUpdateError);
-              throw specificUpdateError;
-            }
-            console.log('Updated specific profile successfully');
-          } else {
-            // Create new specific profile
-            console.log('Creating new specific profile');
-            const { error: specificCreateError } = await supabase
-              .from(specificTableName)
-              .insert(specificProfileData);
-
-            if (specificCreateError) {
-              console.error('Error creating specific profile:', specificCreateError);
-              throw specificCreateError;
-            }
-            console.log('Created specific profile successfully');
-          }
         }
       }
 
