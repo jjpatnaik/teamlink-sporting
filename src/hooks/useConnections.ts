@@ -89,34 +89,44 @@ export const useConnections = () => {
           console.error('Error fetching pending requests:', pendingError);
         }
 
-        // Fetch team join requests for teams owned by the current user
-        const { data: teamJoinReqs, error: teamJoinError } = await supabase
-          .from('team_join_requests')
-          .select(`
-            id,
-            team_id,
-            user_id,
-            status,
-            requested_at,
-            message,
-            teams!inner (
-              name,
-              sport
-            )
-          `)
-          .eq('status', 'pending')
-          .in('team_id', 
-            // Subquery to get team IDs where current user is owner or captain
-            supabase
-              .from('team_members')
-              .select('team_id')
-              .eq('user_id', user.id)
-              .in('role', ['owner', 'captain'])
-              .then(({ data }) => data?.map(tm => tm.team_id) || [])
-          );
+        // First, get the team IDs where the current user is owner or captain
+        const { data: teamMemberships, error: teamMembershipError } = await supabase
+          .from('team_members')
+          .select('team_id')
+          .eq('user_id', user.id)
+          .in('role', ['owner', 'captain']);
 
-        if (teamJoinError) {
-          console.error('Error fetching team join requests:', teamJoinError);
+        if (teamMembershipError) {
+          console.error('Error fetching team memberships:', teamMembershipError);
+        }
+
+        const teamIds = teamMemberships?.map(tm => tm.team_id) || [];
+
+        // Fetch team join requests for teams owned by the current user
+        let teamJoinReqs: any[] = [];
+        if (teamIds.length > 0) {
+          const { data: requests, error: teamJoinError } = await supabase
+            .from('team_join_requests')
+            .select(`
+              id,
+              team_id,
+              user_id,
+              status,
+              requested_at,
+              message,
+              teams!team_join_requests_team_id_fkey (
+                name,
+                sport
+              )
+            `)
+            .eq('status', 'pending')
+            .in('team_id', teamIds);
+
+          if (teamJoinError) {
+            console.error('Error fetching team join requests:', teamJoinError);
+          } else {
+            teamJoinReqs = requests || [];
+          }
         }
 
         console.log('Raw pending requests:', pendingReqs);
@@ -186,9 +196,13 @@ export const useConnections = () => {
         };
 
         // Process team join requests
-        const processedTeamJoinRequests = (teamJoinReqs || []).map(req => ({
-          ...req,
+        const processedTeamJoinRequests: TeamJoinRequestType[] = (teamJoinReqs || []).map(req => ({
+          id: req.id,
+          team_id: req.team_id,
+          user_id: req.user_id,
+          status: req.status as 'pending' | 'approved' | 'rejected',
           requested_at: req.requested_at,
+          message: req.message,
           team: {
             name: req.teams?.name || 'Unknown Team',
             sport: req.teams?.sport
