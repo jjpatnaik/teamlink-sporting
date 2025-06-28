@@ -24,10 +24,14 @@ export const useTeamUpdates = (teamId?: string) => {
   const { user } = useAuth();
 
   const fetchUpdates = async () => {
-    if (!teamId) return;
+    if (!teamId || !user) {
+      setUpdates([]);
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('Fetching team updates for team:', teamId);
       
       const { data: updatesData, error: updatesError } = await supabase
         .from('team_updates')
@@ -35,7 +39,12 @@ export const useTeamUpdates = (teamId?: string) => {
         .eq('team_id', teamId)
         .order('created_at', { ascending: false });
 
-      if (updatesError) throw updatesError;
+      if (updatesError) {
+        console.error('Error fetching team updates:', updatesError);
+        throw updatesError;
+      }
+
+      console.log('Fetched team updates:', updatesData);
 
       if (!updatesData || updatesData.length === 0) {
         setUpdates([]);
@@ -43,7 +52,7 @@ export const useTeamUpdates = (teamId?: string) => {
       }
 
       // Fetch author profiles
-      const authorIds = updatesData.map(update => update.author_id).filter(Boolean);
+      const authorIds = [...new Set(updatesData.map(update => update.author_id).filter(Boolean))];
       let authorProfiles: any[] = [];
 
       if (authorIds.length > 0) {
@@ -82,16 +91,26 @@ export const useTeamUpdates = (teamId?: string) => {
       setUpdates(formattedUpdates);
     } catch (error: any) {
       console.error('Error fetching team updates:', error);
-      toast.error('Failed to fetch team updates');
+      if (error.code === 'PGRST116' || error.message?.includes('permission denied')) {
+        console.log('User does not have permission to view team updates - they may not be a team member');
+        setUpdates([]);
+      } else {
+        toast.error('Failed to fetch team updates');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const createUpdate = async (title: string, content: string) => {
-    if (!user || !teamId) return false;
+    if (!user || !teamId) {
+      toast.error('You must be logged in to post updates');
+      return false;
+    }
 
     try {
+      console.log('Creating team update:', { teamId, title, content });
+      
       const { error } = await supabase
         .from('team_updates')
         .insert({
@@ -101,9 +120,17 @@ export const useTeamUpdates = (teamId?: string) => {
           content
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating team update:', error);
+        if (error.code === 'PGRST116' || error.message?.includes('permission denied')) {
+          toast.error('You do not have permission to post updates to this team');
+        } else {
+          toast.error('Failed to post team update: ' + error.message);
+        }
+        return false;
+      }
 
-      toast.success('Team update posted successfully!');
+      console.log('Team update created successfully');
       await fetchUpdates();
       return true;
     } catch (error: any) {
@@ -114,15 +141,34 @@ export const useTeamUpdates = (teamId?: string) => {
   };
 
   const updateTeamUpdate = async (updateId: string, title: string, content: string) => {
+    if (!user) {
+      toast.error('You must be logged in to edit updates');
+      return false;
+    }
+
     try {
+      console.log('Updating team update:', { updateId, title, content });
+      
       const { error } = await supabase
         .from('team_updates')
-        .update({ title, content })
+        .update({ 
+          title, 
+          content,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', updateId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating team update:', error);
+        if (error.code === 'PGRST116' || error.message?.includes('permission denied')) {
+          toast.error('You do not have permission to edit this update');
+        } else {
+          toast.error('Failed to update team update: ' + error.message);
+        }
+        return false;
+      }
 
-      toast.success('Team update updated successfully!');
+      console.log('Team update updated successfully');
       await fetchUpdates();
       return true;
     } catch (error: any) {
@@ -133,15 +179,30 @@ export const useTeamUpdates = (teamId?: string) => {
   };
 
   const deleteUpdate = async (updateId: string) => {
+    if (!user) {
+      toast.error('You must be logged in to delete updates');
+      return false;
+    }
+
     try {
+      console.log('Deleting team update:', updateId);
+      
       const { error } = await supabase
         .from('team_updates')
         .delete()
         .eq('id', updateId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting team update:', error);
+        if (error.code === 'PGRST116' || error.message?.includes('permission denied')) {
+          toast.error('You do not have permission to delete this update');
+        } else {
+          toast.error('Failed to delete team update: ' + error.message);
+        }
+        return false;
+      }
 
-      toast.success('Team update deleted successfully!');
+      console.log('Team update deleted successfully');
       await fetchUpdates();
       return true;
     } catch (error: any) {
@@ -153,7 +214,7 @@ export const useTeamUpdates = (teamId?: string) => {
 
   useEffect(() => {
     fetchUpdates();
-  }, [teamId]);
+  }, [teamId, user]);
 
   return {
     updates,

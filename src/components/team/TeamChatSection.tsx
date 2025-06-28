@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Send, User, Calendar } from 'lucide-react';
+import { MessageSquare, Send, User, Calendar, Edit, Trash2 } from 'lucide-react';
 import { useTeamUpdates, TeamUpdate } from '@/hooks/useTeamUpdates';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface TeamChatSectionProps {
   teamId: string;
@@ -17,15 +18,22 @@ interface TeamChatSectionProps {
 
 const TeamChatSection: React.FC<TeamChatSectionProps> = ({ teamId, userRole }) => {
   const { user } = useAuth();
-  const { updates, loading, createUpdate } = useTeamUpdates(teamId);
+  const { updates, loading, createUpdate, updateTeamUpdate, deleteUpdate } = useTeamUpdates(teamId);
   const [newUpdateTitle, setNewUpdateTitle] = useState('');
   const [newUpdateContent, setNewUpdateContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
+  const [editingUpdate, setEditingUpdate] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
 
   const canPostUpdates = userRole === 'owner' || userRole === 'captain';
+  const canManageUpdates = canPostUpdates;
 
   const handlePostUpdate = async () => {
-    if (!newUpdateTitle.trim() || !newUpdateContent.trim()) return;
+    if (!newUpdateTitle.trim() || !newUpdateContent.trim()) {
+      toast.error('Please fill in both title and content');
+      return;
+    }
 
     setIsPosting(true);
     const success = await createUpdate(newUpdateTitle.trim(), newUpdateContent.trim());
@@ -33,8 +41,51 @@ const TeamChatSection: React.FC<TeamChatSectionProps> = ({ teamId, userRole }) =
     if (success) {
       setNewUpdateTitle('');
       setNewUpdateContent('');
+      toast.success('Team update posted successfully!');
     }
     setIsPosting(false);
+  };
+
+  const handleEditUpdate = (update: TeamUpdate) => {
+    setEditingUpdate(update.id);
+    setEditTitle(update.title);
+    setEditContent(update.content);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTitle.trim() || !editContent.trim()) {
+      toast.error('Please fill in both title and content');
+      return;
+    }
+
+    if (editingUpdate) {
+      const success = await updateTeamUpdate(editingUpdate, editTitle.trim(), editContent.trim());
+      if (success) {
+        setEditingUpdate(null);
+        setEditTitle('');
+        setEditContent('');
+        toast.success('Update edited successfully!');
+      }
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUpdate(null);
+    setEditTitle('');
+    setEditContent('');
+  };
+
+  const handleDeleteUpdate = async (updateId: string) => {
+    if (window.confirm('Are you sure you want to delete this update?')) {
+      const success = await deleteUpdate(updateId);
+      if (success) {
+        toast.success('Update deleted successfully!');
+      }
+    }
+  };
+
+  const canEditUpdate = (update: TeamUpdate) => {
+    return user && (update.author_id === user.id || canManageUpdates);
   };
 
   if (loading) {
@@ -74,6 +125,7 @@ const TeamChatSection: React.FC<TeamChatSectionProps> = ({ teamId, userRole }) =
                 value={newUpdateTitle}
                 onChange={(e) => setNewUpdateTitle(e.target.value)}
                 maxLength={100}
+                disabled={isPosting}
               />
               <Textarea
                 placeholder="What's new with the team?"
@@ -81,6 +133,7 @@ const TeamChatSection: React.FC<TeamChatSectionProps> = ({ teamId, userRole }) =
                 onChange={(e) => setNewUpdateContent(e.target.value)}
                 rows={3}
                 maxLength={500}
+                disabled={isPosting}
               />
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">
@@ -126,17 +179,77 @@ const TeamChatSection: React.FC<TeamChatSectionProps> = ({ teamId, userRole }) =
                         <span>
                           {formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}
                         </span>
+                        {update.updated_at !== update.created_at && (
+                          <span className="text-blue-600">(edited)</span>
+                        )}
                       </div>
                     </div>
                   </div>
-                  <Badge variant="purple" className="text-xs">
-                    Update
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      Update
+                    </Badge>
+                    {canEditUpdate(update) && (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditUpdate(update)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteUpdate(update.id)}
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="ml-10">
-                  <h4 className="font-semibold text-sport-blue mb-1">{update.title}</h4>
-                  <p className="text-gray-700 text-sm leading-relaxed">{update.content}</p>
+                  {editingUpdate === update.id ? (
+                    <div className="space-y-3">
+                      <Input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        maxLength={100}
+                        className="font-semibold"
+                      />
+                      <Textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        rows={3}
+                        maxLength={500}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCancelEdit}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleSaveEdit}
+                          disabled={!editTitle.trim() || !editContent.trim()}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h4 className="font-semibold text-sport-blue mb-1">{update.title}</h4>
+                      <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{update.content}</p>
+                    </>
+                  )}
                 </div>
               </div>
             ))
