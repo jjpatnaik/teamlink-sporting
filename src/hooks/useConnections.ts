@@ -16,9 +16,29 @@ export type ConnectionType = {
   };
 };
 
+export type TeamJoinRequestType = {
+  id: string;
+  team_id: string;
+  user_id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requested_at: string;
+  message?: string;
+  team: {
+    name: string;
+    sport?: string;
+  };
+  user: {
+    full_name: string;
+    sport: string;
+    position: string;
+    profile_picture_url: string | null;
+  };
+};
+
 export const useConnections = () => {
   const [connections, setConnections] = useState<ConnectionType[]>([]);
   const [pendingRequests, setPendingRequests] = useState<ConnectionType[]>([]);
+  const [teamJoinRequests, setTeamJoinRequests] = useState<TeamJoinRequestType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,9 +89,40 @@ export const useConnections = () => {
           console.error('Error fetching pending requests:', pendingError);
         }
 
+        // Fetch team join requests for teams owned by the current user
+        const { data: teamJoinReqs, error: teamJoinError } = await supabase
+          .from('team_join_requests')
+          .select(`
+            id,
+            team_id,
+            user_id,
+            status,
+            requested_at,
+            message,
+            teams!inner (
+              name,
+              sport
+            )
+          `)
+          .eq('status', 'pending')
+          .in('team_id', 
+            // Subquery to get team IDs where current user is owner or captain
+            supabase
+              .from('team_members')
+              .select('team_id')
+              .eq('user_id', user.id)
+              .in('role', ['owner', 'captain'])
+              .then(({ data }) => data?.map(tm => tm.team_id) || [])
+          );
+
+        if (teamJoinError) {
+          console.error('Error fetching team join requests:', teamJoinError);
+        }
+
         console.log('Raw pending requests:', pendingReqs);
         console.log('Raw sent connections:', sentConnections);
         console.log('Raw received connections:', receivedConnections);
+        console.log('Raw team join requests:', teamJoinReqs);
 
         // Get unique user IDs we need to fetch details for
         const userIds = new Set<string>();
@@ -79,6 +130,7 @@ export const useConnections = () => {
         (sentConnections || []).forEach(conn => userIds.add(conn.receiver_id));
         (receivedConnections || []).forEach(conn => userIds.add(conn.requester_id));
         (pendingReqs || []).forEach(req => userIds.add(req.requester_id));
+        (teamJoinReqs || []).forEach(req => userIds.add(req.user_id));
 
         console.log('User IDs to fetch details for:', Array.from(userIds));
 
@@ -133,17 +185,35 @@ export const useConnections = () => {
           });
         };
 
+        // Process team join requests
+        const processedTeamJoinRequests = (teamJoinReqs || []).map(req => ({
+          ...req,
+          requested_at: req.requested_at,
+          team: {
+            name: req.teams?.name || 'Unknown Team',
+            sport: req.teams?.sport
+          },
+          user: userDetailsMap.get(req.user_id) || {
+            full_name: 'Unknown User',
+            sport: 'Unknown Sport',
+            position: 'Unknown Position',
+            profile_picture_url: null
+          }
+        }));
+
         const processedSentConnections = processConnections(sentConnections || [], true);
         const processedReceivedConnections = processConnections(receivedConnections || [], false);
         const processedPendingRequests = processConnections(pendingReqs || [], false);
 
         console.log('Processed pending requests:', processedPendingRequests);
+        console.log('Processed team join requests:', processedTeamJoinRequests);
         console.log('Processed accepted connections:', [...processedSentConnections, ...processedReceivedConnections]);
 
         // Combine accepted connections
         const allConnections = [...processedSentConnections, ...processedReceivedConnections];
         setConnections(allConnections);
         setPendingRequests(processedPendingRequests);
+        setTeamJoinRequests(processedTeamJoinRequests);
         
       } catch (error: any) {
         console.error("Error fetching connections:", error);
@@ -187,11 +257,58 @@ export const useConnections = () => {
     }
   };
 
+  const handleTeamJoinRequestResponse = async (requestId: string, action: 'approved' | 'rejected') => {
+    try {
+      console.log(`${action} team join request:`, requestId);
+      
+      const { error } = await supabase
+        .from('team_join_requests')
+        .update({ 
+          status: action,
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      // If approved, add user to team_members
+      if (action === 'approved') {
+        const request = teamJoinRequests.find(req => req.id === requestId);
+        if (request) {
+          const { error: memberError } = await supabase
+            .from('team_members')
+            .insert({
+              team_id: request.team_id,
+              user_id: request.user_id,
+              role: 'member'
+            });
+
+          if (memberError) {
+            console.error('Error adding team member:', memberError);
+            throw memberError;
+          }
+        }
+      }
+
+      // Update the local state
+      setTeamJoinRequests(prevRequests => 
+        prevRequests.filter(request => request.id !== requestId)
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      console.error(`Error ${action} team join request:`, error);
+      return { success: false, error: error.message };
+    }
+  };
+
   return { 
     connections, 
     pendingRequests, 
+    teamJoinRequests,
     loading, 
     error,
-    handleConnectionResponse
+    handleConnectionResponse,
+    handleTeamJoinRequestResponse
   };
 };

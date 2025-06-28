@@ -500,6 +500,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_team_join_requests_team_id"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "team_join_requests_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
