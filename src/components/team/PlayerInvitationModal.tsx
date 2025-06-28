@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Search, User, MapPin, UserPlus, Loader2 } from 'lucide-react';
 import { useUnifiedSearch, SearchProfile } from '@/hooks/useUnifiedSearch';
-import { useTeamMembership } from '@/hooks/useTeamMembership';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface PlayerInvitationModalProps {
@@ -31,7 +31,6 @@ const PlayerInvitationModal: React.FC<PlayerInvitationModalProps> = ({
   const [isInviting, setIsInviting] = useState(false);
   
   const { profiles, loading, searchProfiles } = useUnifiedSearch();
-  const { sendInvitation } = useTeamMembership(teamId);
 
   // Filter only player profiles
   const playerProfiles = profiles.filter(profile => profile.profile_type === 'player');
@@ -64,16 +63,37 @@ const PlayerInvitationModal: React.FC<PlayerInvitationModalProps> = ({
 
     setIsInviting(true);
     try {
-      // Use the player's display_name as the "email" parameter since that's what the API expects
-      const success = await sendInvitation(selectedPlayer.display_name, invitationMessage);
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (success) {
-        toast.success(`Invitation sent to ${selectedPlayer.display_name}!`);
-        setSelectedPlayer(null);
-        setInvitationMessage('');
-        setSearchTerm('');
-        onClose();
+      if (!user) {
+        toast.error('You must be logged in to send invitations');
+        return;
       }
+
+      // Send invitation using the player's user_id
+      const { error } = await supabase
+        .from('team_invitations')
+        .insert({
+          team_id: teamId,
+          sender_id: user.id,
+          receiver_id: selectedPlayer.user_id,
+          message: invitationMessage || null
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('Invitation already sent to this player');
+        } else {
+          throw error;
+        }
+        return;
+      }
+      
+      toast.success(`Invitation sent to ${selectedPlayer.display_name}!`);
+      setSelectedPlayer(null);
+      setInvitationMessage('');
+      setSearchTerm('');
+      onClose();
     } catch (error) {
       console.error('Error sending invitation:', error);
       toast.error('Failed to send invitation');

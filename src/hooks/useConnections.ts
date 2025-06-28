@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -35,10 +34,31 @@ export type TeamJoinRequestType = {
   };
 };
 
+export type TeamInvitationType = {
+  id: string;
+  team_id: string;
+  sender_id: string;
+  receiver_id: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  message?: string;
+  team: {
+    name: string;
+    sport?: string;
+  };
+  sender: {
+    full_name: string;
+    sport: string;
+    position: string;
+    profile_picture_url: string | null;
+  };
+};
+
 export const useConnections = () => {
   const [connections, setConnections] = useState<ConnectionType[]>([]);
   const [pendingRequests, setPendingRequests] = useState<ConnectionType[]>([]);
   const [teamJoinRequests, setTeamJoinRequests] = useState<TeamJoinRequestType[]>([]);
+  const [teamInvitations, setTeamInvitations] = useState<TeamInvitationType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,10 +149,34 @@ export const useConnections = () => {
           }
         }
 
+        // Fetch team invitations where current user is the receiver
+        const { data: teamInvites, error: teamInvitesError } = await supabase
+          .from('team_invitations')
+          .select(`
+            id,
+            team_id,
+            sender_id,
+            receiver_id,
+            status,
+            created_at,
+            message,
+            teams!team_invitations_team_id_fkey (
+              name,
+              sport
+            )
+          `)
+          .eq('receiver_id', user.id)
+          .eq('status', 'pending');
+
+        if (teamInvitesError) {
+          console.error('Error fetching team invitations:', teamInvitesError);
+        }
+
         console.log('Raw pending requests:', pendingReqs);
         console.log('Raw sent connections:', sentConnections);
         console.log('Raw received connections:', receivedConnections);
         console.log('Raw team join requests:', teamJoinReqs);
+        console.log('Raw team invitations:', teamInvites);
 
         // Get unique user IDs we need to fetch details for
         const userIds = new Set<string>();
@@ -141,6 +185,7 @@ export const useConnections = () => {
         (receivedConnections || []).forEach(conn => userIds.add(conn.requester_id));
         (pendingReqs || []).forEach(req => userIds.add(req.requester_id));
         (teamJoinReqs || []).forEach(req => userIds.add(req.user_id));
+        (teamInvites || []).forEach(inv => userIds.add(inv.sender_id));
 
         console.log('User IDs to fetch details for:', Array.from(userIds));
 
@@ -215,12 +260,34 @@ export const useConnections = () => {
           }
         }));
 
+        // Process team invitations
+        const processedTeamInvitations: TeamInvitationType[] = (teamInvites || []).map(inv => ({
+          id: inv.id,
+          team_id: inv.team_id,
+          sender_id: inv.sender_id,
+          receiver_id: inv.receiver_id,
+          status: inv.status as 'pending' | 'accepted' | 'rejected',
+          created_at: inv.created_at,
+          message: inv.message,
+          team: {
+            name: inv.teams?.name || 'Unknown Team',
+            sport: inv.teams?.sport
+          },
+          sender: userDetailsMap.get(inv.sender_id) || {
+            full_name: 'Unknown User',
+            sport: 'Unknown Sport',
+            position: 'Unknown Position',
+            profile_picture_url: null
+          }
+        }));
+
         const processedSentConnections = processConnections(sentConnections || [], true);
         const processedReceivedConnections = processConnections(receivedConnections || [], false);
         const processedPendingRequests = processConnections(pendingReqs || [], false);
 
         console.log('Processed pending requests:', processedPendingRequests);
         console.log('Processed team join requests:', processedTeamJoinRequests);
+        console.log('Processed team invitations:', processedTeamInvitations);
         console.log('Processed accepted connections:', [...processedSentConnections, ...processedReceivedConnections]);
 
         // Combine accepted connections
@@ -228,6 +295,7 @@ export const useConnections = () => {
         setConnections(allConnections);
         setPendingRequests(processedPendingRequests);
         setTeamJoinRequests(processedTeamJoinRequests);
+        setTeamInvitations(processedTeamInvitations);
         
       } catch (error: any) {
         console.error("Error fetching connections:", error);
@@ -316,13 +384,60 @@ export const useConnections = () => {
     }
   };
 
+  const handleTeamInvitationResponse = async (invitationId: string, action: 'accepted' | 'rejected') => {
+    try {
+      console.log(`${action} team invitation:`, invitationId);
+      
+      const { error } = await supabase
+        .from('team_invitations')
+        .update({ 
+          status: action,
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', invitationId);
+
+      if (error) throw error;
+
+      // If accepted, add user to team_members
+      if (action === 'accepted') {
+        const invitation = teamInvitations.find(inv => inv.id === invitationId);
+        if (invitation) {
+          const { error: memberError } = await supabase
+            .from('team_members')
+            .insert({
+              team_id: invitation.team_id,
+              user_id: invitation.receiver_id,
+              role: 'member'
+            });
+
+          if (memberError) {
+            console.error('Error adding team member:', memberError);
+            throw memberError;
+          }
+        }
+      }
+
+      // Update the local state
+      setTeamInvitations(prevInvitations => 
+        prevInvitations.filter(invitation => invitation.id !== invitationId)
+      );
+
+      return { success: true };
+    } catch (error: any) {
+      console.error(`Error ${action} team invitation:`, error);
+      return { success: false, error: error.message };
+    }
+  };
+
   return { 
     connections, 
     pendingRequests, 
     teamJoinRequests,
+    teamInvitations,
     loading, 
     error,
     handleConnectionResponse,
-    handleTeamJoinRequestResponse
+    handleTeamJoinRequestResponse,
+    handleTeamInvitationResponse
   };
 };

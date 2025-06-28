@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useConnections } from '@/hooks/useConnections';
 import ConnectionCard from '@/components/connections/ConnectionCard';
 import TeamJoinRequestCard from '@/components/connections/TeamJoinRequestCard';
+import TeamInvitationCard from '@/components/connections/TeamInvitationCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCircle, UserPlus, RefreshCw, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,10 +17,12 @@ const ConnectionsPage = () => {
     connections, 
     pendingRequests, 
     teamJoinRequests,
+    teamInvitations,
     loading, 
     error, 
     handleConnectionResponse,
-    handleTeamJoinRequestResponse
+    handleTeamJoinRequestResponse,
+    handleTeamInvitationResponse
   } = useConnections();
   const [activeTab, setActiveTab] = useState("connections");
   const [refreshing, setRefreshing] = useState(false);
@@ -70,6 +73,26 @@ const ConnectionsPage = () => {
     return result;
   };
 
+  const handleAcceptTeamInvitation = async (id: string) => {
+    const result = await handleTeamInvitationResponse(id, 'accepted');
+    if (result.success) {
+      toast.success("Team invitation accepted");
+    } else {
+      toast.error(result.error || "Failed to accept invitation");
+    }
+    return result;
+  };
+
+  const handleRejectTeamInvitation = async (id: string) => {
+    const result = await handleTeamInvitationResponse(id, 'rejected');
+    if (result.success) {
+      toast.success("Team invitation declined");
+    } else {
+      toast.error(result.error || "Failed to decline invitation");
+    }
+    return result;
+  };
+
   if (error) {
     return (
       <>
@@ -92,8 +115,8 @@ const ConnectionsPage = () => {
     );
   }
 
-  // Calculate total pending requests (connection requests + team join requests)
-  const totalPendingRequests = pendingRequests.length + teamJoinRequests.length;
+  // Calculate total pending requests (connection requests + team join requests + team invitations)
+  const totalPendingRequests = pendingRequests.length + teamJoinRequests.length + teamInvitations.length;
 
   return (
     <>
@@ -187,6 +210,21 @@ const ConnectionsPage = () => {
                     </div>
                   )}
 
+                  {/* Team Invitations */}
+                  {teamInvitations.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-700">Team Invitations</h3>
+                      {teamInvitations.map(invitation => (
+                        <TeamInvitationCard 
+                          key={invitation.id} 
+                          invitation={invitation} 
+                          onAccept={handleAcceptTeamInvitation}
+                          onReject={handleRejectTeamInvitation}
+                        />
+                      ))}
+                    </div>
+                  )}
+
                   {/* Team Join Requests */}
                   {teamJoinRequests.length > 0 && (
                     <div className="space-y-4">
@@ -203,11 +241,11 @@ const ConnectionsPage = () => {
                   )}
 
                   {/* Empty State */}
-                  {pendingRequests.length === 0 && teamJoinRequests.length === 0 && (
+                  {pendingRequests.length === 0 && teamJoinRequests.length === 0 && teamInvitations.length === 0 && (
                     <div className="text-center py-12 bg-gray-50 rounded-lg">
                       <UserPlus className="h-16 w-16 text-sport-gray mx-auto mb-4" />
                       <h3 className="text-xl font-semibold mb-2">No pending requests</h3>
-                      <p className="text-sport-gray">When someone sends you a connection request or wants to join your team, it will appear here</p>
+                      <p className="text-sport-gray">When someone sends you a connection request, team invitation, or wants to join your team, it will appear here</p>
                     </div>
                   )}
                 </>
