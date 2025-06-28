@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
+import PlayerInvitationModal from "@/components/team/PlayerInvitationModal";
 import { 
   Users,
   MapPin,
@@ -14,9 +15,11 @@ import {
   Link,
   Mail,
   Phone,
-  ArrowLeft
+  ArrowLeft,
+  UserPlus
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 interface TeamData {
@@ -35,8 +38,11 @@ interface TeamData {
 const TeamProfile = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [team, setTeam] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInvitationModalOpen, setIsInvitationModalOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (!teamId) {
@@ -87,6 +93,20 @@ const TeamProfile = () => {
         memberCount = membersData?.length || 0;
       }
 
+      // Check current user's role in the team
+      if (user) {
+        const { data: memberData, error: memberError } = await supabase
+          .from('team_members')
+          .select('role')
+          .eq('team_id', teamId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (!memberError && memberData) {
+          setUserRole(memberData.role);
+        }
+      }
+
       const formattedTeam: TeamData = {
         id: teamData.id,
         name: teamData.name,
@@ -109,6 +129,19 @@ const TeamProfile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const canManageTeam = () => {
+    if (!user || !team) return false;
+    return user.id === team.owner_id || ['owner', 'captain'].includes(userRole || '');
+  };
+
+  const handleAddPlayer = () => {
+    if (!canManageTeam()) {
+      toast.error('Only team owners and captains can invite players');
+      return;
+    }
+    setIsInvitationModalOpen(true);
   };
 
   if (loading) {
@@ -185,7 +218,15 @@ const TeamProfile = () => {
                 </div>
                 
                 <div className="mt-4 md:mt-0 flex space-x-2">
-                  <Button className="btn-secondary">Connect</Button>
+                  {canManageTeam() && (
+                    <Button 
+                      onClick={handleAddPlayer}
+                      className="bg-sport-blue hover:bg-sport-blue/90 text-white"
+                    >
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Add
+                    </Button>
+                  )}
                   <Button variant="outline" className="border-sport-blue text-sport-blue hover:bg-sport-soft-blue">
                     Message
                   </Button>
@@ -278,6 +319,14 @@ const TeamProfile = () => {
             </div>
           </div>
         </div>
+
+        {/* Player Invitation Modal */}
+        <PlayerInvitationModal
+          isOpen={isInvitationModalOpen}
+          onClose={() => setIsInvitationModalOpen(false)}
+          teamId={teamId || ''}
+          teamName={team.name}
+        />
       </div>
     </>
   );
