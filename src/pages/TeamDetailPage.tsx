@@ -34,7 +34,10 @@ const TeamDetailPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('TeamDetailPage: teamId from params:', teamId);
+    
     if (!teamId) {
+      console.log('TeamDetailPage: No teamId provided, navigating to teams');
       navigate('/teams');
       return;
     }
@@ -43,17 +46,32 @@ const TeamDetailPage = () => {
   }, [teamId, user]);
 
   const fetchTeamDetails = async () => {
+    if (!teamId) return;
+    
     try {
       setLoading(true);
+      console.log('TeamDetailPage: Fetching team details for ID:', teamId);
 
-      // Fetch team details
+      // Fetch team details with explicit ID filter
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
         .select('*')
         .eq('id', teamId)
         .single();
 
-      if (teamError) throw teamError;
+      console.log('TeamDetailPage: Team query result:', { teamData, teamError });
+
+      if (teamError) {
+        console.error('TeamDetailPage: Error fetching team:', teamError);
+        throw teamError;
+      }
+
+      if (!teamData) {
+        console.error('TeamDetailPage: No team found with ID:', teamId);
+        toast.error('Team not found');
+        navigate('/teams');
+        return;
+      }
 
       // Get member count
       const { data: membersData, error: membersError } = await supabase
@@ -95,6 +113,7 @@ const TeamDetailPage = () => {
         user_role: userRole
       };
 
+      console.log('TeamDetailPage: Final team details:', teamDetails);
       setTeam(teamDetails);
     } catch (error: any) {
       console.error('Error fetching team details:', error);
