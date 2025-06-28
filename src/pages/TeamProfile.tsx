@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import PlayerInvitationModal from "@/components/team/PlayerInvitationModal";
+import TeamMembersList from "@/components/team/TeamMembersList";
+import { useTeamMembership } from "@/hooks/useTeamMembership";
 import { 
   Users,
   MapPin,
@@ -43,6 +45,15 @@ const TeamProfile = () => {
   const [loading, setLoading] = useState(true);
   const [isInvitationModalOpen, setIsInvitationModalOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Use team membership hook
+  const {
+    members,
+    loading: membersLoading,
+    updateMemberRole,
+    removeMember,
+    refetch: refetchMembers
+  } = useTeamMembership(teamId);
 
   useEffect(() => {
     if (!teamId) {
@@ -144,6 +155,28 @@ const TeamProfile = () => {
     setIsInvitationModalOpen(true);
   };
 
+  const handleUpdateMemberRole = async (userId: string, newRole: 'admin' | 'member') => {
+    const member = members.find(m => m.user_id === userId);
+    if (!member) return;
+    
+    const success = await updateMemberRole(member.id, newRole);
+    if (success) {
+      await refetchMembers();
+    }
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    const member = members.find(m => m.user_id === userId);
+    if (!member) return;
+    
+    const success = await removeMember(member.id);
+    if (success) {
+      await refetchMembers();
+      // Update team data to reflect new member count
+      await fetchTeamData();
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -190,7 +223,8 @@ const TeamProfile = () => {
           </Button>
         </div>
 
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Team Profile Card */}
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             {/* Cover Photo */}
             <div className="h-48 bg-gradient-to-r from-sport-blue to-sport-purple relative">
@@ -318,6 +352,14 @@ const TeamProfile = () => {
               </div>
             </div>
           </div>
+
+          {/* Team Members Section */}
+          <TeamMembersList
+            members={members}
+            currentUserRole={userRole}
+            onUpdateRole={handleUpdateMemberRole}
+            onRemoveMember={handleRemoveMember}
+          />
         </div>
 
         {/* Player Invitation Modal */}

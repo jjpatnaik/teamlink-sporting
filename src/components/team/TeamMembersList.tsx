@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Crown, Shield, Trash2, Users } from 'lucide-react';
-import { TeamMember } from '@/hooks/useTeamManagement';
+import { User, Crown, Shield, Star, Trash2, Users } from 'lucide-react';
+import { TeamMember } from '@/hooks/useTeamMembership';
 
 interface TeamMembersListProps {
   members: TeamMember[];
   currentUserRole?: string;
-  onUpdateRole?: (userId: string, newRole: 'admin' | 'member') => void;
+  onUpdateRole?: (userId: string, newRole: 'captain' | 'admin' | 'member') => void;
   onRemoveMember?: (userId: string) => void;
 }
 
@@ -20,12 +20,14 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
   onUpdateRole,
   onRemoveMember
 }) => {
-  const canManageMembers = currentUserRole === 'owner' || currentUserRole === 'admin';
+  const canManageMembers = currentUserRole === 'owner' || currentUserRole === 'captain' || currentUserRole === 'admin';
 
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'owner':
         return <Crown className="w-4 h-4 text-yellow-500" />;
+      case 'captain':
+        return <Star className="w-4 h-4 text-purple-500" />;
       case 'admin':
         return <Shield className="w-4 h-4 text-blue-500" />;
       default:
@@ -37,8 +39,10 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
     switch (role) {
       case 'owner':
         return 'default' as const;
-      case 'admin':
+      case 'captain':
         return 'secondary' as const;
+      case 'admin':
+        return 'outline' as const;
       default:
         return 'outline' as const;
     }
@@ -62,10 +66,10 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
                 </div>
                 <div>
                   <p className="font-medium">
-                    {member.profile?.display_name || 'Unknown User'}
+                    {member.user_profile?.display_name || 'Unknown User'}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {member.profile?.profile_type || 'User'} • Joined {new Date(member.joined_at).toLocaleDateString()}
+                    Member • Joined {new Date(member.joined_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -79,12 +83,13 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
                   <div className="flex items-center gap-1">
                     <Select
                       value={member.role}
-                      onValueChange={(value) => onUpdateRole?.(member.user_id, value as 'admin' | 'member')}
+                      onValueChange={(value) => onUpdateRole?.(member.user_id, value as 'captain' | 'admin' | 'member')}
                     >
-                      <SelectTrigger className="w-20 h-8">
+                      <SelectTrigger className="w-24 h-8">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="captain">Captain</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="member">Member</SelectItem>
                       </SelectContent>
