@@ -70,13 +70,13 @@ const PlayerInvitationModal: React.FC<PlayerInvitationModalProps> = ({
         return;
       }
 
-      // Send invitation using the player's user_id
+      // Send invitation using the player's id (which is the user_id)
       const { error } = await supabase
         .from('team_invitations')
         .insert({
           team_id: teamId,
           sender_id: user.id,
-          receiver_id: selectedPlayer.user_id,
+          receiver_id: selectedPlayer.id,
           message: invitationMessage || null
         });
 
