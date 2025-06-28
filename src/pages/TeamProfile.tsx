@@ -1,4 +1,6 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import { 
@@ -11,14 +13,150 @@ import {
   Youtube,
   Link,
   Mail,
-  Phone
+  Phone,
+  ArrowLeft
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface TeamData {
+  id: string;
+  name: string;
+  description?: string;
+  sport?: string;
+  established_year?: number;
+  achievements?: string;
+  introduction?: string;
+  owner_id: string;
+  created_at: string;
+  member_count: number;
+}
 
 const TeamProfile = () => {
+  const { teamId } = useParams<{ teamId: string }>();
+  const navigate = useNavigate();
+  const [team, setTeam] = useState<TeamData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!teamId) {
+      console.log('TeamProfile: No teamId provided, navigating to teams');
+      navigate('/teams');
+      return;
+    }
+
+    fetchTeamData();
+  }, [teamId]);
+
+  const fetchTeamData = async () => {
+    if (!teamId) return;
+
+    try {
+      setLoading(true);
+      console.log('TeamProfile: Fetching team data for ID:', teamId);
+
+      // Fetch team details
+      const { data: teamData, error: teamError } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('id', teamId)
+        .single();
+
+      if (teamError) {
+        console.error('TeamProfile: Error fetching team:', teamError);
+        throw teamError;
+      }
+
+      if (!teamData) {
+        console.error('TeamProfile: No team found with ID:', teamId);
+        toast.error('Team not found');
+        navigate('/teams');
+        return;
+      }
+
+      // Get member count
+      const { data: membersData, error: membersError } = await supabase
+        .from('team_members')
+        .select('id')
+        .eq('team_id', teamId);
+
+      let memberCount = 0;
+      if (membersError) {
+        console.error('Error fetching member count:', membersError);
+      } else {
+        memberCount = membersData?.length || 0;
+      }
+
+      const formattedTeam: TeamData = {
+        id: teamData.id,
+        name: teamData.name,
+        description: teamData.description,
+        sport: teamData.sport,
+        established_year: teamData.established_year,
+        achievements: teamData.achievements,
+        introduction: teamData.introduction,
+        owner_id: teamData.owner_id,
+        created_at: teamData.created_at,
+        member_count: memberCount
+      };
+
+      console.log('TeamProfile: Team data loaded:', formattedTeam);
+      setTeam(formattedTeam);
+    } catch (error: any) {
+      console.error('Error fetching team data:', error);
+      toast.error('Failed to load team data');
+      navigate('/teams');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!team) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Team Not Found</h2>
+            <p className="text-gray-600 mb-4">The team you're looking for doesn't exist.</p>
+            <Button onClick={() => navigate('/teams')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Teams
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
       <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/teams')}
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Teams
+          </Button>
+        </div>
+
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             {/* Cover Photo */}
@@ -38,11 +176,11 @@ const TeamProfile = () => {
               
               <div className="flex flex-col md:flex-row justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold">Chicago Thunder</h1>
-                  <p className="text-xl text-sport-blue">Professional Basketball Team</p>
+                  <h1 className="text-3xl font-bold">{team.name}</h1>
+                  <p className="text-xl text-sport-blue">{team.sport || 'Sports Team'}</p>
                   <div className="flex items-center mt-2 text-sport-gray">
                     <MapPin className="w-4 h-4 mr-1" />
-                    <span>Chicago, IL, USA</span>
+                    <span>Location not specified</span>
                   </div>
                 </div>
                 
@@ -58,113 +196,44 @@ const TeamProfile = () => {
               <div className="mt-6">
                 <h2 className="text-xl font-semibold mb-2">About the Team</h2>
                 <p className="text-sport-gray">
-                  Chicago Thunder is a professional basketball team competing in the National Basketball League. 
-                  Founded in 2010, the team has established itself as a strong contender with multiple playoff appearances. 
-                  The Thunder are known for their fast-paced offense and community engagement initiatives.
+                  {team.description || team.introduction || 'No description available for this team.'}
                 </p>
               </div>
               
               {/* Stats/Details */}
               <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-sport-gray">League</p>
-                  <p className="text-lg font-semibold">National Basketball League</p>
+                  <p className="text-sm text-sport-gray">Sport</p>
+                  <p className="text-lg font-semibold">{team.sport || 'Not specified'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-sport-gray">Founded</p>
-                  <p className="text-lg font-semibold">2010</p>
+                  <p className="text-lg font-semibold">{team.established_year || 'Not specified'}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-sport-gray">Home Arena</p>
-                  <p className="text-lg font-semibold">Thunder Center</p>
+                  <p className="text-sm text-sport-gray">Members</p>
+                  <p className="text-lg font-semibold">{team.member_count}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-sport-gray">Capacity</p>
-                  <p className="text-lg font-semibold">15,000</p>
+                  <p className="text-sm text-sport-gray">Created</p>
+                  <p className="text-lg font-semibold">{new Date(team.created_at).getFullYear()}</p>
                 </div>
               </div>
               
               {/* Achievements */}
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Team Achievements</h2>
-                
-                <div className="space-y-3">
-                  <div className="flex items-start">
-                    <Trophy className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold">NBL Champions</h3>
-                      <p className="text-sm text-sport-gray">2018, 2021</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Trophy className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold">Division Champions</h3>
-                      <p className="text-sm text-sport-gray">2016, 2017, 2018, 2020, 2021</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <Trophy className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold">Playoff Appearances</h3>
-                      <p className="text-sm text-sport-gray">8 consecutive seasons (2015-Present)</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Upcoming Games */}
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Upcoming Games</h2>
-                
-                <div className="space-y-4">
+              {team.achievements && (
+                <div className="mt-8">
+                  <h2 className="text-xl font-semibold mb-4">Team Achievements</h2>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <Calendar className="w-5 h-5 text-sport-blue mr-2" />
-                      <span className="text-sm font-semibold">April 15, 2025</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-sport-light-purple rounded-full flex items-center justify-center mr-2">
-                          <span className="font-bold">CT</span>
-                        </div>
-                        <span>Chicago Thunder</span>
-                      </div>
-                      <span className="text-sm">vs</span>
-                      <div className="flex items-center">
-                        <span>New York Stars</span>
-                        <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center ml-2">
-                          <span className="font-bold">NS</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <Calendar className="w-5 h-5 text-sport-blue mr-2" />
-                      <span className="text-sm font-semibold">April 22, 2025</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                          <span className="font-bold">BS</span>
-                        </div>
-                        <span>Boston Sharks</span>
-                      </div>
-                      <span className="text-sm">vs</span>
-                      <div className="flex items-center">
-                        <span>Chicago Thunder</span>
-                        <div className="w-10 h-10 bg-sport-light-purple rounded-full flex items-center justify-center ml-2">
-                          <span className="font-bold">CT</span>
-                        </div>
+                    <div className="flex items-start">
+                      <Trophy className="w-5 h-5 text-sport-blue mr-2 mt-0.5" />
+                      <div>
+                        <p className="text-sport-gray">{team.achievements}</p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
               
               {/* Contact & Social Media */}
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -174,15 +243,15 @@ const TeamProfile = () => {
                   <div className="space-y-3">
                     <div className="flex items-center">
                       <Mail className="w-5 h-5 text-sport-gray mr-2" />
-                      <span>info@chicagothunder.com</span>
+                      <span>Contact information not available</span>
                     </div>
                     <div className="flex items-center">
                       <Phone className="w-5 h-5 text-sport-gray mr-2" />
-                      <span>+1 (312) 555-1234</span>
+                      <span>Phone not available</span>
                     </div>
                     <div className="flex items-center">
                       <MapPin className="w-5 h-5 text-sport-gray mr-2" />
-                      <span>123 Thunder Blvd, Chicago, IL</span>
+                      <span>Address not available</span>
                     </div>
                   </div>
                 </div>
