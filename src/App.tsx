@@ -51,7 +51,7 @@ function App() {
           {/* Public profile pages */}
           <Route path="/player/:id" element={<PlayerProfile />} />
           <Route path="/players/:id" element={<PlayerProfile />} />
-          <Route path="/team/:id" element={<TeamProfile />} />
+          <Route path="/team/:teamId" element={<TeamProfile />} />
           <Route path="/tournament/:tournamentId" element={<TournamentProfile />} />
           <Route path="/sponsor/:id" element={<SponsorProfile />} />
           
