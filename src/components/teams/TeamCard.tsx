@@ -27,6 +27,11 @@ const TeamCard: React.FC<TeamCardProps> = ({
   };
 
   const handleViewDetails = () => {
+    console.log('TeamCard: View Details clicked for team:', {
+      id: team.id,
+      name: team.name,
+      fullTeamObject: team
+    });
     navigate(`/team/${team.id}`);
   };
 

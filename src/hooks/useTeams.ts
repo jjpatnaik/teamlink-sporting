@@ -37,6 +37,8 @@ export const useTeams = () => {
 
       if (teamsError) throw teamsError;
 
+      console.log('useTeams: Raw teams data from database:', teamsData);
+
       // Fetch member counts for each team
       const teamIds = teamsData?.map(team => team.id) || [];
       let memberCounts: { [key: string]: number } = {};
@@ -71,6 +73,7 @@ export const useTeams = () => {
         member_count: memberCounts[team.id] || 0
       }));
 
+      console.log('useTeams: Formatted teams data:', formattedTeams);
       setTeams(formattedTeams);
     } catch (err: any) {
       console.error('Error fetching teams:', err);
@@ -94,6 +97,8 @@ export const useTeams = () => {
         .eq('user_id', user.id);
 
       if (membershipError) throw membershipError;
+
+      console.log('useTeams: User membership data:', membershipData);
 
       // Get member counts for user teams
       const userTeamIds = membershipData?.map(item => item.team_id).filter(Boolean) || [];
@@ -129,6 +134,7 @@ export const useTeams = () => {
         user_role: item.role
       }));
 
+      console.log('useTeams: Formatted user teams data:', formattedUserTeams);
       setUserTeams(formattedUserTeams);
     } catch (err: any) {
       console.error('Error fetching user teams:', err);

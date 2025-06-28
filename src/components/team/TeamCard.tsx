@@ -23,6 +23,15 @@ const TeamCard: React.FC<TeamCardProps> = ({
     return new Date(dateString).toLocaleDateString();
   };
 
+  const handleViewDetails = () => {
+    console.log('Team/TeamCard: View Details clicked for team:', {
+      id: team.id,
+      name: team.name,
+      fullTeamObject: team
+    });
+    onViewTeam?.(team.id);
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
@@ -55,7 +64,7 @@ const TeamCard: React.FC<TeamCardProps> = ({
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => onViewTeam?.(team.id)}
+            onClick={handleViewDetails}
             className="flex-1"
           >
             View Details
