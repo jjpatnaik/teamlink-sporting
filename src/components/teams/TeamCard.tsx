@@ -5,23 +5,37 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Calendar, UserPlus } from 'lucide-react';
 import { Team } from '@/hooks/useTeams';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface TeamCardProps {
   team: Team;
   onJoinTeam?: (teamId: string) => void;
-  onViewTeam?: (teamId: string) => void;
   showJoinButton?: boolean;
 }
 
 const TeamCard: React.FC<TeamCardProps> = ({ 
   team, 
-  onJoinTeam, 
-  onViewTeam,
+  onJoinTeam,
   showJoinButton = true 
 }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
+
+  const handleViewDetails = () => {
+    navigate(`/team/${team.id}`);
+  };
+
+  // Check if current user is the team owner or already a member
+  const isOwner = user && team.created_by === user.id;
+  const isMember = team.user_role !== undefined;
+  
+  // Show join button only if user is not owner, not a member, and showJoinButton is true
+  const shouldShowJoinButton = showJoinButton && !isOwner && !isMember && user;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -50,12 +64,12 @@ const TeamCard: React.FC<TeamCardProps> = ({
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => onViewTeam?.(team.id)}
+            onClick={handleViewDetails}
             className="flex-1"
           >
             View Details
           </Button>
-          {showJoinButton && (
+          {shouldShowJoinButton && (
             <Button 
               size="sm" 
               onClick={() => onJoinTeam?.(team.id)}

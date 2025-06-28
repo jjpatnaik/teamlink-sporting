@@ -3,6 +3,8 @@ import React from 'react';
 import { Team } from '@/hooks/useTeams';
 import TeamCard from './TeamCard';
 import { Loader2 } from 'lucide-react';
+import { useTeamMembership } from '@/hooks/useTeamMembership';
+import { toast } from 'sonner';
 
 interface TeamsListProps {
   teams: Team[];
@@ -11,6 +13,14 @@ interface TeamsListProps {
 }
 
 const TeamsList: React.FC<TeamsListProps> = ({ teams, loading, error }) => {
+  const { sendInvitation } = useTeamMembership();
+
+  const handleJoinTeam = async (teamId: string) => {
+    // For now, we'll show a message that users need to be invited
+    // In a real implementation, this could send a join request
+    toast.info('To join this team, you need to be invited by a team member. Contact the team directly for an invitation.');
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -39,7 +49,11 @@ const TeamsList: React.FC<TeamsListProps> = ({ teams, loading, error }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {teams.map((team) => (
-        <TeamCard key={team.id} team={team} />
+        <TeamCard 
+          key={team.id} 
+          team={team} 
+          onJoinTeam={handleJoinTeam}
+        />
       ))}
     </div>
   );
