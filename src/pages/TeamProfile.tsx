@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import PlayerInvitationModal from "@/components/team/PlayerInvitationModal";
 import TeamMembersList from "@/components/team/TeamMembersList";
+import TeamChatSection from "@/components/team/TeamChatSection";
 import { useTeamMembership } from "@/hooks/useTeamMembership";
 import { 
   Users,
@@ -352,6 +352,9 @@ const TeamProfile = () => {
               </div>
             </div>
           </div>
+
+          {/* Team Chat/Updates Section */}
+          <TeamChatSection teamId={teamId || ''} userRole={userRole} />
 
           {/* Team Members Section */}
           <TeamMembersList
