@@ -24,14 +24,27 @@ export const useSignupForm = (
   const onSubmit = async (data: FormValues) => {
     try {
       setIsLoading(true);
+      console.log("Form submission started for:", data.email);
+      
       const success = await submitHandler(data);
       
       if (success) {
-        // Authentication successful, redirect to profile page handled in SignupPage.tsx
+        console.log("Signup successful, auth state change will handle redirect");
+        // Note: Redirect is handled by auth state change in SignupPage.tsx
+        // This ensures proper timing with authentication
+      } else {
+        console.log("Signup failed, staying on signup page");
+        // Error messages are already shown by the submitHandler
       }
     } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account. Please try again.");
+      console.error("Form submission error:", error);
+      
+      // Provide user-friendly error messages
+      if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to create account. Please check your information and try again.");
+      }
     } finally {
       setIsLoading(false);
     }

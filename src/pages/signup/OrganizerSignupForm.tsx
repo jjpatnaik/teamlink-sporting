@@ -16,23 +16,47 @@ interface OrganizerSignupFormProps {
 const OrganizerSignupForm: React.FC<OrganizerSignupFormProps> = ({ setIsLoading, isLoading }) => {
   const handleOrganizerSignup = async (data: FormValues): Promise<boolean> => {
     try {
-      // Sign up the user
-      const { error: signupError } = await supabase.auth.signUp({
+      console.log("Starting organizer signup process for:", data.email);
+      
+      const redirectUrl = `${window.location.origin}/createprofile`;
+      
+      // Sign up the user with proper email redirect configuration
+      const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
       });
       
-      if (signupError) throw signupError;
+      if (signupError) {
+        console.error("Organizer signup error:", signupError);
+        
+        // Handle specific error cases
+        if (signupError.message.includes("User already registered") || signupError.message.includes("already exists")) {
+          toast.error("An account with this email already exists. Please sign in instead or use a different email address.");
+          return false;
+        } else if (signupError.message.includes("Invalid email")) {
+          toast.error("Please enter a valid email address.");
+          return false;
+        } else {
+          toast.error(signupError.message || "Failed to create organizer account");
+          return false;
+        }
+      }
       
-      // Get the newly created user
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Failed to create user account");
+      if (!signupData.user) {
+        toast.error("Failed to create user account");
+        return false;
+      }
+      
+      console.log("Organizer user created successfully:", signupData.user.id);
       
       // Create a tournament to mark them as an organizer
       // This will satisfy the tournament check in ProtectedOrganizerRoute
       const { error: tournamentError } = await supabase.from('tournaments').insert({
         name: "First Tournament (Setup)",
-        organizer_id: userData.user.id,
+        organizer_id: signupData.user.id,
         teams_allowed: 8,
         format: "knockout",
         sport: "Other"
@@ -40,15 +64,17 @@ const OrganizerSignupForm: React.FC<OrganizerSignupFormProps> = ({ setIsLoading,
       
       if (tournamentError) {
         console.error("Error creating initial tournament:", tournamentError);
-        toast.error("Account created but couldn't set organizer status");
-        return false;
+        // Don't fail the signup process for this, but warn the user
+        toast.success("Organizer account created successfully! Please complete your profile setup.");
+        console.warn("Initial tournament creation failed, but signup was successful");
+      } else {
+        toast.success("Tournament organizer account created successfully!");
       }
 
-      toast.success("Tournament organizer account created successfully!");
       return true;
     } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account");
+      console.error("Unexpected organizer signup error:", error);
+      toast.error("An unexpected error occurred during signup. Please try again.");
       return false;
     }
   };

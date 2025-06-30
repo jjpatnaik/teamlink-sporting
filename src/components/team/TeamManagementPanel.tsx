@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,6 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteMessage, setInviteMessage] = useState('');
-  const [updateTitle, setUpdateTitle] = useState('');
   const [updateContent, setUpdateContent] = useState('');
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
@@ -65,11 +63,10 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
   };
 
   const handleCreateUpdate = async () => {
-    if (!updateTitle.trim() || !updateContent.trim()) return;
+    if (!updateContent.trim()) return;
 
-    const success = await createUpdate(updateTitle.trim(), updateContent.trim());
+    const success = await createUpdate(updateContent.trim());
     if (success) {
-      setUpdateTitle('');
       setUpdateContent('');
       setShowUpdateDialog(false);
     }
@@ -160,14 +157,6 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">Title</label>
-                    <Input
-                      value={updateTitle}
-                      onChange={(e) => setUpdateTitle(e.target.value)}
-                      placeholder="Update title..."
-                    />
-                  </div>
-                  <div>
                     <label className="text-sm font-medium">Content</label>
                     <Textarea
                       value={updateContent}
@@ -182,7 +171,7 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
                     </Button>
                     <Button 
                       onClick={handleCreateUpdate} 
-                      disabled={!updateTitle.trim() || !updateContent.trim()}
+                      disabled={!updateContent.trim()}
                     >
                       Post Update
                     </Button>
@@ -341,22 +330,23 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
                 {updates.map((update) => (
                   <div key={update.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold">{update.title}</h3>
+                      <div className="flex-1">
+                        <p className="text-gray-700 mb-3">{update.content}</p>
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>By {update.author_profile?.display_name || 'Unknown User'}</span>
+                          <span>{new Date(update.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
                       {(update.author_id === user?.id || isOwner) && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => deleteUpdate(update.id)}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-red-500 hover:text-red-700 ml-2"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
-                    </div>
-                    <p className="text-gray-700 mb-3">{update.content}</p>
-                    <div className="flex justify-between text-sm text-gray-500">
-                      <span>By {update.author_profile?.display_name || 'Unknown User'}</span>
-                      <span>{new Date(update.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}

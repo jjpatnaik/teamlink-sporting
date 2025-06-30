@@ -19,25 +19,43 @@ import OrganizerSignupForm from "./OrganizerSignupForm";
 const SignupPage = () => {
   const [userType, setUserType] = useState<string>("player");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const navigate = useNavigate();
   
-  // Check if user is already authenticated
+  // Check if user is already authenticated and handle auth state changes
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        toast.info("You're already signed up! Let's complete your profile.");
-        navigate("/createprofile");
+      try {
+        console.log("Checking existing auth session...");
+        const { data } = await supabase.auth.getSession();
+        
+        if (data.session) {
+          console.log("User already authenticated, redirecting to profile creation");
+          toast.info("You're already signed up! Let's complete your profile.");
+          navigate("/createprofile");
+          return;
+        }
+        
+        console.log("No existing session found");
+      } catch (error) {
+        console.error("Error checking auth session:", error);
+      } finally {
+        setIsCheckingAuth(false);
       }
     };
     
     checkAuth();
     
-    // Set up auth state listener
+    // Set up auth state listener for new signups
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change:", event, session?.user?.email);
+      
       if (event === 'SIGNED_IN' && session) {
-        toast.success("Successfully signed up! Now let's create your profile.");
+        console.log("User signed in successfully, redirecting to profile creation");
+        toast.success("Account created successfully! Now let's set up your profile.");
         navigate("/createprofile");
+      } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
       }
     });
     
@@ -45,6 +63,21 @@ const SignupPage = () => {
       subscription.unsubscribe();
     };
   }, [navigate]);
+  
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-grow container mx-auto px-4 py-10 max-w-md">
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -93,6 +126,17 @@ const SignupPage = () => {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Help section */}
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-md">
+            <h3 className="font-medium text-blue-900 mb-2">Need help?</h3>
+            <p className="text-blue-800 text-sm">
+              If you already have an account, please <a href="/auth" className="underline font-medium">sign in here</a> instead.
+            </p>
+            <p className="text-blue-800 text-sm mt-1">
+              Having trouble? Make sure your email is valid and your password meets the requirements shown above.
+            </p>
           </div>
         </div>
       </main>
