@@ -607,7 +607,6 @@ export type Database = {
           created_at: string | null
           id: string
           team_id: string | null
-          title: string
           updated_at: string | null
         }
         Insert: {
@@ -616,7 +615,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           team_id?: string | null
-          title: string
           updated_at?: string | null
         }
         Update: {
@@ -625,7 +623,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           team_id?: string | null
-          title?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -810,7 +807,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_team_role: {
+        Args: { team_id_param: string }
+        Returns: string
+      }
+      is_team_member: {
+        Args: { team_id_param: string }
+        Returns: boolean
+      }
     }
     Enums: {
       profile_type:

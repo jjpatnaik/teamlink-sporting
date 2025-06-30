@@ -8,7 +8,6 @@ export interface TeamUpdate {
   id: string;
   team_id: string;
   author_id: string;
-  title: string;
   content: string;
   created_at: string;
   updated_at: string;
@@ -75,7 +74,6 @@ export const useTeamUpdates = (teamId?: string) => {
           id: update.id,
           team_id: update.team_id,
           author_id: update.author_id,
-          title: update.title,
           content: update.content,
           created_at: update.created_at,
           updated_at: update.updated_at,
@@ -102,21 +100,20 @@ export const useTeamUpdates = (teamId?: string) => {
     }
   };
 
-  const createUpdate = async (title: string, content: string) => {
+  const createUpdate = async (content: string) => {
     if (!user || !teamId) {
       toast.error('You must be logged in to post updates');
       return false;
     }
 
     try {
-      console.log('Creating team update:', { teamId, title, content });
+      console.log('Creating team update:', { teamId, content });
       
       const { error } = await supabase
         .from('team_updates')
         .insert({
           team_id: teamId,
           author_id: user.id,
-          title,
           content
         });
 
@@ -140,19 +137,18 @@ export const useTeamUpdates = (teamId?: string) => {
     }
   };
 
-  const updateTeamUpdate = async (updateId: string, title: string, content: string) => {
+  const updateTeamUpdate = async (updateId: string, content: string) => {
     if (!user) {
       toast.error('You must be logged in to edit updates');
       return false;
     }
 
     try {
-      console.log('Updating team update:', { updateId, title, content });
+      console.log('Updating team update:', { updateId, content });
       
       const { error } = await supabase
         .from('team_updates')
         .update({ 
-          title, 
           content,
           updated_at: new Date().toISOString()
         })
