@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ChevronDown, User, Users, Calendar, LogOut, Settings } from 'lucide-react';
+import { ChevronDown, User, Users, Calendar, LogOut, Settings, Plus } from 'lucide-react';
 
 const UserActionsDropdown = () => {
   const { user, profile, signOut, hasRole } = useAuth();
@@ -74,6 +74,8 @@ const UserActionsDropdown = () => {
     navigate('/edit-profile');
   };
 
+  const canAccessTeams = hasRole('player') || hasRole('team_admin');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -94,18 +96,28 @@ const UserActionsDropdown = () => {
           <span>Edit Profile</span>
         </DropdownMenuItem>
         
-        {hasRole('player') && (
-          <DropdownMenuItem onClick={() => navigate("/teams")} className="flex items-center space-x-2 cursor-pointer">
-            <Users className="h-4 w-4" />
-            <span>My Teams</span>
-          </DropdownMenuItem>
+        {canAccessTeams && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/teams")} className="flex items-center space-x-2 cursor-pointer">
+              <Users className="h-4 w-4" />
+              <span>My Teams</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/teams")} className="flex items-center space-x-2 cursor-pointer text-green-600">
+              <Plus className="h-4 w-4" />
+              <span>Create Team</span>
+            </DropdownMenuItem>
+          </>
         )}
 
         {(hasRole('organiser') || hasRole('tournament_organizer')) && (
-          <DropdownMenuItem onClick={() => navigate("/organiser/tournament")} className="flex items-center space-x-2 cursor-pointer">
-            <Calendar className="h-4 w-4" />
-            <span>My Tournaments</span>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/organiser/tournament")} className="flex items-center space-x-2 cursor-pointer">
+              <Calendar className="h-4 w-4" />
+              <span>My Tournaments</span>
+            </DropdownMenuItem>
+          </>
         )}
 
         <DropdownMenuSeparator />

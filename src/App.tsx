@@ -60,11 +60,11 @@ function App() {
           <Route path="/players" element={<SearchPage />} />
           <Route path="/connections" element={<ConnectionsPage />} />
           
-          {/* Role-based protected routes */}
+          {/* Team management - accessible to both players and team admins */}
           <Route 
             path="/teams" 
             element={
-              <ProtectedRoute requiredRole="player">
+              <ProtectedRoute>
                 <TeamsManagement />
               </ProtectedRoute>
             } 

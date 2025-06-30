@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { ChevronDown, Home, LogOut, Users, Settings, Calendar, DollarSign } from 'lucide-react';
+import { ChevronDown, Home, LogOut, Users, Settings, Calendar, DollarSign, Plus } from 'lucide-react';
 
 const RoleBasedNavigation = () => {
   const { user, profile, signOut, hasRole } = useAuth();
@@ -23,6 +23,9 @@ const RoleBasedNavigation = () => {
     );
   }
 
+  const canAccessTeams = hasRole('player') || hasRole('team_admin');
+  const canCreateTeams = hasRole('team_admin') || hasRole('player'); // Allow players to create teams too
+
   return (
     <div className="flex items-center space-x-4">
       <Button variant="ghost" onClick={() => navigate("/")} className="flex items-center space-x-1">
@@ -30,17 +33,17 @@ const RoleBasedNavigation = () => {
         <span>Home</span>
       </Button>
 
-      {hasRole('player') && (
+      {canAccessTeams && (
         <Button variant="ghost" onClick={() => navigate("/teams")} className="flex items-center space-x-1">
           <Users className="h-4 w-4" />
           <span>My Teams</span>
         </Button>
       )}
 
-      {hasRole('team_admin') && (
-        <Button variant="ghost" onClick={() => navigate("/teams")} className="flex items-center space-x-1">
-          <Settings className="h-4 w-4" />
-          <span>Team Management</span>
+      {canCreateTeams && (
+        <Button onClick={() => navigate("/teams")} className="flex items-center space-x-1">
+          <Plus className="h-4 w-4" />
+          <span>Create Team</span>
         </Button>
       )}
 

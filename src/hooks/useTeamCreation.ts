@@ -16,7 +16,7 @@ export interface CreateTeamData {
 
 export const useTeamCreation = () => {
   const [isCreating, setIsCreating] = useState(false);
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
 
   const createTeam = async (teamData: CreateTeamData) => {
     if (!user) {
@@ -27,6 +27,7 @@ export const useTeamCreation = () => {
     try {
       setIsCreating(true);
       
+      // Create the team
       const { data: team, error: teamError } = await supabase
         .from('teams')
         .insert({
@@ -53,6 +54,29 @@ export const useTeamCreation = () => {
         });
 
       if (memberError) throw memberError;
+
+      // Update user profile to include team_admin role if they don't have it
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('roles')
+        .eq('user_id', user.id)
+        .single();
+
+      if (currentProfile && !currentProfile.roles.includes('team_admin')) {
+        const updatedRoles = [...currentProfile.roles, 'team_admin'];
+        
+        const { error: roleError } = await supabase
+          .from('profiles')
+          .update({ roles: updatedRoles })
+          .eq('user_id', user.id);
+
+        if (roleError) {
+          console.error('Error updating user roles:', roleError);
+        } else {
+          // Refresh the profile to get updated roles
+          await refreshProfile();
+        }
+      }
 
       toast.success('Team created successfully!');
       return { success: true, team };
