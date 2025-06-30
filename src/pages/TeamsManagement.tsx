@@ -10,15 +10,22 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Trophy, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const TeamsManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { teams, userTeams, loading, error, refetch } = useTeams();
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
 
   const handleTeamCreated = () => {
     setShowCreateModal(false);
     refetch();
+  };
+
+  const handleViewTeam = (teamId: string) => {
+    console.log('TeamsManagement: Navigating to team profile for ID:', teamId);
+    navigate(`/team/${teamId}`);
   };
 
   // Show welcome section if user has no teams
@@ -85,7 +92,12 @@ const TeamsManagement = () => {
           </div>
         )}
         
-        <TeamsList teams={userTeams.length > 0 ? userTeams : teams} loading={loading} error={error} />
+        <TeamsList 
+          teams={userTeams.length > 0 ? userTeams : teams} 
+          loading={loading} 
+          error={error}
+          onViewTeam={handleViewTeam}
+        />
       </main>
 
       <Footer />

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,10 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, UserPlus, Send, Crown, Shield, User, Trash2, MessageSquare, Calendar } from 'lucide-react';
+import { Users, UserPlus, Send, Crown, Shield, User, Trash2, MessageSquare, Calendar, UserCheck } from 'lucide-react';
 import { useTeamMembership } from '@/hooks/useTeamMembership';
 import { useTeamUpdates } from '@/hooks/useTeamUpdates';
+import { useTeamJoinRequests } from '@/hooks/useTeamJoinRequests';
 import { useAuth } from '@/hooks/useAuth';
+import TeamJoinRequestsPanel from './TeamJoinRequestsPanel';
 
 interface TeamManagementPanelProps {
   teamId: string;
@@ -42,6 +45,8 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
     deleteUpdate
   } = useTeamUpdates(teamId);
 
+  const { requests } = useTeamJoinRequests(teamId);
+
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteMessage, setInviteMessage] = useState('');
   const [updateContent, setUpdateContent] = useState('');
@@ -50,6 +55,8 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
 
   const isOwnerOrCaptain = userRole === 'owner' || userRole === 'captain';
   const isOwner = userRole === 'owner';
+
+  const pendingJoinRequests = requests.filter(request => request.status === 'pending');
 
   const handleSendInvitation = async () => {
     if (!inviteEmail.trim()) return;
@@ -184,8 +191,11 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
       </div>
 
       <Tabs defaultValue="members" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="members">Members ({members.length})</TabsTrigger>
+          <TabsTrigger value="requests">
+            Join Requests ({pendingJoinRequests.length})
+          </TabsTrigger>
           <TabsTrigger value="invitations">Invitations ({invitations.length})</TabsTrigger>
           <TabsTrigger value="updates">Updates ({updates.length})</TabsTrigger>
         </TabsList>
@@ -266,6 +276,24 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="requests" className="space-y-4">
+          {isOwnerOrCaptain ? (
+            <TeamJoinRequestsPanel teamId={teamId} teamName={teamName} />
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <UserCheck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Access Restricted
+                </h3>
+                <p className="text-gray-600">
+                  Only team owners and captains can view and manage join requests.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="invitations" className="space-y-4">

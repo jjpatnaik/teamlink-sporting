@@ -1,58 +1,83 @@
 
 import React from 'react';
-import { Team } from '@/hooks/useTeams';
-import TeamCard from './TeamCard';
-import { Loader2 } from 'lucide-react';
-import { useTeamMembership } from '@/hooks/useTeamMembership';
-import { toast } from 'sonner';
+import TeamCard from '@/components/team/TeamCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Users, AlertCircle } from 'lucide-react';
+
+interface Team {
+  id: string;
+  name: string;
+  description?: string;
+  owner_id: string;
+  created_at: string;
+  updated_at: string;
+  userRole?: string;
+  memberCount?: number;
+}
 
 interface TeamsListProps {
   teams: Team[];
   loading: boolean;
   error: string | null;
+  onViewTeam?: (teamId: string) => void;
 }
 
-const TeamsList: React.FC<TeamsListProps> = ({ teams, loading, error }) => {
-  const { sendInvitation } = useTeamMembership();
-
-  const handleJoinTeam = async (teamId: string) => {
-    // For now, we'll show a message that users need to be invited
-    // In a real implementation, this could send a join request
-    toast.info('To join this team, you need to be invited by a team member. Contact the team directly for an invitation.');
-  };
-
+const TeamsList: React.FC<TeamsListProps> = ({ teams, loading, error, onViewTeam }) => {
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, index) => (
+          <Card key={index} className="animate-pulse">
+            <CardContent className="p-6">
+              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded mb-4"></div>
+              <div className="flex justify-between items-center">
+                <div className="h-3 bg-gray-200 rounded w-20"></div>
+                <div className="h-8 bg-gray-200 rounded w-24"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Error loading teams: {error}</p>
-      </div>
+      <Card className="bg-red-50 border-red-200">
+        <CardContent className="flex items-center gap-3 p-6">
+          <AlertCircle className="h-5 w-5 text-red-600" />
+          <div>
+            <h3 className="font-medium text-red-900">Error Loading Teams</h3>
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (teams.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-semibold mb-2">No teams yet</h3>
-        <p className="text-gray-600 mb-4">Create your first team or join an existing one</p>
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <Users className="h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Teams Found</h3>
+          <p className="text-gray-600 text-center">
+            There are no teams to display at the moment.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {teams.map((team) => (
-        <TeamCard 
-          key={team.id} 
-          team={team} 
-          onJoinTeam={handleJoinTeam}
+        <TeamCard
+          key={team.id}
+          team={team}
+          onViewTeam={onViewTeam}
+          showJoinButton={!team.userRole}
         />
       ))}
     </div>
