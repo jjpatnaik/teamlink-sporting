@@ -8,44 +8,67 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Github } from 'lucide-react';
+import { Mail, Github, Eye, EyeOff } from 'lucide-react';
 import Header from "@/components/Header";
+import { useAuth } from "@/hooks/useAuth";
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    // Check if user is already authenticated
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        navigate('/');
-      }
-    };
-    checkAuth();
-  }, [navigate]);
+    // Redirect authenticated users
+    if (!authLoading && user) {
+      console.log('User already authenticated, redirecting to home');
+      navigate('/');
+    }
+  }, [user, authLoading, navigate]);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
     setLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      console.log('Attempting sign in for:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
 
-      if (error) throw error;
-      
-      toast.success('Signed in successfully!');
-      navigate('/');
+      if (error) {
+        console.error('Sign in error:', error);
+        
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Invalid email or password. Please check your credentials and try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error('Please check your email and click the confirmation link before signing in.');
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+
+      if (data.user) {
+        console.log('Sign in successful:', data.user.email);
+        toast.success('Signed in successfully!');
+        // Navigation will be handled by auth state change
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Unexpected sign in error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -54,27 +77,58 @@ const AuthPage = () => {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!email || !password || !confirmPassword) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
     if (password !== confirmPassword) {
       toast.error('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters long');
       return;
     }
 
     setLoading(true);
     
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
+      console.log('Attempting sign up for:', email);
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`
         }
       });
 
-      if (error) throw error;
-      
-      toast.success('Account created! Please check your email to confirm your account.');
+      if (error) {
+        console.error('Sign up error:', error);
+        
+        if (error.message.includes('User already registered')) {
+          toast.error('An account with this email already exists. Please sign in instead.');
+        } else if (error.message.includes('Password should be at least')) {
+          toast.error('Password must be at least 8 characters long.');
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+
+      if (data.user) {
+        console.log('Sign up successful:', data.user.email);
+        
+        if (data.user.email_confirmed_at) {
+          toast.success('Account created successfully!');
+        } else {
+          toast.success('Account created! Please check your email to confirm your account.');
+        }
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Unexpected sign up error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -82,22 +136,34 @@ const AuthPage = () => {
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
     setLoading(true);
     
     try {
+      console.log('Sending magic link to:', email);
       const { error } = await supabase.auth.signInWithOtp({
-        email,
+        email: email.trim(),
         options: {
           emailRedirectTo: `${window.location.origin}/`
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Magic link error:', error);
+        toast.error(error.message);
+        return;
+      }
       
       setMagicLinkSent(true);
       toast.success('Magic link sent! Check your email.');
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Unexpected magic link error:', error);
+      toast.error('Failed to send magic link. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -107,6 +173,7 @@ const AuthPage = () => {
     setLoading(true);
     
     try {
+      console.log('Attempting social auth with:', provider);
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -114,13 +181,29 @@ const AuthPage = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Social auth error:', error);
+        toast.error(error.message);
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('Unexpected social auth error:', error);
+      toast.error('Authentication failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -156,16 +239,28 @@ const AuthPage = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            disabled={loading}
                           />
                         </div>
-                        <div>
+                        <div className="relative">
                           <Input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="Password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            disabled={loading}
                           />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={loading}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
                         </div>
                         <Button type="submit" className="w-full" disabled={loading}>
                           {loading ? 'Signing in...' : 'Sign In'}
@@ -182,26 +277,49 @@ const AuthPage = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            disabled={loading}
                           />
                         </div>
-                        <div>
+                        <div className="relative">
                           <Input
-                            type="password"
-                            placeholder="Password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Password (min. 8 characters)"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             minLength={8}
+                            disabled={loading}
                           />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={loading}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
                         </div>
-                        <div>
+                        <div className="relative">
                           <Input
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             placeholder="Confirm Password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
+                            disabled={loading}
                           />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            disabled={loading}
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
                         </div>
                         <Button type="submit" className="w-full" disabled={loading}>
                           {loading ? 'Creating account...' : 'Sign Up'}
@@ -227,11 +345,12 @@ const AuthPage = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        disabled={loading}
                       />
                     </div>
                     <Button type="submit" variant="outline" className="w-full" disabled={loading}>
                       <Mail className="mr-2 h-4 w-4" />
-                      Send Magic Link
+                      {loading ? 'Sending...' : 'Send Magic Link'}
                     </Button>
                   </form>
 

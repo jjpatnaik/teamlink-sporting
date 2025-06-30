@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -126,7 +127,13 @@ export const useTeamJoinRequests = (teamId?: string) => {
 
       if (error) {
         console.error('Error creating join request:', error);
-        throw error;
+        
+        if (error.message.includes('violates row-level security')) {
+          toast.error('You do not have permission to join this team');
+        } else {
+          toast.error(error.message || 'Failed to send join request');
+        }
+        return false;
       }
 
       toast.success('Join request sent successfully!');
@@ -134,7 +141,7 @@ export const useTeamJoinRequests = (teamId?: string) => {
       return true;
     } catch (error: any) {
       console.error('Error creating join request:', error);
-      toast.error(error.message || 'Failed to send join request');
+      toast.error('Failed to send join request');
       return false;
     }
   };
@@ -157,7 +164,8 @@ export const useTeamJoinRequests = (teamId?: string) => {
 
       if (requestError || !request) {
         console.error('Error fetching request:', requestError);
-        throw new Error('Request not found');
+        toast.error('Request not found');
+        return false;
       }
 
       // Update the request status
@@ -172,7 +180,13 @@ export const useTeamJoinRequests = (teamId?: string) => {
 
       if (updateError) {
         console.error('Error updating request:', updateError);
-        throw updateError;
+        
+        if (updateError.message.includes('violates row-level security')) {
+          toast.error('You do not have permission to process this request');
+        } else {
+          toast.error(updateError.message || 'Failed to process join request');
+        }
+        return false;
       }
 
       // If approved, add user as team member
@@ -187,7 +201,8 @@ export const useTeamJoinRequests = (teamId?: string) => {
 
         if (memberError) {
           console.error('Error adding team member:', memberError);
-          throw memberError;
+          toast.error('Failed to add user to team');
+          return false;
         }
       }
 
@@ -196,7 +211,7 @@ export const useTeamJoinRequests = (teamId?: string) => {
       return true;
     } catch (error: any) {
       console.error('Error processing join request:', error);
-      toast.error(error.message || 'Failed to process join request');
+      toast.error('Failed to process join request');
       return false;
     }
   };
