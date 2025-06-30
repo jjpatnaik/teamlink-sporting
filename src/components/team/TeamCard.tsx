@@ -4,12 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Calendar, UserPlus } from 'lucide-react';
-import { Team } from '@/hooks/useTeamManagement';
 import JoinRequestModal from './JoinRequestModal';
 import { useTeamJoinRequests } from '@/hooks/useTeamJoinRequests';
 
+interface TeamCardTeam {
+  id: string;
+  name: string;
+  description?: string;
+  owner_id: string;
+  created_at: string;
+  updated_at: string;
+  userRole?: string;
+  memberCount?: number;
+}
+
 interface TeamCardProps {
-  team: Team & { userRole?: string; memberCount?: number };
+  team: TeamCardTeam;
   onViewTeam?: (teamId: string) => void;
   showJoinButton?: boolean;
 }

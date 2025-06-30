@@ -3,17 +3,7 @@ import React from 'react';
 import TeamCard from '@/components/team/TeamCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, AlertCircle } from 'lucide-react';
-
-interface Team {
-  id: string;
-  name: string;
-  description?: string;
-  owner_id: string;
-  created_at: string;
-  updated_at: string;
-  userRole?: string;
-  memberCount?: number;
-}
+import { Team } from '@/hooks/useTeams';
 
 interface TeamsListProps {
   teams: Team[];
@@ -75,9 +65,16 @@ const TeamsList: React.FC<TeamsListProps> = ({ teams, loading, error, onViewTeam
       {teams.map((team) => (
         <TeamCard
           key={team.id}
-          team={team}
+          team={{
+            ...team,
+            // Map the useTeams Team interface to what TeamCard expects
+            userRole: team.user_role,
+            memberCount: team.member_count,
+            owner_id: team.created_by,
+            updated_at: team.created_at
+          }}
           onViewTeam={onViewTeam}
-          showJoinButton={!team.userRole}
+          showJoinButton={!team.user_role}
         />
       ))}
     </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -63,9 +62,10 @@ export const useTeamJoinRequests = (teamId?: string) => {
 
           return {
             ...request,
+            status: request.status as 'pending' | 'approved' | 'rejected',
             user_profile: profileData || { display_name: 'Unknown User', profile_type: 'User' },
             team: teamData || { name: 'Unknown Team' }
-          };
+          } as TeamJoinRequest;
         })
       );
 
