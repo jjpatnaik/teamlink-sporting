@@ -22,7 +22,10 @@ export interface TeamJoinRequest {
   };
 }
 
-export const useTeamJoinRequests = (teamId?: string) => {
+export const useTeamJoinRequests = (
+  teamId?: string, 
+  onRequestProcessed?: () => void
+) => {
   const [requests, setRequests] = useState<TeamJoinRequest[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -34,7 +37,6 @@ export const useTeamJoinRequests = (teamId?: string) => {
       setLoading(true);
       console.log('Fetching join requests for team:', teamId);
 
-      // Fetch join requests for the team
       const { data: requestsData, error: requestsError } = await supabase
         .from('team_join_requests')
         .select('*')
@@ -46,7 +48,6 @@ export const useTeamJoinRequests = (teamId?: string) => {
         throw requestsError;
       }
 
-      // Get user profiles for each request
       const requestsWithProfiles = await Promise.all(
         (requestsData || []).map(async (request) => {
           const { data: profileData } = await supabase
@@ -89,7 +90,6 @@ export const useTeamJoinRequests = (teamId?: string) => {
     try {
       console.log('Creating join request for team:', teamId);
 
-      // Check if user is already a member
       const { data: existingMember } = await supabase
         .from('team_members')
         .select('id')
@@ -102,7 +102,6 @@ export const useTeamJoinRequests = (teamId?: string) => {
         return false;
       }
 
-      // Check if there's already a pending request
       const { data: existingRequest } = await supabase
         .from('team_join_requests')
         .select('id')
@@ -155,7 +154,6 @@ export const useTeamJoinRequests = (teamId?: string) => {
     try {
       console.log('Processing join request:', requestId, action);
 
-      // Get the request details first
       const { data: request, error: requestError } = await supabase
         .from('team_join_requests')
         .select('*')
@@ -168,7 +166,6 @@ export const useTeamJoinRequests = (teamId?: string) => {
         return false;
       }
 
-      // Update the request status
       const { error: updateError } = await supabase
         .from('team_join_requests')
         .update({
@@ -189,7 +186,6 @@ export const useTeamJoinRequests = (teamId?: string) => {
         return false;
       }
 
-      // If approved, add user as team member
       if (action === 'approved') {
         const { error: memberError } = await supabase
           .from('team_members')
@@ -208,6 +204,12 @@ export const useTeamJoinRequests = (teamId?: string) => {
 
       toast.success(`Join request ${action} successfully!`);
       await fetchJoinRequests();
+      
+      // Notify parent component about the processed request
+      if (onRequestProcessed) {
+        onRequestProcessed();
+      }
+      
       return true;
     } catch (error: any) {
       console.error('Error processing join request:', error);

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -146,6 +145,15 @@ const TeamProfile = () => {
     }
   };
 
+  // Handle data changes from child components
+  const handleDataChange = async () => {
+    console.log('TeamProfile: Handling data change, refreshing team data and members');
+    await Promise.all([
+      fetchTeamData(),
+      refetchMembers()
+    ]);
+  };
+
   const canManageTeam = () => {
     if (!user || !team) return false;
     return user.id === team.owner_id || ['owner', 'captain'].includes(userRole || '');
@@ -165,7 +173,10 @@ const TeamProfile = () => {
     
     const success = await updateMemberRole(member.id, newRole);
     if (success) {
-      await refetchMembers();
+      await Promise.all([
+        refetchMembers(),
+        fetchTeamData() // Refresh team data to update member count if needed
+      ]);
     }
   };
 
@@ -175,9 +186,10 @@ const TeamProfile = () => {
     
     const success = await removeMember(member.id);
     if (success) {
-      await refetchMembers();
-      // Update team data to reflect new member count
-      await fetchTeamData();
+      await Promise.all([
+        refetchMembers(),
+        fetchTeamData() // Refresh team data to update member count
+      ]);
     }
   };
 
@@ -233,6 +245,7 @@ const TeamProfile = () => {
             teamId={teamId || ''}
             teamName={team.name}
             userRole={userRole || undefined}
+            onDataChange={handleDataChange}
           />
         </div>
       </>

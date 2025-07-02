@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users, UserPlus, Send, Crown, Shield, User, Trash2, MessageSquare, Calendar, UserCheck } from 'lucide-react';
 import { useTeamMembership } from '@/hooks/useTeamMembership';
 import { useTeamUpdates } from '@/hooks/useTeamUpdates';
-import { useTeamJoinRequests } from '@/hooks/useTeamJoinRequests';
 import { useAuth } from '@/hooks/useAuth';
 import TeamJoinRequestsPanel from './TeamJoinRequestsPanel';
 
@@ -19,12 +17,14 @@ interface TeamManagementPanelProps {
   teamId: string;
   teamName: string;
   userRole?: string;
+  onDataChange?: () => void;
 }
 
 const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
   teamId,
   teamName,
-  userRole
+  userRole,
+  onDataChange
 }) => {
   const { user } = useAuth();
   const {
@@ -35,7 +35,8 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
     respondToInvitation,
     updateMemberRole,
     removeMember,
-    transferOwnership
+    transferOwnership,
+    refetch: refetchMembers
   } = useTeamMembership(teamId);
 
   const {
@@ -44,8 +45,6 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
     createUpdate,
     deleteUpdate
   } = useTeamUpdates(teamId);
-
-  const { requests } = useTeamJoinRequests(teamId);
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteMessage, setInviteMessage] = useState('');
@@ -56,7 +55,14 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
   const isOwnerOrCaptain = userRole === 'owner' || userRole === 'captain';
   const isOwner = userRole === 'owner';
 
-  const pendingJoinRequests = requests.filter(request => request.status === 'pending');
+  const handleRequestProcessed = async () => {
+    // Refetch team members when a join request is processed
+    await refetchMembers();
+    // Notify parent component to refresh team data
+    if (onDataChange) {
+      onDataChange();
+    }
+  };
 
   const handleSendInvitation = async () => {
     if (!inviteEmail.trim()) return;
@@ -79,6 +85,20 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
     }
   };
 
+  const handleUpdateMemberRole = async (memberId: string, newRole: 'captain' | 'admin' | 'member') => {
+    const success = await updateMemberRole(memberId, newRole);
+    if (success && onDataChange) {
+      onDataChange();
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    const success = await removeMember(memberId);
+    if (success && onDataChange) {
+      onDataChange();
+    }
+  };
+
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'owner':
@@ -96,7 +116,6 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
       case 'owner':
         return 'default' as const;
       case 'captain':
-      case 'admin':
         return 'secondary' as const;
       default:
         return 'outline' as const;
@@ -193,9 +212,7 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
       <Tabs defaultValue="members" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="members">Members ({members.length})</TabsTrigger>
-          <TabsTrigger value="requests">
-            Join Requests ({pendingJoinRequests.length})
-          </TabsTrigger>
+          <TabsTrigger value="requests">Join Requests</TabsTrigger>
           <TabsTrigger value="invitations">Invitations ({invitations.length})</TabsTrigger>
           <TabsTrigger value="updates">Updates ({updates.length})</TabsTrigger>
         </TabsList>
@@ -235,7 +252,7 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
                         <div className="flex items-center gap-1">
                           <Select
                             value={member.role}
-                            onValueChange={(value) => updateMemberRole(member.id, value as any)}
+                            onValueChange={(value) => handleUpdateMemberRole(member.id, value as any)}
                           >
                             <SelectTrigger className="w-24 h-8">
                               <SelectValue />
@@ -250,7 +267,7 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeMember(member.id)}
+                            onClick={() => handleRemoveMember(member.id)}
                             className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -280,7 +297,11 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
 
         <TabsContent value="requests" className="space-y-4">
           {isOwnerOrCaptain ? (
-            <TeamJoinRequestsPanel teamId={teamId} teamName={teamName} />
+            <TeamJoinRequestsPanel 
+              teamId={teamId} 
+              teamName={teamName} 
+              onRequestProcessed={handleRequestProcessed}
+            />
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
@@ -296,6 +317,7 @@ const TeamManagementPanel: React.FC<TeamManagementPanelProps> = ({
           )}
         </TabsContent>
 
+        
         <TabsContent value="invitations" className="space-y-4">
           <Card>
             <CardHeader>
