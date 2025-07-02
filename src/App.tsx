@@ -3,6 +3,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AppLayout from "@/components/layout/AppLayout";
+import ImprovedOnboarding from "@/components/onboarding/ImprovedOnboarding";
 import Index from "@/pages/Index";
 import AuthPage from "@/pages/auth/AuthPage";
 import ProfileSetupPage from "@/pages/createprofile/ProfileSetupPage";
@@ -24,16 +26,35 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Index />} />
+          {/* Public routes without layout */}
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
+          
+          {/* Routes with main layout */}
+          <Route path="/" element={
+            <AppLayout>
+              <Index />
+            </AppLayout>
+          } />
+          
+          {/* Onboarding flow */}
+          <Route 
+            path="/onboarding" 
+            element={
+              <ProtectedRoute>
+                <ImprovedOnboarding />
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Profile setup - authenticated but doesn't require complete profile */}
           <Route 
             path="/createprofile" 
             element={
               <ProtectedRoute>
-                <ProfileSetupPage />
+                <AppLayout>
+                  <ProfileSetupPage />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -43,29 +64,65 @@ function App() {
             path="/edit-profile" 
             element={
               <ProtectedRoute>
-                <EditProfilePage />
+                <AppLayout>
+                  <EditProfilePage />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
           
           {/* Public profile pages */}
-          <Route path="/player/:id" element={<PlayerProfile />} />
-          <Route path="/players/:id" element={<PlayerProfile />} />
-          <Route path="/team/:teamId" element={<TeamProfile />} />
-          <Route path="/tournament/:tournamentId" element={<TournamentProfile />} />
-          <Route path="/sponsor/:id" element={<SponsorProfile />} />
+          <Route path="/player/:id" element={
+            <AppLayout>
+              <PlayerProfile />
+            </AppLayout>
+          } />
+          <Route path="/players/:id" element={
+            <AppLayout>
+              <PlayerProfile />
+            </AppLayout>
+          } />
+          <Route path="/team/:teamId" element={
+            <AppLayout>
+              <TeamProfile />
+            </AppLayout>
+          } />
+          <Route path="/tournament/:tournamentId" element={
+            <AppLayout>
+              <TournamentProfile />
+            </AppLayout>
+          } />
+          <Route path="/sponsor/:id" element={
+            <AppLayout>
+              <SponsorProfile />
+            </AppLayout>
+          } />
           
           {/* General authenticated pages */}
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/players" element={<SearchPage />} />
-          <Route path="/connections" element={<ConnectionsPage />} />
+          <Route path="/search" element={
+            <AppLayout>
+              <SearchPage />
+            </AppLayout>
+          } />
+          <Route path="/players" element={
+            <AppLayout>
+              <SearchPage />
+            </AppLayout>
+          } />
+          <Route path="/connections" element={
+            <AppLayout>
+              <ConnectionsPage />
+            </AppLayout>
+          } />
           
           {/* Team management - accessible to both players and team admins */}
           <Route 
             path="/teams" 
             element={
               <ProtectedRoute>
-                <TeamsManagement />
+                <AppLayout>
+                  <TeamsManagement />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -74,7 +131,9 @@ function App() {
             path="/organiser/tournament" 
             element={
               <ProtectedRoute requiredRole="organiser">
-                <TournamentOrganiserPanel />
+                <AppLayout>
+                  <TournamentOrganiserPanel />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -83,7 +142,9 @@ function App() {
             path="/organiser/tournament/:tournamentId" 
             element={
               <ProtectedRoute requiredRole="organiser">
-                <TournamentOrganiserPanel />
+                <AppLayout>
+                  <TournamentOrganiserPanel />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -91,10 +152,22 @@ function App() {
           {/* Legacy routes for backward compatibility */}
           <Route path="/login" element={<AuthPage />} />
           <Route path="/signup" element={<AuthPage />} />
-          <Route path="/profile" element={<PlayerProfile />} />
-          <Route path="/profile/:id" element={<PlayerProfile />} />
+          <Route path="/profile" element={
+            <AppLayout>
+              <PlayerProfile />
+            </AppLayout>
+          } />
+          <Route path="/profile/:id" element={
+            <AppLayout>
+              <PlayerProfile />
+            </AppLayout>
+          } />
           
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={
+            <AppLayout>
+              <NotFound />
+            </AppLayout>
+          } />
         </Routes>
         <Toaster />
       </AuthProvider>
