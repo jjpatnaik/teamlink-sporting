@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 const MobileBottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, hasRole } = useAuth();
+  const { user, profile, hasRole } = useAuth();
 
   // Don't show bottom nav if user is not authenticated
   if (!user) return null;
