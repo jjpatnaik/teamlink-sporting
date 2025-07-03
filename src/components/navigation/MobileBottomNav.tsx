@@ -10,6 +10,7 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const { user, hasRole } = useAuth();
 
+  // Don't show bottom nav if user is not authenticated
   if (!user) return null;
 
   const canAccessTeams = hasRole('player') || hasRole('team_admin');
@@ -21,7 +22,6 @@ const MobileBottomNav = () => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/search', icon: Search, label: 'Search' },
     ...(canAccessTeams ? [{ path: '/teams', icon: Users, label: 'Teams' }] : []),
-    { path: `/player/${user.id}`, icon: User, label: 'Profile' },
   ];
 
   return (
@@ -43,6 +43,26 @@ const MobileBottomNav = () => {
             <span className="text-xs">{item.label}</span>
           </Button>
         ))}
+        
+        <Button
+          onClick={() => {
+            if (profile) {
+              navigate(`/player/${user.id}`);
+            } else {
+              navigate('/createprofile');
+            }
+          }}
+          className={`flex flex-col items-center space-y-1 px-3 py-2 ${
+            location.pathname.includes('/player/') || location.pathname === '/createprofile'
+              ? 'text-primary bg-primary/10' 
+              : 'text-gray-600 hover:text-primary'
+          }`}
+          variant="ghost"
+          size="sm"
+        >
+          <User className="h-5 w-5" />
+          <span className="text-xs">Profile</span>
+        </Button>
         
         {canCreateTeams && (
           <Button
