@@ -1,8 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -158,80 +155,66 @@ const EditProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Loading your profile...</p>
-          </div>
-        </main>
-        <Footer />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading your profile...</p>
+        </div>
       </div>
     );
   }
 
   if (!profileData) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle>Profile Not Found</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600 mb-4">
-                We couldn't find your profile. Would you like to create one?
-              </p>
-              <div className="space-y-2">
-                <Button onClick={() => navigate('/createprofile')} className="w-full">
-                  Create Profile
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => window.location.reload()} 
-                  className="w-full"
-                >
-                  Refresh Page
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Profile Not Found</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-600 mb-4">
+              We couldn't find your profile. Would you like to create one?
+            </p>
+            <div className="space-y-2">
+              <Button onClick={() => navigate('/createprofile')} className="w-full">
+                Create Profile
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.reload()} 
+                className="w-full"
+              >
+                Refresh Page
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-grow container mx-auto px-4 py-8 max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Edit Your Profile</h1>
-          <p className="text-gray-600">Update your profile information and settings</p>
-        </div>
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold mb-2">Edit Your Profile</h1>
+        <p className="text-gray-600">Update your profile information and settings</p>
+      </div>
 
-        <UnifiedProfileForm 
-          onSubmit={handleProfileUpdate}
-          initialData={profileData}
-          isEditing={true}
-        />
+      <UnifiedProfileForm 
+        onSubmit={handleProfileUpdate}
+        initialData={profileData}
+        isEditing={true}
+      />
 
-        <div className="mt-6 text-center">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/')}
-            className="mr-4"
-          >
-            Cancel
-          </Button>
-        </div>
-      </main>
-
-      <Footer />
+      <div className="mt-6 text-center">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/')}
+          className="mr-4"
+        >
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 };
