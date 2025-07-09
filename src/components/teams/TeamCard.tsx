@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Calendar, UserPlus } from 'lucide-react';
+import { Users, Calendar, UserPlus, Crown, Shield } from 'lucide-react';
 import { Team } from '@/hooks/useTeams';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,18 +35,28 @@ const TeamCard: React.FC<TeamCardProps> = ({
     navigate(`/team/${team.id}`);
   };
 
-  // Check if current user is the team owner or already a member
-  const isOwner = user && team.created_by === user.id;
-  const isMember = team.user_role !== undefined;
-  
   // Show join button only if user is not owner, not a member, and showJoinButton is true
-  const shouldShowJoinButton = showJoinButton && !isOwner && !isMember && user;
+  const shouldShowJoinButton = showJoinButton && !team.isOwned && !team.isMember && user;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg font-semibold">{team.name}</CardTitle>
+          <div className="flex gap-2 flex-wrap">
+            {team.isOwned && (
+              <Badge className="bg-yellow-500 text-white flex items-center gap-1">
+                <Crown className="h-3 w-3" />
+                Owner
+              </Badge>
+            )}
+            {team.isMember && !team.isOwned && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                {team.membershipRole || 'Member'}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -82,6 +92,16 @@ const TeamCard: React.FC<TeamCardProps> = ({
             >
               <UserPlus className="w-4 h-4" />
               Join
+            </Button>
+          )}
+          {team.isOwned && (
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={handleViewDetails}
+              className="border-sport-purple text-sport-purple hover:bg-sport-purple/10"
+            >
+              Manage
             </Button>
           )}
         </div>

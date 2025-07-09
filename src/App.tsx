@@ -17,7 +17,7 @@ import SponsorProfile from "@/pages/SponsorProfile";
 import ConnectionsPage from "@/pages/ConnectionsPage";
 import SearchPage from "@/pages/SearchPage";
 import NotFound from "@/pages/NotFound";
-import TeamsManagement from "@/pages/TeamsManagement";
+import TeamsPage from "@/pages/TeamsPage";
 import TournamentOrganiserPanel from "./pages/tournament-organiser/TournamentOrganiserPanel";
 import TournamentsPage from "@/pages/TournamentsPage";
 import MyTournamentsPage from "@/pages/MyTournamentsPage";
@@ -134,7 +134,7 @@ function App() {
             path="/teams" 
             element={
               <AppLayout>
-                <TeamsManagement />
+                <TeamsPage />
               </AppLayout>
             } 
           />

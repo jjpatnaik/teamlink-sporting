@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Calendar, UserPlus } from 'lucide-react';
+import { Users, Calendar, UserPlus, Crown, Shield } from 'lucide-react';
 import JoinRequestModal from './JoinRequestModal';
 import { useTeamJoinRequests } from '@/hooks/useTeamJoinRequests';
 
@@ -16,6 +16,9 @@ interface TeamCardTeam {
   updated_at: string;
   userRole?: string;
   memberCount?: number;
+  isOwned?: boolean;
+  isMember?: boolean;
+  membershipRole?: string;
 }
 
 interface TeamCardProps {
@@ -58,11 +61,20 @@ const TeamCard: React.FC<TeamCardProps> = ({
         <CardHeader>
           <div className="flex justify-between items-start">
             <CardTitle className="text-lg font-semibold">{team.name}</CardTitle>
-            {team.userRole && (
-              <Badge variant={team.userRole === 'owner' ? 'default' : 'secondary'}>
-                {team.userRole}
-              </Badge>
-            )}
+            <div className="flex gap-2 flex-wrap">
+              {team.isOwned && (
+                <Badge className="bg-yellow-500 text-white flex items-center gap-1">
+                  <Crown className="h-3 w-3" />
+                  Owner
+                </Badge>
+              )}
+              {team.isMember && !team.isOwned && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  {team.membershipRole || 'Member'}
+                </Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -90,7 +102,7 @@ const TeamCard: React.FC<TeamCardProps> = ({
             >
               View Details
             </Button>
-            {showJoinButton && !team.userRole && (
+            {showJoinButton && !team.isMember && (
               <Button 
                 size="sm" 
                 onClick={() => setShowJoinModal(true)}
@@ -98,6 +110,16 @@ const TeamCard: React.FC<TeamCardProps> = ({
               >
                 <UserPlus className="w-4 h-4" />
                 Join
+              </Button>
+            )}
+            {team.isOwned && (
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleViewDetails}
+                className="border-sport-purple text-sport-purple hover:bg-sport-purple/10"
+              >
+                Manage
               </Button>
             )}
           </div>

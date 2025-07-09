@@ -74,7 +74,7 @@ const TeamsList: React.FC<TeamsListProps> = ({ teams, loading, error, onViewTeam
             updated_at: team.created_at
           }}
           onViewTeam={onViewTeam}
-          showJoinButton={!team.user_role}
+          showJoinButton={!team.isMember}
         />
       ))}
     </div>

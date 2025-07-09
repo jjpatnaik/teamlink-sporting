@@ -136,7 +136,7 @@ const UnifiedNavigation = () => {
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/teams")} className="flex items-center space-x-2 cursor-pointer">
               <Users className="h-4 w-4" />
-              <span>My Teams</span>
+              <span>Teams</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/tournaments")} className="flex items-center space-x-2 cursor-pointer">
               <Calendar className="h-4 w-4" />
