@@ -99,7 +99,7 @@ const EnhancedHeader = () => {
                       }`}
                     >
                       <item.icon className="h-4 w-4" />
-                      <span className="text-sm">{item.label}</span>
+                      <span className="text-sm ml-auto">{item.label}</span>
                     </Button>
                   ))}
                 </div>
