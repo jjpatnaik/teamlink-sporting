@@ -201,6 +201,13 @@ const EnhancedHeader = () => {
                       My Profile
                     </DropdownMenuItem>
                     <DropdownMenuItem 
+                      onClick={() => navigate('/connections')}
+                      className="cursor-pointer"
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      Connections
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
                       onClick={() => navigate('/edit-profile')}
                       className="cursor-pointer"
                     >
