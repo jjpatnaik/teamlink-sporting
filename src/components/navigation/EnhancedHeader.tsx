@@ -84,23 +84,43 @@ const EnhancedHeader = () => {
           <div className="hidden md:flex items-center justify-end flex-1 max-w-[75%]">
             <div className="flex items-center space-x-4 w-full max-w-4xl">
               {/* Desktop Navigation */}
-              <nav className="flex items-center space-x-1">
-                {navigationItems.map((item) => (
-                  <Button
-                    key={item.path}
-                    variant={isActive(item.path) ? "default" : "ghost"}
-                    onClick={() => navigate(item.path)}
-                    size="sm"
-                    className={`flex items-center space-x-1.5 transition-all duration-200 ${
-                      isActive(item.path) 
-                        ? 'bg-primary text-primary-foreground shadow-sm' 
-                        : 'hover:bg-accent hover:text-accent-foreground'
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span className="text-sm">{item.label}</span>
-                  </Button>
-                ))}
+              <nav className="flex items-center justify-between w-full">
+                <div className="flex items-center space-x-1">
+                  {navigationItems.slice(0, 2).map((item) => (
+                    <Button
+                      key={item.path}
+                      variant={isActive(item.path) ? "default" : "ghost"}
+                      onClick={() => navigate(item.path)}
+                      size="sm"
+                      className={`flex items-center space-x-1.5 transition-all duration-200 ${
+                        isActive(item.path) 
+                          ? 'bg-primary text-primary-foreground shadow-sm' 
+                          : 'hover:bg-accent hover:text-accent-foreground'
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span className="text-sm">{item.label}</span>
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex items-center space-x-1">
+                  {navigationItems.slice(2).map((item) => (
+                    <Button
+                      key={item.path}
+                      variant={isActive(item.path) ? "default" : "ghost"}
+                      onClick={() => navigate(item.path)}
+                      size="sm"
+                      className={`flex items-center space-x-1.5 transition-all duration-200 ${
+                        isActive(item.path) 
+                          ? 'bg-primary text-primary-foreground shadow-sm' 
+                          : 'hover:bg-accent hover:text-accent-foreground'
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span className="text-sm">{item.label}</span>
+                    </Button>
+                  ))}
+                </div>
               </nav>
 
             </div>
