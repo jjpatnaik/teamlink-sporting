@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import TournamentUpdatesSection from '@/components/tournament/TournamentUpdatesSection';
 
 const TournamentProfile = () => {
   const { tournament, teams, loading, isOrganizer, currentUserId, refreshData } = useTournamentData();
@@ -275,6 +276,14 @@ const TournamentProfile = () => {
               </>
             )}
             
+            {/* Tournament Updates Section */}
+            <div className="mt-8">
+              <TournamentUpdatesSection
+                tournamentId={tournament.id}
+                isOrganizer={isOrganizer}
+              />
+            </div>
+
             {/* Contact & Social Media */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>

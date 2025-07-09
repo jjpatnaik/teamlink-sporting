@@ -5,6 +5,7 @@ import PlayerInvitationModal from "@/components/team/PlayerInvitationModal";
 import TeamMembersList from "@/components/team/TeamMembersList";
 import TeamChatSection from "@/components/team/TeamChatSection";
 import TeamManagementPanel from "@/components/team/TeamManagementPanel";
+import TeamTournaments from "@/components/team/TeamTournaments";
 import { useTeamMembership } from "@/hooks/useTeamMembership";
 import { 
   Users,
@@ -394,6 +395,13 @@ const TeamProfile = () => {
             </div>
           </div>
         </div>
+
+        {/* Team Tournaments Section */}
+        <TeamTournaments
+          teamId={teamId || ''}
+          teamName={team.name}
+          userRole={userRole}
+        />
 
         {/* Team Chat/Updates Section */}
         <TeamChatSection teamId={teamId || ''} userRole={userRole} />

@@ -19,6 +19,8 @@ import SearchPage from "@/pages/SearchPage";
 import NotFound from "@/pages/NotFound";
 import TeamsManagement from "@/pages/TeamsManagement";
 import TournamentOrganiserPanel from "./pages/tournament-organiser/TournamentOrganiserPanel";
+import TournamentsPage from "@/pages/TournamentsPage";
+import MyTournamentsPage from "@/pages/MyTournamentsPage";
 import { Toaster } from "@/components/ui/toaster";
 
 function App() {
@@ -109,21 +111,31 @@ function App() {
               <SearchPage />
             </AppLayout>
           } />
+          <Route path="/tournaments" element={
+            <AppLayout>
+              <TournamentsPage />
+            </AppLayout>
+          } />
+          <Route path="/my-tournaments" element={
+            <ProtectedRoute>
+              <AppLayout>
+                <MyTournamentsPage />
+              </AppLayout>
+            </ProtectedRoute>
+          } />
           <Route path="/connections" element={
             <AppLayout>
               <ConnectionsPage />
             </AppLayout>
           } />
           
-          {/* Team management - accessible to both players and team admins */}
+          {/* Team management - accessible to all authenticated users */}
           <Route 
             path="/teams" 
             element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <TeamsManagement />
-                </AppLayout>
-              </ProtectedRoute>
+              <AppLayout>
+                <TeamsManagement />
+              </AppLayout>
             } 
           />
           
