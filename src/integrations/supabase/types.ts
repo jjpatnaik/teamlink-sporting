@@ -901,6 +901,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_canceled_tournaments: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_user_team_role: {
         Args: { team_id_param: string }
         Returns: string
