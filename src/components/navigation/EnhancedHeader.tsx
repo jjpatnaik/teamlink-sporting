@@ -86,7 +86,7 @@ const EnhancedHeader = () => {
               {/* Desktop Navigation */}
               <nav className="flex items-center justify-between w-full">
                 <div className="flex items-center space-x-1">
-                  {navigationItems.slice(0, 2).map((item) => (
+                  {navigationItems.slice(0, 1).map((item) => (
                     <Button
                       key={item.path}
                       variant={isActive(item.path) ? "default" : "ghost"}
@@ -104,7 +104,7 @@ const EnhancedHeader = () => {
                   ))}
                 </div>
                 <div className="flex items-center space-x-1">
-                  {navigationItems.slice(2).map((item) => (
+                  {navigationItems.slice(1).map((item) => (
                     <Button
                       key={item.path}
                       variant={isActive(item.path) ? "default" : "ghost"}
