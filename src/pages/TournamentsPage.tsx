@@ -4,23 +4,32 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trophy, Calendar, MapPin, Users, Search, Filter } from 'lucide-react';
+import { Trophy, Calendar, MapPin, Users, Search, Filter, Crown, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTournaments } from '@/hooks/useTournaments';
 import { sportsOptions } from '@/constants/sportOptions';
+import { useAuth } from '@/hooks/useAuth';
 
 const TournamentsPage = () => {
   const navigate = useNavigate();
   const { tournaments, loading } = useTournaments();
+  const { hasRole } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSport, setSelectedSport] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [ownershipFilter, setOwnershipFilter] = useState('all');
+
+  const isOrganizer = hasRole('organiser') || hasRole('tournament_organizer');
 
   const filteredTournaments = tournaments.filter(tournament => {
     const matchesSearch = tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          tournament.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSport = selectedSport === 'all' || tournament.sport === selectedSport;
-    return matchesSearch && matchesSport;
+    const matchesStatus = selectedStatus === 'all' || tournament.tournament_status === selectedStatus;
+    const matchesOwnership = ownershipFilter === 'all' || 
+                           (ownershipFilter === 'owned' && tournament.isOwned) ||
+                           (ownershipFilter === 'not_owned' && !tournament.isOwned);
+    return matchesSearch && matchesSport && matchesStatus && matchesOwnership;
   });
 
   if (loading) {
@@ -40,17 +49,30 @@ const TournamentsPage = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-sport-blue to-sport-purple bg-clip-text text-transparent">
-          Discover Tournaments
-        </h1>
-        <p className="text-sport-gray text-lg">
-          Find and join exciting sports tournaments in your area
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-sport-blue to-sport-purple bg-clip-text text-transparent">
+              Discover Tournaments
+            </h1>
+            <p className="text-sport-gray text-lg">
+              Find and join exciting sports tournaments in your area
+            </p>
+          </div>
+          {isOrganizer && (
+            <Button 
+              onClick={() => navigate('/organiser/tournament')}
+              className="bg-sport-purple hover:bg-sport-purple/90 text-white flex items-center space-x-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Tournament</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-sport-light-purple/20 p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="md:col-span-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sport-gray h-4 w-4" />
@@ -92,6 +114,21 @@ const TournamentsPage = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {isOrganizer && (
+            <div>
+              <Select value={ownershipFilter} onValueChange={setOwnershipFilter}>
+                <SelectTrigger className="border-sport-light-purple/50 focus-visible:ring-sport-purple/40">
+                  <SelectValue placeholder="Ownership" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  <SelectItem value="all">All Tournaments</SelectItem>
+                  <SelectItem value="owned">My Tournaments</SelectItem>
+                  <SelectItem value="not_owned">Other Tournaments</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -112,10 +149,16 @@ const TournamentsPage = () => {
           {filteredTournaments.map((tournament) => (
             <Card key={tournament.id} className="hover:shadow-lg transition-shadow cursor-pointer border border-sport-light-purple/20">
               <div className="relative h-48 bg-gradient-to-r from-sport-blue to-sport-purple rounded-t-lg">
-                <div className="absolute top-4 right-4">
+                <div className="absolute top-4 right-4 flex gap-2">
                   <Badge variant="secondary" className="bg-white/90 text-sport-purple">
                     {tournament.sport}
                   </Badge>
+                  {tournament.isOwned && (
+                    <Badge className="bg-yellow-500/90 text-white flex items-center gap-1">
+                      <Crown className="h-3 w-3" />
+                      Owned
+                    </Badge>
+                  )}
                 </div>
                 <div className="absolute bottom-4 left-4 text-white">
                   <Trophy className="h-8 w-8" />
@@ -151,12 +194,23 @@ const TournamentsPage = () => {
                       <Users className="h-4 w-4 mr-1" />
                       <span>Format: {tournament.format}</span>
                     </div>
-                    <Button 
-                      onClick={() => navigate(`/tournament/${tournament.id}`)}
-                      className="bg-sport-purple hover:bg-sport-purple/90 text-white"
-                    >
-                      View Details
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => navigate(`/tournament/${tournament.id}`)}
+                        className="bg-sport-purple hover:bg-sport-purple/90 text-white"
+                      >
+                        View Details
+                      </Button>
+                      {tournament.isOwned && (
+                        <Button 
+                          variant="outline"
+                          onClick={() => navigate(`/organiser/tournament`)}
+                          className="border-sport-purple text-sport-purple hover:bg-sport-purple/10"
+                        >
+                          Manage
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>

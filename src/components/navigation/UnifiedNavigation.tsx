@@ -74,11 +74,18 @@ const UnifiedNavigation = () => {
           <span>Tournaments</span>
         </Button>
 
-        {/* Create Button - Prominent CTA */}
+        {/* Create Buttons - Prominent CTAs */}
         {canCreateTeams && (
           <Button onClick={() => navigate("/teams")} className="bg-primary hover:bg-primary/90 flex items-center space-x-1">
             <Plus className="h-4 w-4" />
             <span>Create Team</span>
+          </Button>
+        )}
+        
+        {(hasRole('organiser') || hasRole('tournament_organizer')) && (
+          <Button onClick={() => navigate("/organiser/tournament")} className="bg-sport-purple hover:bg-sport-purple/90 text-white flex items-center space-x-1">
+            <Plus className="h-4 w-4" />
+            <span>Create Tournament</span>
           </Button>
         )}
       </div>
@@ -104,6 +111,17 @@ const UnifiedNavigation = () => {
             <Settings className="h-4 w-4" />
             <span>Edit Profile</span>
           </DropdownMenuItem>
+
+          {/* Organizer-specific options */}
+          {(hasRole('organiser') || hasRole('tournament_organizer')) && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/organiser/tournament")} className="flex items-center space-x-2 cursor-pointer">
+                <Calendar className="h-4 w-4" />
+                <span>Organizer Panel</span>
+              </DropdownMenuItem>
+            </>
+          )}
           
           {/* Mobile-only navigation items */}
           <div className="md:hidden">
@@ -128,6 +146,12 @@ const UnifiedNavigation = () => {
               <DropdownMenuItem onClick={() => navigate("/teams")} className="flex items-center space-x-2 cursor-pointer text-primary">
                 <Plus className="h-4 w-4" />
                 <span>Create Team</span>
+              </DropdownMenuItem>
+            )}
+            {(hasRole('organiser') || hasRole('tournament_organizer')) && (
+              <DropdownMenuItem onClick={() => navigate("/organiser/tournament")} className="flex items-center space-x-2 cursor-pointer text-sport-purple">
+                <Plus className="h-4 w-4" />
+                <span>Create Tournament</span>
               </DropdownMenuItem>
             )}
           </div>
