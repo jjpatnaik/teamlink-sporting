@@ -74,6 +74,11 @@ function App() {
           />
           
           {/* Public profile pages */}
+          <Route path="/player" element={
+            <AppLayout>
+              <PlayerProfile />
+            </AppLayout>
+          } />
           <Route path="/player/:id" element={
             <AppLayout>
               <PlayerProfile />
