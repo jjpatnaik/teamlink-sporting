@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -142,29 +143,6 @@ const EnhancedHeader = () => {
                   )}
                 </Button>
 
-                {/* Create Actions */}
-                {(hasRole('player') || hasRole('team_admin')) && (
-                  <Button
-                    onClick={() => navigate('/teams')}
-                    size="sm"
-                    className="hidden md:flex items-center space-x-1 bg-primary hover:bg-primary/90 transition-colors duration-200"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Create Team</span>
-                  </Button>
-                )}
-
-                {(hasRole('organiser') || hasRole('tournament_organizer')) && (
-                  <Button
-                    onClick={() => navigate('/organiser/tournament')}
-                    size="sm"
-                    className="hidden md:flex items-center space-x-1 bg-secondary hover:bg-secondary/90 transition-colors duration-200"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Create Tournament</span>
-                  </Button>
-                )}
-
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -193,6 +171,33 @@ const EnhancedHeader = () => {
                       </div>
                     </div>
                     <DropdownMenuSeparator />
+                    
+                    {/* Create Actions */}
+                    {(hasRole('player') || hasRole('team_admin')) && (
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/teams')}
+                        className="cursor-pointer"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Team
+                      </DropdownMenuItem>
+                    )}
+
+                    {(hasRole('organiser') || hasRole('tournament_organizer')) && (
+                      <DropdownMenuItem 
+                        onClick={() => navigate('/organiser/tournament')}
+                        className="cursor-pointer"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Tournament
+                      </DropdownMenuItem>
+                    )}
+
+                    {/* Show separator only if create actions are present */}
+                    {((hasRole('player') || hasRole('team_admin')) || (hasRole('organiser') || hasRole('tournament_organizer'))) && (
+                      <DropdownMenuSeparator />
+                    )}
+                    
                     <DropdownMenuItem 
                       onClick={() => {
                         if (profile) {
@@ -292,36 +297,6 @@ const EnhancedHeader = () => {
                   {item.label}
                 </Button>
               ))}
-              
-              {user && (
-                <>
-                  <div className="border-t border-border my-2"></div>
-                  {(hasRole('player') || hasRole('team_admin')) && (
-                    <Button
-                      onClick={() => {
-                        navigate('/teams');
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full justify-start bg-primary hover:bg-primary/90"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Team
-                    </Button>
-                  )}
-                  {(hasRole('organiser') || hasRole('tournament_organizer')) && (
-                    <Button
-                      onClick={() => {
-                        navigate('/organiser/tournament');
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full justify-start bg-secondary hover:bg-secondary/90"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Tournament
-                    </Button>
-                  )}
-                </>
-              )}
             </div>
           </div>
         )}
