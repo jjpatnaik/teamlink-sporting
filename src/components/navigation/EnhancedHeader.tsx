@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotificationCount } from '@/hooks/useNotificationCount';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -30,6 +31,7 @@ const EnhancedHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile, signOut, hasRole } = useAuth();
+  const { notificationCount } = useNotificationCount();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -130,12 +132,14 @@ const EnhancedHeader = () => {
                   size="icon"
                   onClick={() => navigate('/connections')}
                   className="relative hover:bg-accent transition-colors duration-200"
-                  title="View notifications (redirects to connections for now)"
+                  title="View pending notifications"
                 >
                   <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-destructive text-destructive-foreground">
-                    3
-                  </Badge>
+                  {notificationCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-destructive text-destructive-foreground">
+                      {notificationCount}
+                    </Badge>
+                  )}
                 </Button>
 
                 {/* Create Actions */}
