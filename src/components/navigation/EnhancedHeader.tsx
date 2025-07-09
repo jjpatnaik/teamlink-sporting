@@ -103,24 +103,25 @@ const EnhancedHeader = () => {
                 ))}
               </nav>
 
-              {/* Search Bar - Desktop (Smaller) */}
-              <form onSubmit={handleSearch} className="hidden lg:flex items-center flex-1 max-w-xs ml-4">
-                <div className="relative w-full">
-                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 pr-3 py-1.5 h-8 w-full text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-              </form>
             </div>
           </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
+            {/* Desktop Search Bar - Small */}
+            <form onSubmit={handleSearch} className="hidden lg:flex items-center">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-7 pr-2 py-1 h-7 w-32 text-xs transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:w-40"
+                />
+              </div>
+            </form>
+
             {/* Mobile Search Button */}
             <Button
               variant="ghost"
