@@ -128,7 +128,9 @@ const EnhancedHeader = () => {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => navigate('/connections')}
                   className="relative hover:bg-accent transition-colors duration-200"
+                  title="View notifications (redirects to connections for now)"
                 >
                   <Bell className="h-5 w-5" />
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-destructive text-destructive-foreground">
