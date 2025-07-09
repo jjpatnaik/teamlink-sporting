@@ -13,7 +13,6 @@ const MobileBottomNav = () => {
   // Don't show bottom nav if user is not authenticated
   if (!user) return null;
 
-  const canAccessTeams = hasRole('player') || hasRole('team_admin');
   const canCreateTeams = hasRole('team_admin') || hasRole('player');
 
   const isActive = (path: string) => location.pathname === path;
@@ -21,7 +20,7 @@ const MobileBottomNav = () => {
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/search', icon: Search, label: 'Search' },
-    ...(canAccessTeams ? [{ path: '/teams', icon: Users, label: 'Teams' }] : []),
+    { path: '/teams', icon: Users, label: 'Teams' },
   ];
 
   return (

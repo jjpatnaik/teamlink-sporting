@@ -48,7 +48,6 @@ const UnifiedNavigation = () => {
     }
   };
 
-  const canAccessTeams = hasRole('player') || hasRole('team_admin');
   const canCreateTeams = hasRole('team_admin') || hasRole('player');
 
   return (
@@ -65,19 +64,15 @@ const UnifiedNavigation = () => {
           <span>Search</span>
         </Button>
 
-        {canAccessTeams && (
-          <Button variant="ghost" onClick={() => navigate("/teams")} className="flex items-center space-x-1">
-            <Users className="h-4 w-4" />
-            <span>Teams</span>
-          </Button>
-        )}
+        <Button variant="ghost" onClick={() => navigate("/teams")} className="flex items-center space-x-1">
+          <Users className="h-4 w-4" />
+          <span>Teams</span>
+        </Button>
 
-        {(hasRole('organiser') || hasRole('tournament_organizer')) && (
-          <Button variant="ghost" onClick={() => navigate("/organiser/tournament")} className="flex items-center space-x-1">
-            <Calendar className="h-4 w-4" />
-            <span>Tournaments</span>
-          </Button>
-        )}
+        <Button variant="ghost" onClick={() => navigate("/tournaments")} className="flex items-center space-x-1">
+          <Calendar className="h-4 w-4" />
+          <span>Tournaments</span>
+        </Button>
 
         {/* Create Button - Prominent CTA */}
         {canCreateTeams && (
@@ -121,18 +116,14 @@ const UnifiedNavigation = () => {
               <Search className="h-4 w-4" />
               <span>Search</span>
             </DropdownMenuItem>
-            {canAccessTeams && (
-              <DropdownMenuItem onClick={() => navigate("/teams")} className="flex items-center space-x-2 cursor-pointer">
-                <Users className="h-4 w-4" />
-                <span>My Teams</span>
-              </DropdownMenuItem>
-            )}
-            {(hasRole('organiser') || hasRole('tournament_organizer')) && (
-              <DropdownMenuItem onClick={() => navigate("/organiser/tournament")} className="flex items-center space-x-2 cursor-pointer">
-                <Calendar className="h-4 w-4" />
-                <span>My Tournaments</span>
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem onClick={() => navigate("/teams")} className="flex items-center space-x-2 cursor-pointer">
+              <Users className="h-4 w-4" />
+              <span>My Teams</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/tournaments")} className="flex items-center space-x-2 cursor-pointer">
+              <Calendar className="h-4 w-4" />
+              <span>Tournaments</span>
+            </DropdownMenuItem>
             {canCreateTeams && (
               <DropdownMenuItem onClick={() => navigate("/teams")} className="flex items-center space-x-2 cursor-pointer text-primary">
                 <Plus className="h-4 w-4" />
