@@ -112,12 +112,18 @@ const TournamentsList = () => {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Your Tournaments</h2>
+    <div className="space-y-6">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Your Tournaments</h2>
+          <p className="text-muted-foreground">Manage and track all your tournaments</p>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {tournaments.length} tournament{tournaments.length !== 1 ? 's' : ''} total
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {tournaments.map((tournament) => (
           <TournamentCard
             key={tournament.id}
