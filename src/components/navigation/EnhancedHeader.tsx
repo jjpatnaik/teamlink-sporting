@@ -80,8 +80,8 @@ const EnhancedHeader = () => {
             </span>
           </div>
 
-          {/* Central Container - Navigation + Search (75% width) */}
-          <div className="hidden md:flex items-center justify-center flex-1 max-w-[75%] mx-auto">
+          {/* Central Container - Navigation + Search (75% width, left-aligned) */}
+          <div className="hidden md:flex items-center justify-start flex-1 max-w-[75%]">
             <div className="flex items-center space-x-4 w-full max-w-4xl">
               {/* Desktop Navigation */}
               <nav className="flex items-center space-x-1">
