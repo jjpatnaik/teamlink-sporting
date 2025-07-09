@@ -80,38 +80,44 @@ const EnhancedHeader = () => {
             </span>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => (
-              <Button
-                key={item.path}
-                variant={isActive(item.path) ? "default" : "ghost"}
-                onClick={() => navigate(item.path)}
-                className={`flex items-center space-x-2 transition-all duration-200 ${
-                  isActive(item.path) 
-                    ? 'bg-primary text-primary-foreground shadow-sm' 
-                    : 'hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </Button>
-            ))}
-          </nav>
+          {/* Central Container - Navigation + Search (75% width) */}
+          <div className="hidden md:flex items-center justify-center flex-1 max-w-[75%] mx-auto">
+            <div className="flex items-center space-x-4 w-full max-w-4xl">
+              {/* Desktop Navigation */}
+              <nav className="flex items-center space-x-1">
+                {navigationItems.map((item) => (
+                  <Button
+                    key={item.path}
+                    variant={isActive(item.path) ? "default" : "ghost"}
+                    onClick={() => navigate(item.path)}
+                    size="sm"
+                    className={`flex items-center space-x-1.5 transition-all duration-200 ${
+                      isActive(item.path) 
+                        ? 'bg-primary text-primary-foreground shadow-sm' 
+                        : 'hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="text-sm">{item.label}</span>
+                  </Button>
+                ))}
+              </nav>
 
-          {/* Search Bar - Desktop */}
-          <form onSubmit={handleSearch} className="hidden lg:flex items-center space-x-2 max-w-md flex-1 mx-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search players, teams, tournaments..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 w-full transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-              />
+              {/* Search Bar - Desktop (Smaller) */}
+              <form onSubmit={handleSearch} className="hidden lg:flex items-center flex-1 max-w-xs ml-4">
+                <div className="relative w-full">
+                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 h-8 w-full text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </form>
             </div>
-          </form>
+          </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
