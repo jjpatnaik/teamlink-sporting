@@ -3,7 +3,6 @@ import React from 'react';
 import HeroSection from '@/components/HeroSection';
 import HowItWorks from '@/components/HowItWorks';
 import GetStartedCTA from '@/components/GetStartedCTA';
-import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
@@ -13,7 +12,6 @@ const Index = () => {
         <HowItWorks />
         <GetStartedCTA />
       </main>
-      <Footer />
     </div>
   );
 };
