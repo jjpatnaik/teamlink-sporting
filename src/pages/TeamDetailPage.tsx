@@ -4,11 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Users, Calendar, Trophy, MapPin, User } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Trophy, MapPin, User, UserPlus } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TeamManagementPanel from '@/components/team/TeamManagementPanel';
+import JoinRequestModal from '@/components/team/JoinRequestModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useTeamJoinRequests } from '@/hooks/useTeamJoinRequests';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -24,6 +26,7 @@ interface TeamDetails {
   created_at: string;
   member_count: number;
   user_role?: string;
+  has_pending_request?: boolean;
 }
 
 const TeamDetailPage = () => {
@@ -32,6 +35,8 @@ const TeamDetailPage = () => {
   const { user } = useAuth();
   const [team, setTeam] = useState<TeamDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const { createJoinRequest } = useTeamJoinRequests();
 
   useEffect(() => {
     console.log('TeamDetailPage: teamId from params:', teamId);
@@ -88,6 +93,7 @@ const TeamDetailPage = () => {
 
       // Get user's role in the team if authenticated
       let userRole = undefined;
+      let hasPendingRequest = false;
       if (user) {
         const { data: memberData } = await supabase
           .from('team_members')
@@ -97,6 +103,19 @@ const TeamDetailPage = () => {
           .single();
 
         userRole = memberData?.role;
+
+        // Check if user has a pending join request
+        if (!userRole) {
+          const { data: requestData } = await supabase
+            .from('team_join_requests')
+            .select('status')
+            .eq('team_id', teamId)
+            .eq('user_id', user.id)
+            .eq('status', 'pending')
+            .single();
+
+          hasPendingRequest = !!requestData;
+        }
       }
 
       const teamDetails: TeamDetails = {
@@ -110,7 +129,8 @@ const TeamDetailPage = () => {
         owner_id: teamData.owner_id,
         created_at: teamData.created_at,
         member_count: memberCount,
-        user_role: userRole
+        user_role: userRole,
+        has_pending_request: hasPendingRequest
       };
 
       console.log('TeamDetailPage: Final team details:', teamDetails);
@@ -121,6 +141,17 @@ const TeamDetailPage = () => {
       navigate('/teams');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleJoinRequest = async (message?: string) => {
+    if (!teamId) return;
+    
+    const success = await createJoinRequest(teamId, message);
+    if (success) {
+      setShowJoinModal(false);
+      // Refresh team details to update pending request status
+      fetchTeamDetails();
     }
   };
 
@@ -260,9 +291,26 @@ const TeamDetailPage = () => {
                     Team management features are available to team members only.
                   </p>
                   {user ? (
-                    <p className="text-sm text-gray-500">
-                      Contact a team member to request an invitation.
-                    </p>
+                    <div className="space-y-4">
+                      {team.has_pending_request ? (
+                        <div className="space-y-2">
+                          <Badge variant="outline" className="text-orange-600 border-orange-600">
+                            Request Pending
+                          </Badge>
+                          <p className="text-sm text-gray-500">
+                            Your join request is pending approval from the team.
+                          </p>
+                        </div>
+                      ) : (
+                        <Button 
+                          onClick={() => setShowJoinModal(true)}
+                          className="flex items-center gap-2"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          Request to Join Team
+                        </Button>
+                      )}
+                    </div>
                   ) : (
                     <Button onClick={() => navigate('/auth')}>
                       Sign In to Join Teams
@@ -276,6 +324,13 @@ const TeamDetailPage = () => {
       </main>
 
       <Footer />
+      
+      <JoinRequestModal
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        teamName={team?.name || ''}
+        onSubmit={handleJoinRequest}
+      />
     </div>
   );
 };
