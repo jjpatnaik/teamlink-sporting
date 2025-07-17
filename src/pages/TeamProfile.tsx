@@ -347,9 +347,10 @@ const TeamProfile = () => {
                     ) : (
                       <Button 
                         onClick={() => setShowJoinModal(true)}
+                        size="sm"
                         className="bg-sport-blue hover:bg-sport-blue/90 text-white"
                       >
-                        <UserPlus className="w-4 h-4 mr-2" />
+                        <UserPlus className="w-3 h-3 mr-1" />
                         Request to Join
                       </Button>
                     )}
