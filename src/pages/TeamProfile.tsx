@@ -306,7 +306,7 @@ const TeamProfile = () => {
               </div>
             </div>
             
-            <div className="flex flex-col md:flex-row justify-between">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
               <div>
                 <h1 className="text-3xl font-bold">{team.name}</h1>
                 <p className="text-xl text-sport-blue">{team.sport || 'Sports Team'}</p>
@@ -316,7 +316,7 @@ const TeamProfile = () => {
                 </div>
               </div>
               
-              <div className="mt-4 md:mt-0 flex space-x-2">
+              <div className="mt-4 md:mt-0 flex items-center space-x-2">
                 {canManageTeam() && (
                   <>
                     <Button 
