@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import PlayerInvitationModal from "@/components/team/PlayerInvitationModal";
+import JoinRequestModal from "@/components/team/JoinRequestModal";
 import TeamMembersList from "@/components/team/TeamMembersList";
 import TeamChatSection from "@/components/team/TeamChatSection";
 import TeamManagementPanel from "@/components/team/TeamManagementPanel";
 import TeamTournaments from "@/components/team/TeamTournaments";
 import { useTeamMembership } from "@/hooks/useTeamMembership";
+import { useTeamJoinRequests } from "@/hooks/useTeamJoinRequests";
 import { 
   Users,
   MapPin,
@@ -37,6 +40,7 @@ interface TeamData {
   owner_id: string;
   created_at: string;
   member_count: number;
+  has_pending_request?: boolean;
 }
 
 const TeamProfile = () => {
@@ -46,8 +50,12 @@ const TeamProfile = () => {
   const [team, setTeam] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInvitationModalOpen, setIsInvitationModalOpen] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [showManagementPanel, setShowManagementPanel] = useState(false);
+
+  // Join request functionality
+  const { createJoinRequest } = useTeamJoinRequests();
 
   // Use team membership hook
   const {
@@ -107,7 +115,8 @@ const TeamProfile = () => {
         memberCount = membersData?.length || 0;
       }
 
-      // Check current user's role in the team
+      // Check current user's role in the team and pending requests
+      let hasPendingRequest = false;
       if (user) {
         const { data: memberData, error: memberError } = await supabase
           .from('team_members')
@@ -118,6 +127,17 @@ const TeamProfile = () => {
 
         if (!memberError && memberData) {
           setUserRole(memberData.role);
+        } else {
+          // If not a member, check for pending join requests
+          const { data: requestData } = await supabase
+            .from('team_join_requests')
+            .select('status')
+            .eq('team_id', teamId)
+            .eq('user_id', user.id)
+            .eq('status', 'pending')
+            .single();
+
+          hasPendingRequest = !!requestData;
         }
       }
 
@@ -131,7 +151,8 @@ const TeamProfile = () => {
         introduction: teamData.introduction,
         owner_id: teamData.owner_id,
         created_at: teamData.created_at,
-        member_count: memberCount
+        member_count: memberCount,
+        has_pending_request: hasPendingRequest
       };
 
       console.log('TeamProfile: Team data loaded:', formattedTeam);
@@ -190,6 +211,17 @@ const TeamProfile = () => {
         refetchMembers(),
         fetchTeamData() // Refresh team data to update member count
       ]);
+    }
+  };
+
+  const handleJoinRequest = async (message?: string) => {
+    if (!teamId) return;
+    
+    const success = await createJoinRequest(teamId, message);
+    if (success) {
+      setShowJoinModal(false);
+      // Refresh team details to update pending request status
+      fetchTeamData();
     }
   };
 
@@ -304,6 +336,37 @@ const TeamProfile = () => {
                     </Button>
                   </>
                 )}
+                
+                {/* Join Request Button for Non-Members */}
+                {user && !userRole && (
+                  <div className="flex items-center space-x-2">
+                    {team.has_pending_request ? (
+                      <Badge variant="outline" className="text-orange-600 border-orange-600">
+                        Request Pending
+                      </Badge>
+                    ) : (
+                      <Button 
+                        onClick={() => setShowJoinModal(true)}
+                        className="bg-sport-blue hover:bg-sport-blue/90 text-white"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Request to Join
+                      </Button>
+                    )}
+                  </div>
+                )}
+                
+                {/* Show login prompt for non-authenticated users */}
+                {!user && (
+                  <Button 
+                    onClick={() => navigate('/auth')}
+                    variant="outline" 
+                    className="border-sport-blue text-sport-blue hover:bg-sport-soft-blue"
+                  >
+                    Sign In to Join
+                  </Button>
+                )}
+                
                 <Button variant="outline" className="border-sport-blue text-sport-blue hover:bg-sport-soft-blue">
                   Message
                 </Button>
@@ -421,6 +484,14 @@ const TeamProfile = () => {
         onClose={() => setIsInvitationModalOpen(false)}
         teamId={teamId || ''}
         teamName={team.name}
+      />
+
+      {/* Join Request Modal */}
+      <JoinRequestModal
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        teamName={team.name}
+        onSubmit={handleJoinRequest}
       />
     </div>
   );
